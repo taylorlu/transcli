@@ -1,0 +1,10 @@
+1.引入Dolby encoder的同文件及lib文件，注意需要把第三方库(Intel)的一些lib文件也要放到搜索路径，Dolby encoder依赖这些库。
+2.初始化输入输出参数
+  基本输出输入参数设置好后即可调用 ddpi_enc_open，打开编码器。
+3.Meta信息参数设置
+  由于编码的音频源于其他格式解码后的PCM数据，音频帧不带Meta信息，因此设置一些meta参数时仅在初始化时进行即可，不必编码每帧时设置。
+  Dolby encoder有70个左右参数，只把需要设置的参数名称及参数值放到一个数组，然后调用ddpi_enc_setparams进行设置。
+4.在编码循环中编码每一帧音频数据并输出结果至ES流文件、
+5.结束后关闭编码器。
+6.参考文件及代码：(1) ddp_proenc_devdoc_bitstreamparams.pdf
+                  (2) Dolby_Digital_Plus_Pro_System_Implementation_Kit_v6.0\Code\system_code\cli_frontend_simple

@@ -1,0 +1,10 @@
+1.增加对ec3后缀的处理，对应到E-AC3码流的解析。
+2.AC3和E-AC3每一帧都以SyncWord(0x0b 0x77)开头, 改进SyncWord搜索函数AC3_FindSyncCodeBS
+3.在gf_ac3_parser_bs里增加对E-AC3码流的解析(10<bsid<=16)
+  framesize的获取根据标准ETSI TS 102 366 V1.2.1，为：gf_bs_read_int(bs, 11)，但根据这个获取的不对，
+  根据FFMpeg的解析代码得知为：(gf_bs_read_int(bs, 11) + 1) << 1， 这个可以正确解析每一帧的大小。
+4.改进gf_import_ac3，增加对E-AC3码流的解析及导入SampleList。
+
+参考文档：ETSI TS 102 366 V1.2.1
+          ddp_i_devdoc_streamisobasefileformat.pdf
+          

@@ -1,0 +1,6 @@
+#ifndef __SVN_REVISION_H__
+#define __SVN_REVISION_H__
+#define SVN_REVISION "$WCREV$"
+#define SVN_DATE  "$WCDATE$"
+#define SVN_NOW  "$WCNOW$"
+#endif // __SVN_REVISION_H__

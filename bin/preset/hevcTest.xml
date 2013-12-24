@@ -1,0 +1,42 @@
+﻿<?xml version="1.0"?>
+<TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <source>
+    <audio stream="0" channel="both" />
+    <video stream="0" rectangle="{-1,-1,-1,-1}" />
+    <clip start="00:00:00.0" end="00:00:55.0"/>  
+  </source>
+  <target>
+    <mux format="mp4" />
+    <audio>
+      <codec format="aac" bitrate="48k" samplerate="44100" timeshift="0s" />
+	  <volgain mode="manual"/>
+    </audio>
+    <video>
+	  <rcmode>1</rcmode>
+      <codec format="hevc" bitrate="290k" rectangle="{0,0,480,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
+    </video>
+    <subtitle timeshift="0s">
+      <Files />
+    </subtitle>
+    <!--segment type="average" unit="time" postfix="index" size="40" threshold="1800" lastsegpercent="25"/-->
+    <!--logo>
+      <graph file="{E:\mplayer\testlogo.png}" interval="1000ms">
+        <Images />
+      </graph>
+      <show>
+	<relativepos corner="1" offsetx="20" offsety="20" />
+      </show>
+    </logo-->
+    <!--delogo>
+      <pos position="{62,33,120,113}" start="00:00:00" end="23:00:00" />
+    </delogo-->
+    <filter>
+      <color red="0%" blue="0%" green="0%" bright="0%" />
+      <noise depth="0" mask="0x0" />
+    </filter>
+    <additon>
+      <x264 option="-level=4.1,-fourcc=H.264" />
+      <mpga option="-level=base" />
+    </additon>
+  </target>
+</TranscodeArgsXml>

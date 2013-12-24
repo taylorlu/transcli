@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<TranscodeArgsXml>
+ <source>
+ <audio stream="0" channel="left" />
+ <video stream="1" crop="expand" rectangle="{-1,-1,-1,-1}" />
+ </source>
+ <target>
+ <mux format="3gp" />
+ <audio>
+  <codec format="amr" bitrate="7k" samplerate="8000" timeshift="0s" />
+  <volgain mode="manual"/>
+ </audio>
+ <video>
+   <rcmode>1</rcmode>
+   <codec format="h263" bitrate="55k" rectangle="{0,0,176,144}" position="{-1,-1,-1,-1}" nobigger="true" />
+   <dar>1.333</dar>
+   <fps>12</fps>
+   <keyint>5</keyint>
+ </video>
+
+ <filter>
+  <color red="+10%" bright="+50%" /> 
+  <noise depth="12" mask="8x8" />
+  <denoise mode="0" luma="4" chroma="3" temporal="6"/> 
+  <deinterlace mode="0" algorithm="0"/>
+ </filter>
+ <segment type="none" unit="time" size="40" postfix="index" threshold="0" lastsegpercent="20"/>
+ <addition>
+  <x264 option="-level=4.1,-profile=Baseline" />
+  <mpga option="-level=base" />
+ </addition>
+ </target>
+</TranscodeArgsXml>

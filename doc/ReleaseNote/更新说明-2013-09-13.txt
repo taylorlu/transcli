@@ -1,0 +1,4 @@
+更新(版本号 PPTV-2.1.1.60000)：
+1. 解决卡屏问题（BugId：EPG-817）, 修改了FFMpeg的libavcodec/h264_ps.c文件。
+2. 解决无效视频格式的转码崩溃问题。
+3. 增加功能：Transcli崩溃时优雅退出并保存Minidump。

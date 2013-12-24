@@ -1,0 +1,34 @@
+<?xml version="1.0" ?> 
+<transcode>
+  <source>
+    <audio stream="1" channel="both" />
+    <video stream="2" rectangle="{1,1,176,144}" /> 
+  </source>
+  <delogo position="{1, 1, 20, 20}"/>
+  <target>
+    <audio>
+      <codec format="aac" bitrate="48k" samplerate="24000" timeshift="1.5s" />
+    </audio>
+    <video>
+      <codec format="h264" bitrate="380k" rectangle="{1,1,176,144}" position="{10,10,166,134}" /> 
+    </video>
+    <subtitle timeshift="-0.5s" /> 
+    <logo>
+      <graph file="{logo0000.png,logo0005.png,logo0010.png}" interval="1000ms" /> 
+      <show>
+        <pos position="{5,5,60,60}" start="00:00:00" end="00:00:20" /> 
+        <pos position="{585,5,640,60}" start="00:00:20" end="00:00:50" /> 
+        <pos position="{5,5,60,60}" start="00:00:50" end="00:02:00" /> 
+      </show>
+    </logo>
+    <filter>
+      <color red="+10%" bright="+50%" /> 
+      <noise depth="12" mask="8x8" /> 
+    </filter>
+    <mux format="flv" />
+    <additon>
+      <x264 option="-level=4.1,-fourcc=H.264" />
+      <mpga option="-level=base" />
+    </additon>
+  </target>
+</transcode>

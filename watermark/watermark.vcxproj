@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3274281F-D2B4-46E4-9D39-99EF7F508B97}</ProjectGuid>
+    <RootNamespace>watermark</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;WATERMARK_EXPORTS;cimg_display=0;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zlib1.lib;ws2_32.lib;common.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)bin\frameproc.dll</OutputFile>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(SolutionDir)bin\$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(SolutionDir)lib\frameproc.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;$(SolutionDir)common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;WATERMARK_EXPORTS;cimg_display=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>zlib1.lib;ws2_32.lib;common.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)bin\frameproc.dll</OutputFile>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(SolutionDir)bin\$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ImportLibrary>$(SolutionDir)lib\frameproc.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+      <Profile>true</Profile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
+    </ClCompile>
+    <ClCompile Include="ImageSrc.cpp" />
+    <ClCompile Include="ThumbnailFilter.cpp" />
+    <ClCompile Include="VideoPreview.cpp" />
+    <ClCompile Include="WaterMarkFilter.cpp" />
+    <ClCompile Include="cimg\jcapimin.c" />
+    <ClCompile Include="cimg\jcapistd.c" />
+    <ClCompile Include="cimg\jccoefct.c" />
+    <ClCompile Include="cimg\jccolor.c" />
+    <ClCompile Include="cimg\jcdctmgr.c" />
+    <ClCompile Include="cimg\jchuff.c" />
+    <ClCompile Include="cimg\jcinit.c" />
+    <ClCompile Include="cimg\jcmainct.c" />
+    <ClCompile Include="cimg\jcmarker.c" />
+    <ClCompile Include="cimg\jcmaster.c" />
+    <ClCompile Include="cimg\jcomapi.c" />
+    <ClCompile Include="cimg\jcparam.c" />
+    <ClCompile Include="cimg\jcphuff.c" />
+    <ClCompile Include="cimg\jcprepct.c" />
+    <ClCompile Include="cimg\jcsample.c" />
+    <ClCompile Include="cimg\jctrans.c" />
+    <ClCompile Include="cimg\jdapimin.c" />
+    <ClCompile Include="cimg\jdapistd.c" />
+    <ClCompile Include="cimg\jdatadst.c" />
+    <ClCompile Include="cimg\jdatasrc.c" />
+    <ClCompile Include="cimg\jdcoefct.c" />
+    <ClCompile Include="cimg\jdcolor.c" />
+    <ClCompile Include="cimg\jddctmgr.c" />
+    <ClCompile Include="cimg\jdhuff.c" />
+    <ClCompile Include="cimg\jdinput.c" />
+    <ClCompile Include="cimg\jdmainct.c" />
+    <ClCompile Include="cimg\jdmarker.c" />
+    <ClCompile Include="cimg\jdmaster.c" />
+    <ClCompile Include="cimg\jdmerge.c" />
+    <ClCompile Include="cimg\jdphuff.c" />
+    <ClCompile Include="cimg\jdpostct.c" />
+    <ClCompile Include="cimg\jdsample.c" />
+    <ClCompile Include="cimg\jdtrans.c" />
+    <ClCompile Include="cimg\jerror.c" />
+    <ClCompile Include="cimg\jfdctflt.c" />
+    <ClCompile Include="cimg\jfdctfst.c" />
+    <ClCompile Include="cimg\jfdctint.c" />
+    <ClCompile Include="cimg\jidctflt.c" />
+    <ClCompile Include="cimg\jidctfst.c" />
+    <ClCompile Include="cimg\jidctint.c" />
+    <ClCompile Include="cimg\jidctred.c" />
+    <ClCompile Include="cimg\jmemansi.c" />
+    <ClCompile Include="cimg\jmemmgr.c" />
+    <ClCompile Include="cimg\jquant1.c" />
+    <ClCompile Include="cimg\jquant2.c" />
+    <ClCompile Include="cimg\jutils.c" />
+    <ClCompile Include="cimg\png.c" />
+    <ClCompile Include="cimg\pngerror.c" />
+    <ClCompile Include="cimg\pnggccrd.c" />
+    <ClCompile Include="cimg\pngget.c" />
+    <ClCompile Include="cimg\pngmem.c" />
+    <ClCompile Include="cimg\pngpread.c" />
+    <ClCompile Include="cimg\pngread.c" />
+    <ClCompile Include="cimg\pngrio.c" />
+    <ClCompile Include="cimg\pngrtran.c" />
+    <ClCompile Include="cimg\pngrutil.c" />
+    <ClCompile Include="cimg\pngset.c" />
+    <ClCompile Include="cimg\pngtrans.c" />
+    <ClCompile Include="cimg\pngvcrd.c" />
+    <ClCompile Include="cimg\pngwio.c" />
+    <ClCompile Include="cimg\pngwrite.c" />
+    <ClCompile Include="cimg\pngwtran.c" />
+    <ClCompile Include="cimg\pngwutil.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ImageSrc.h" />
+    <ClInclude Include="ThumbnailFilter.h" />
+    <ClInclude Include="VideoPreview.h" />
+    <ClInclude Include="watermakermacro.h" />
+    <ClInclude Include="WaterMarkFilter.h" />
+    <ClInclude Include="cimg\CImg.h" />
+    <ClInclude Include="cimg\jchuff.h" />
+    <ClInclude Include="cimg\jconfig.h" />
+    <ClInclude Include="cimg\jdct.h" />
+    <ClInclude Include="cimg\jdhuff.h" />
+    <ClInclude Include="cimg\jerror.h" />
+    <ClInclude Include="cimg\jinclude.h" />
+    <ClInclude Include="cimg\jmemsys.h" />
+    <ClInclude Include="cimg\jmorecfg.h" />
+    <ClInclude Include="cimg\jpegint.h" />
+    <ClInclude Include="cimg\jpeglib.h" />
+    <ClInclude Include="cimg\jversion.h" />
+    <ClInclude Include="cimg\png.h" />
+    <ClInclude Include="cimg\pngconf.h" />
+    <ClInclude Include="cimg\zconf.h" />
+    <ClInclude Include="cimg\zlib.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

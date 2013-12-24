@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<TranscodeArgsXml>
+ <source>
+ <type>2</type>
+ <audio stream="0" channel="mix" />
+ <clip start="00:18:29.0" end="00:39:24.0"/>
+  <video stream="0" rectangle="{0,0.126,1,0.874}"  crop="manual" />
+ </source>
+ <target>
+ <mux format="mp4" />
+<thumbnail start="5" end="0" interval="6" row="10" col="10" width="180" height="0" type="2" count="0" quality="85" stitch="true" pack="true" optimize="true"/>
+ <audio>
+  <codec format="aac" bitrate="48k" samplerate="44100" timeshift="0s" />
+  <!--volgain mode="manual"/-->
+ </audio>
+ <video>
+    <rcmode>1</rcmode>
+     <codec format="h264" bitrate="290k" rectangle="{0,0,480,-1}"
+  position="{-1,-1,-1,-1}" nobigger="true" />
+   </video>
+ <subtitle timeshift="0s">
+  <Files />
+ </subtitle>
+ <filter>
+  <color red="+10%" bright="+50%" /> 
+  <noise depth="12" mask="8x8" />
+  <denoise mode="0" luma="4" chroma="3" temporal="6"/> 
+  <deinterlace mode="0" algorithm="0"/>
+ </filter>
+ <addition>
+  <x264 option="-level=4.1,-fourcc=H.264" />
+  <mpga option="-level=base" />
+ </addition>
+ </target>
+</TranscodeArgsXml>

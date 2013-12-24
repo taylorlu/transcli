@@ -1,0 +1,7 @@
+更新(版本号 PPTV-2.1.1.59900)：
+1. 增加临时文件夹功能。
+2. Mp4box 混流失败，会重试一次。
+
+新增命令行参数：-z 用于指定临时目录
+示例如下：transcli.exe -i "F:\video\KalaOk.ts" -O "f:\test" -p ".\preset\normal.xml" -z "e:\temp"
+如果不指定 -z, 程序会在Transcli的目录下创建临时目录"temp", 供程序使用

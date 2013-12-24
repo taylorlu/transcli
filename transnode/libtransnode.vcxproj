@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{6F2E80B5-656D-4924-BA40-CA617CDE55F0}</ProjectGuid>
+    <RootNamespace>StreamAdapter</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)lib\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\$(Configuration)\</IntDir>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>.;$(solutionDir)/include;$(SolutionDir)httpd;$(SolutionDir)libxmlrpc\src;$(SolutionDir)common;$(SolutionDir)faac\include;$(SolutionDir)ffmpeg;$(SolutionDir)watermark;$(SolutionDir)strpro;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;HAVE_MMX;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;STRPRO_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>libmp3lame.lib;xvidcore.lib;frameproc.lib;libsamplerate.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;$(solutionDir)/include;$(SolutionDir)httpd;$(SolutionDir)strpro;$(SolutionDir)common;$(SolutionDir)libxmlrpc\src;$(SolutionDir)faac\include;$(SolutionDir)ffmpeg;$(SolutionDir)watermark;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;HAVE_MMX;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;STRPRO_STATIC;DEBUG_EXTERNAL_CMD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>libmp3lame.lib;xvidcore.lib;libsamplerate.lib;frameproc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AudioEncode.cpp" />
+    <ClCompile Include="AudioResampler.cpp" />
+    <ClCompile Include="AVEncoder.cpp" />
+    <ClCompile Include="CEac3Encode.cpp" />
+    <ClCompile Include="CLIEncoder.cpp" />
+    <ClCompile Include="CX264Encode.cpp" />
+    <ClCompile Include="CX265Encode.cpp" />
+    <ClCompile Include="Decoder.cpp" />
+    <ClCompile Include="DecoderAVS.cpp" />
+    <ClCompile Include="DecoderCopy.cpp" />
+    <ClCompile Include="DecoderFFMpeg.cpp" />
+    <ClCompile Include="DecoderMencoder.cpp" />
+    <ClCompile Include="DecoderMplayer.cpp" />
+    <ClCompile Include="DecoderVLC.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="DshowUtils.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="encoderCommon.cpp" />
+    <ClCompile Include="FaacEncode.cpp" />
+    <ClCompile Include="FFMpegAVEncoder.cpp" />
+    <ClCompile Include="FileQueue.cpp" />
+    <ClCompile Include="MediaSplitter.cpp" />
+    <ClCompile Include="Mp3Encode.cpp" />
+    <ClCompile Include="muxers.cpp" />
+    <ClCompile Include="StreamOutput.cpp" />
+    <ClCompile Include="TransnodeUtils.cpp" />
+    <ClCompile Include="TransWorker.cpp" />
+    <ClCompile Include="TransWorkerSeperate.cpp" />
+    <ClCompile Include="VideoEncode.cpp" />
+    <ClCompile Include="videoEnhancer.cpp" />
+    <ClCompile Include="WorkManager.cpp" />
+    <ClCompile Include="XvidEncode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AudioEncode.h" />
+    <ClInclude Include="AudioResampler.h" />
+    <ClInclude Include="AVEncoder.h" />
+    <ClInclude Include="CEac3Encode.h" />
+    <ClInclude Include="CLIEncoder.h" />
+    <ClInclude Include="CX264Encode.h" />
+    <ClInclude Include="CX265Encode.h" />
+    <ClInclude Include="Decoder.h" />
+    <ClInclude Include="DecoderAVS.h" />
+    <ClInclude Include="DecoderCopy.h" />
+    <ClInclude Include="DecoderFFMpeg.h" />
+    <ClInclude Include="DecoderMencoder.h" />
+    <ClInclude Include="DecoderMplayer.h" />
+    <ClInclude Include="DecoderVLC.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="DshowUtils.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="encoderCommon.h" />
+    <ClInclude Include="FaacEncode.h" />
+    <ClInclude Include="FFMpegAVEncoder.h" />
+    <ClInclude Include="FileQueue.h" />
+    <ClInclude Include="MediaSplitter.h" />
+    <ClInclude Include="..\common\MEvaluater.h" />
+    <ClInclude Include="Mp3Encode.h" />
+    <ClInclude Include="muxers.h" />
+    <ClInclude Include="StreamOutput.h" />
+    <ClInclude Include="TransnodeUtils.h" />
+    <ClInclude Include="TransWorker.h" />
+    <ClInclude Include="TransWorkerSeperate.h" />
+    <ClInclude Include="VideoEncode.h" />
+    <ClInclude Include="videoEnhancer.h" />
+    <ClInclude Include="WorkManager.h" />
+    <ClInclude Include="XvidEncode.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.vcxproj">
+      <Project>{3730ee8e-2b84-4476-9864-a33cd59cb5b3}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\httpd\httpd.vcxproj">
+      <Project>{06e5025d-53d7-4b39-8d4c-d06e39a3023a}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\libsamplerate\libsamplerate.vcxproj">
+      <Project>{3dddcaa9-276d-4fc3-a15c-485f7b9b24cc}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\strpro\StrPro.vcxproj">
+      <Project>{6628c2b8-0e99-422b-a3cd-a5442a548c05}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\xvidcore\build\win32\libxvidcore.vcxproj">
+      <Project>{64954a96-c813-4a92-87ad-dd733a5404af}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
