@@ -6,7 +6,7 @@
 #include "StreamOutput.h"
 
 #if defined(WIN32) && defined(HAVE_GPL)
-#pragma comment(lib,"libfaac.lib")
+//#pragma comment(lib,"faac.lib")
 #endif
 
 CFaacEncode::CFaacEncode(const char* outFileName) : CAudioEncoder(outFileName), m_hEncoder(NULL),

@@ -350,7 +350,7 @@ filterButter(const Float_t* input, Float_t* output, size_t nSamples, const Float
 // returns a INIT_GAIN_ANALYSIS_OK if successful, INIT_GAIN_ANALYSIS_ERROR if not
 
 int
-ResetSampleFrequency (void* gainContext, long samplefreq ) {
+zmlResetSampleFrequency (void* gainContext, long samplefreq ) {
     rg_context* rg = (rg_context*)gainContext;
 	int  i;
     // zero out initial values
@@ -388,7 +388,7 @@ ResetSampleFrequency (void* gainContext, long samplefreq ) {
 }
 
 int
-InitGainAnalysis (void* gainContext, long samplefreq)
+zmlInitGainAnalysis (void* gainContext, long samplefreq)
 {
 	rg_context* rg = (rg_context*)gainContext;
     if (ResetSampleFrequency(gainContext,samplefreq) != INIT_GAIN_ANALYSIS_OK) {
@@ -414,7 +414,7 @@ static __inline double fsqr(const double d)
 }
 
 int
-AnalyzeSamples (void* gainContext, const Float_t* left_samples, const Float_t* right_samples, size_t num_samples, int num_channels )
+zmlAnalyzeSamples (void* gainContext, const Float_t* left_samples, const Float_t* right_samples, size_t num_samples, int num_channels )
 {
 	rg_context* rg = (rg_context*)gainContext;
     const Float_t*  curleft;
@@ -653,7 +653,7 @@ analyzeResult ( Uint32_t* Array, size_t len )
 
 
 Float_t
-GetTitleGain (void* gainContext)
+zmlGetTitleGain (void* gainContext)
 {
 	rg_context* rg = (rg_context*)gainContext;
     Float_t  retval;
@@ -680,19 +680,19 @@ GetTitleGain (void* gainContext)
 
 
 Float_t
-GetAlbumGain (void* gainContext)
+zmlGetAlbumGain (void* gainContext)
 {
 	rg_context* rg = (rg_context*)gainContext;
     return analyzeResult ( rg->B, sizeof(rg->B)/sizeof(*(rg->B)) );
 }
 
 void*
-CreateGainContext()
+zmlCreateGainContext()
 {
 	return malloc(sizeof(rg_context));
 }
 
-void  FreeGainContext(void* gainContext)
+void  zmlFreeGainContext(void* gainContext)
 {
 	free(gainContext);
 }

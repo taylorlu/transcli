@@ -2,7 +2,7 @@
 #define _EAC3_ENCODE_H_
 
 #include "AudioEncode.h"
-#include "eac3\enc_api.h"
+#include "eac3/enc_api.h"
 
 #define MAX_IN_CHANNELS 6
 #define NUM_SAMPLES 1536 /* Samples per frame */

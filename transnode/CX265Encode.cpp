@@ -8,7 +8,7 @@
 #include <sstream>
 
 #ifdef _WIN32
-#pragma comment(lib,"libx265.lib")
+//#pragma comment(lib,"libx265.lib")
 //#pragma comment(lib,"assembly.lib")
 #else
 #define SetConsoleTitle(t)

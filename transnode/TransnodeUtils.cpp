@@ -71,7 +71,7 @@ bool CTransnodeUtils::InitVideoFilter(const char* vfdllPath)
 	if (vfdllPath == NULL || *vfdllPath == '\0') return false;
 
 	if(m_hDllVf) return true;	// Prevent duplicate init
-	m_hDllVf = LoadLibrary(vfdllPath);
+    m_hDllVf = LoadLibraryA(vfdllPath);
 
 	if (m_hDllVf == NULL) {
 		logger_err(LOGM_TS_WM, "Video Filter %s can no be loaded.\n", vfdllPath);

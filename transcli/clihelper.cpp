@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 
 #include "clihelper.h"
 #include "logger.h"
@@ -222,7 +222,7 @@ int QuickScreenshot(const char *video_file, const char *out_dir, long start_pos,
 			_snprintf(in_file, MAX_PATH, "shot%04d.png", i+1);
 			_snprintf(out_file, MAX_PATH, "%s%c%s", out_dir, PATH_DELIMITER, in_file);
 			::remove(out_file);
-			MoveFile(in_file, out_file);
+            TsMoveFile(in_file, out_file);
 		}
 	}
 

@@ -38,7 +38,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #if defined(HAVE_GPL)
 #define HAVE_LIBX264 1
-//#define HAVE_LIBX265 1
+#define HAVE_LIBX265 1
 #define HAVE_LIBFAAC 1
 #define HAVE_LIBEAC3 1
 #else

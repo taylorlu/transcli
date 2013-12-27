@@ -70,7 +70,7 @@ bool FolderExist(const char* folderPath)
 {
 	if(!folderPath) return false;
 #ifdef WIN32
-	DWORD dwAttributes = GetFileAttributes(folderPath);
+    DWORD dwAttributes = GetFileAttributesA(folderPath);
 	if(dwAttributes == 0xFFFFFFFF) {
 		return false;
 	}
@@ -402,7 +402,7 @@ bool  RemoveFile(const char* filePath)
 {
 	if(!filePath) return false;
 #ifdef WIN32
-	return (::DeleteFile(filePath) == TRUE);
+    return (::DeleteFileA(filePath) == TRUE);
 #else
 	return (::remove(filePath) == 0);
 #endif
@@ -420,7 +420,7 @@ bool  TsMoveFile(const char* srcFile, const char* destFile)
 	}
 
 #ifdef WIN32
-	return (::MoveFile(srcFile, destFile) == TRUE);
+    return (::MoveFileA(srcFile, destFile) == TRUE);
 #else
 	return (::rename(srcFile, destFile) == 0);
 #endif
@@ -978,7 +978,7 @@ int64_t GetFreeSpaceKb(const char* filePath)
 			const char* forthSlash = strchr(thirdSlash+1, '\\');
 			char sharePath[MAX_PATH] = {0};
 			strncpy(sharePath, filePath, forthSlash-filePath+1);
-			BOOL bRet = GetDiskFreeSpaceEx(sharePath, &nFreeBytesAvailable, &nTotalNumberOfBytes, &nTotalNumberOfFreeBytes);
+            BOOL bRet = GetDiskFreeSpaceExA(sharePath, &nFreeBytesAvailable, &nTotalNumberOfBytes, &nTotalNumberOfFreeBytes);
 			if(!bRet) {
 				LPVOID errMsg = GetLastErrorMsg();
 				logger_err(LOGM_UTIL_UTIL, "GetDiskFreeSpaceEx failed: %s\n", (char*)errMsg);
@@ -991,7 +991,7 @@ int64_t GetFreeSpaceKb(const char* filePath)
 		if(filePath[1] == ':') {
 			char drivePath[3] = {0};
 			strncpy(drivePath, filePath, 3);
-			BOOL bRet = GetDiskFreeSpaceEx(drivePath, &nFreeBytesAvailable, &nTotalNumberOfBytes, &nTotalNumberOfFreeBytes);
+            BOOL bRet = GetDiskFreeSpaceExA(drivePath, &nFreeBytesAvailable, &nTotalNumberOfBytes, &nTotalNumberOfFreeBytes);
 			if(!bRet) {
 				LPVOID errMsg = GetLastErrorMsg();
 				logger_err(LOGM_UTIL_UTIL, "GetDiskFreeSpaceEx failed: %s\n", (char*)errMsg);

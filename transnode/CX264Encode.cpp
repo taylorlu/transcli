@@ -8,7 +8,7 @@
 #ifdef _WIN32
 //#include <windows.h>
 //#pragma comment(lib,"pthreadVC2.lib")
-#pragma comment(lib,"libx264.lib")
+//#pragma comment(lib,"libx264.lib")
 #else
 #define SetConsoleTitle(t)
 #endif
@@ -820,7 +820,7 @@ bool CX264Encode::Stop()
 			if(m_encodePass == 2) {		// Backup pass1 log
 				if(m_pXmlPrefs->GetBoolean("videoenc.x264.backup1passLog")) {
 					std::string backupFile = m_destFileName + ".psnr_pass1.txt";
-					CopyFile(psnrFile.c_str(), backupFile.c_str(), TRUE);
+                    CopyFileA(psnrFile.c_str(), backupFile.c_str(), TRUE);
 				}
 			} else {	// Remove Qp log file after done
 				if(m_pXmlPrefs->GetBoolean("videoenc.x264.removeQpLog")) {

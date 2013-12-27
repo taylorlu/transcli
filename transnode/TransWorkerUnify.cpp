@@ -157,7 +157,7 @@ bool CTransWorkerUnify::SetPreset(CXMLPref* pAudioPref, CXMLPref* pVideoPref, CX
 	}
 	
 	const char* srcFile = m_streamFiles.GetFirstSrcFile();
-	const char* trackTitle = m_streamFiles.GetTrackTitle();
+    const char* trackTitle = NULL; //m_streamFiles.GetTrackTitle();
 	if(srcFile && (strstr(srcFile, "dvd://") || strstr(srcFile, "vcd://")) && 
 		trackTitle && *trackTitle != '\0') {		// it's dvd/vcd track
 		srcFile = trackTitle;
@@ -334,7 +334,7 @@ bool CTransWorkerUnify::ParseSetting()
 		const char* inputUrl = m_pRootPref->GetUrl();
 		const char* tempdir = m_pRootPref->GetTempDir();
 		const char* subtitleFile = m_pRootPref->GetSubTitle();
-		const char* trackTitle = m_pRootPref->GetTrackName();
+        const char* trackTitle = NULL;//m_pRootPref->GetTrackName();
 		
 		// Set several source files
 		if(inputUrl && *inputUrl != '\0') {
@@ -356,7 +356,7 @@ bool CTransWorkerUnify::ParseSetting()
         m_streamFiles.SetWorkerId(GetId());
 		m_streamFiles.SetTempDir(tempdir);
 		if(subtitleFile && *subtitleFile != '\0') m_streamFiles.SetSubTitleFile(subtitleFile);
-		if(trackTitle && *trackTitle != '\0') m_streamFiles.SetTrackTitle(trackTitle);
+        //if(trackTitle && *trackTitle != '\0') m_streamFiles.SetTrackTitle(trackTitle);
 		
 		CXMLPref* audioPref = NULL;
 		if(pStreamPref->GetAudioCount() > 0) audioPref = pStreamPref->GetAudioPrefs(0);
@@ -370,7 +370,7 @@ bool CTransWorkerUnify::ParseSetting()
 		}
 
 		// Parse media info and get duration
-		StrPro::CXML* pMediaPref = m_pRootPref->GetMediaInfoNode();
+        //StrPro::CXML* pMediaPref = m_pRootPref->GetMediaInfoNode();
 
 		if (pMediaPref != NULL) {
 			if(m_tmpBenchData.mainDur <= 0) {

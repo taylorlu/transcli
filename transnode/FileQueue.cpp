@@ -143,7 +143,7 @@ void CFileQueue::RenameX264StatFile()
 				if(TsMoveFile(tmpFile.c_str(), curfile.c_str())) {
 					logger_info(LOGM_TS_FQ, "Rename x264 stat file success!\n");
 				} else {
-					if(!CopyFile(tmpFile.c_str(), curfile.c_str(), TRUE)) {
+                    if(!CopyFileA(tmpFile.c_str(), curfile.c_str(), TRUE)) {
 						logger_err(LOGM_TS_FQ, "Rename or copy x264 stat file failed!\n");
 					}
 				}

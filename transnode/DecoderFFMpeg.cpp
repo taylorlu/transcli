@@ -597,7 +597,7 @@ std::string CDecoderFFMpeg::GenTextSubOptions(const char* mediaFile, std::string
 			const char* srcCode = StrPro::CCharset::DetectCharset(subFile.c_str());
 			// If src encoding equal to dst encoding, just copy file
 			if(srcCode && dstCode && !strcmp(srcCode, dstCode)) {	
-				CopyFile(subFile.c_str(), tmpSub.c_str(), FALSE);
+                CopyFileA(subFile.c_str(), tmpSub.c_str(), FALSE);
 			} else {
 				if(srcCode && !strcmp(srcCode, "ANSI")) {
 					srcCode = "\"\"";

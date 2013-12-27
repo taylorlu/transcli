@@ -107,7 +107,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)lib</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\</IntDir>
@@ -115,7 +115,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">$(ProjectDir)$(Configuration)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">$(SolutionDir)lib</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">$(Configuration)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">$(Platform)\$(Configuration)\</IntDir>
@@ -147,6 +147,8 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">lame</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">lame</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -189,6 +191,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>copy configMS.h config.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -206,7 +211,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>../include;../;../mpglib;./;./vector;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include;../;./;./vector;../mpglib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;HAVE_MPGLIB;WIN32;HAVE_CONFIG_H;_CRT_SECURE_NO_DEPRECATE;HAVE_NASM;MMX_choose_table;USE_FFTSSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -261,6 +266,14 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\mpglib\common.c" />
+    <ClCompile Include="..\mpglib\dct64_i386.c" />
+    <ClCompile Include="..\mpglib\decode_i386.c" />
+    <ClCompile Include="..\mpglib\interface.c" />
+    <ClCompile Include="..\mpglib\layer1.c" />
+    <ClCompile Include="..\mpglib\layer2.c" />
+    <ClCompile Include="..\mpglib\layer3.c" />
+    <ClCompile Include="..\mpglib\tabinit.c" />
     <ClCompile Include="bitstream.c" />
     <ClCompile Include="encoder.c" />
     <ClCompile Include="fft.c" />
@@ -285,40 +298,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bitstream.h" />
-    <CustomBuild Include="..\configMS.h">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug GTK|Win32'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GTK|Win32'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GTK|Win32'">..\config.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug GTK|x64'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug GTK|x64'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug GTK|x64'">..\config.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\config.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\config.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">..\config.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">..\config.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\config.h;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy configMS.h -&gt; config.h</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy ..\configMS.h ..\config.h
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\config.h;%(Outputs)</Outputs>
-    </CustomBuild>
     <ClInclude Include="encoder.h" />
     <ClInclude Include="fft.h" />
     <ClInclude Include="gain_analysis.h" />
@@ -341,51 +320,6 @@
     <ClInclude Include="VbrTag.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="..\include\lame.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="i386\choose_table.nas">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">Assembling %(Filename)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">nasmw  -f win32 -i  %(RootDir)%(Directory) -DWIN32  %(RootDir)%(Directory)%(Filename).nas
-move %(RootDir)%(Directory)%(Filename).obj  "$(OutDir)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">Assembling %(Filename)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">nasmw  -f win32 -i  %(RootDir)%(Directory) -DWIN32  %(RootDir)%(Directory)%(Filename).nas
-move %(RootDir)%(Directory)%(Filename).obj  "$(OutDir)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="i386\cpu_feat.nas">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">Assembling %(Filename)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">nasmw  -f win32 -i  %(RootDir)%(Directory) -DWIN32  %(RootDir)%(Directory)%(Filename).nas
-move %(RootDir)%(Directory)%(Filename).obj  "$(OutDir)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">Assembling %(Filename)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">nasmw  -f win32 -i  %(RootDir)%(Directory) -DWIN32  %(RootDir)%(Directory)%(Filename).nas
-move %(RootDir)%(Directory)%(Filename).obj  "$(OutDir)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="i386\fft3dn.nas">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">Assembling %(Filename)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">nasmw  -f win32 -i  %(RootDir)%(Directory) -DWIN32  %(RootDir)%(Directory)%(Filename).nas
-move %(RootDir)%(Directory)%(Filename).obj  "$(OutDir)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">Assembling %(Filename)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">nasmw  -f win32 -i  %(RootDir)%(Directory) -DWIN32  %(RootDir)%(Directory)%(Filename).nas
-move %(RootDir)%(Directory)%(Filename).obj  "$(OutDir)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|x64'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="i386\fftsse.nas">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">Assembling %(Filename)...</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">nasmw  -f win32 -i  %(RootDir)%(Directory) -DWIN32  %(RootDir)%(Directory)%(Filename).nas
-move %(RootDir)%(Directory)%(Filename).obj  "$(OutDir)"
-</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release NASM|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
-    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

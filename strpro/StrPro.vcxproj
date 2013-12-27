@@ -47,6 +47,7 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">strpro</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
@@ -103,8 +104,8 @@ xcopy /d /y StrHelper.h $(SolutionDir)\include\StrPro\
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>libxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(SolutionDir)lib/$(ProjectName).lib</OutputFile>
+      <AdditionalDependencies>xml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Lib>
@@ -130,7 +131,6 @@ xcopy /d /y StrHelper.h $(SolutionDir)\include\StrPro\
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</CompileAsManaged>
     </ClCompile>
     <ClCompile Include="StrHelper.cpp" />
-    <ClCompile Include="StrPro.cpp" />
     <ClCompile Include="tinyXml\tinystr.cpp" />
     <ClCompile Include="tinyXml\tinyxml.cpp" />
     <ClCompile Include="tinyXml\tinyxmlerror.cpp" />
@@ -140,7 +140,6 @@ xcopy /d /y StrHelper.h $(SolutionDir)\include\StrPro\
     <ClCompile Include="xmlaccessorTiny.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="_iconv.h" />
     <ClInclude Include="charset.h" />
     <ClInclude Include="StrHelper.h" />
     <ClInclude Include="StrProInc.h" />

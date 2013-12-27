@@ -1,4 +1,4 @@
-#include <stdlib.h>
+ï»¿#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
@@ -105,17 +105,17 @@ void dump_handler(int signo)
 #pragma comment(lib, "DbgHelp.lib")
 void CreateDumpFile(const char* dumpFilePathName, EXCEPTION_POINTERS *pException)  
 {  
-    // ´´½¨DumpÎÄ¼þ  
-    HANDLE hDumpFile = CreateFile(dumpFilePathName, GENERIC_WRITE, 0, NULL,
+    // åˆ›å»ºDumpæ–‡ä»¶  
+    HANDLE hDumpFile = CreateFileA(dumpFilePathName, GENERIC_WRITE, 0, NULL,
 		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);  
   
-    // DumpÐÅÏ¢  
+    // Dumpä¿¡æ¯  
     MINIDUMP_EXCEPTION_INFORMATION dumpInfo;  
     dumpInfo.ExceptionPointers = pException;  
     dumpInfo.ThreadId = GetCurrentThreadId();  
     dumpInfo.ClientPointers = TRUE;  
   
-    // Ð´ÈëDumpÎÄ¼þÄÚÈÝ  
+    // å†™å…¥Dumpæ–‡ä»¶å†…å®¹  
     MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDumpFile, 
 		MiniDumpNormal, &dumpInfo, NULL, NULL);  
   
@@ -355,7 +355,7 @@ int main( int argc, char **argv )
 	logger_set_verbose(i_verbose);
 
 	if (GetAppDir(curDir, MAX_PATH) > 0) {
-		SetCurrentDirectory(curDir);
+        SetCurrentDirectoryA(curDir);
 	}
 
 	// If not set temp dir, create it in transcli folder

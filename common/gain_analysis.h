@@ -40,13 +40,13 @@ extern "C" {
 #endif
 
 typedef double  Float_t;         // Type used for filtering
-void*   CreateGainContext();
-void    FreeGainContext(void* gainContext);
-int     InitGainAnalysis (void* gainContext, long samplefreq);
-int     AnalyzeSamples   (void* gainContext, const Float_t* left_samples, const Float_t* right_samples, size_t num_samples, int num_channels );
-int		ResetSampleFrequency (void* gainContext, long samplefreq );
-Float_t   GetTitleGain     (void* gainContext);
-Float_t   GetAlbumGain     (void* gainContext);
+void*   zmlCreateGainContext();
+void    zmlFreeGainContext(void* gainContext);
+int     zmlInitGainAnalysis (void* gainContext, long samplefreq);
+int     zmlAnalyzeSamples   (void* gainContext, const Float_t* left_samples, const Float_t* right_samples, size_t num_samples, int num_channels );
+int		zmlResetSampleFrequency (void* gainContext, long samplefreq );
+Float_t   zmlGetTitleGain     (void* gainContext);
+Float_t   zmlGetAlbumGain     (void* gainContext);
 
 #ifdef __cplusplus
 }

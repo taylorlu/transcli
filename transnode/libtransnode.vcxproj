@@ -47,6 +47,7 @@
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
     <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">transnode</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -55,7 +56,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalIncludeDirectories>.;$(solutionDir)/include;$(SolutionDir)httpd;$(SolutionDir)libxmlrpc\src;$(SolutionDir)common;$(SolutionDir)faac\include;$(SolutionDir)ffmpeg;$(SolutionDir)watermark;$(SolutionDir)strpro;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;HAVE_MMX;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;STRPRO_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;HAVE_MMX;HAVE_STDINT_H;_CRT_SECURE_NO_WARNINGS;STRPRO_STATIC;WATERMARK_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -66,7 +67,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>libmp3lame.lib;xvidcore.lib;frameproc.lib;libsamplerate.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lame.lib;xvidcore.lib;watermark.lib;samplerate.lib;faac.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
@@ -105,26 +106,15 @@
   <ItemGroup>
     <ClCompile Include="AudioEncode.cpp" />
     <ClCompile Include="AudioResampler.cpp" />
-    <ClCompile Include="AVEncoder.cpp" />
     <ClCompile Include="CEac3Encode.cpp" />
     <ClCompile Include="CLIEncoder.cpp" />
     <ClCompile Include="CX264Encode.cpp" />
     <ClCompile Include="CX265Encode.cpp" />
     <ClCompile Include="Decoder.cpp" />
-    <ClCompile Include="DecoderAVS.cpp" />
     <ClCompile Include="DecoderCopy.cpp" />
     <ClCompile Include="DecoderFFMpeg.cpp" />
-    <ClCompile Include="DecoderMencoder.cpp" />
-    <ClCompile Include="DecoderMplayer.cpp" />
-    <ClCompile Include="DecoderVLC.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="DshowUtils.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="encoderCommon.cpp" />
     <ClCompile Include="FaacEncode.cpp" />
-    <ClCompile Include="FFMpegAVEncoder.cpp" />
     <ClCompile Include="FileQueue.cpp" />
     <ClCompile Include="MediaSplitter.cpp" />
     <ClCompile Include="Mp3Encode.cpp" />
@@ -141,26 +131,15 @@
   <ItemGroup>
     <ClInclude Include="AudioEncode.h" />
     <ClInclude Include="AudioResampler.h" />
-    <ClInclude Include="AVEncoder.h" />
     <ClInclude Include="CEac3Encode.h" />
     <ClInclude Include="CLIEncoder.h" />
     <ClInclude Include="CX264Encode.h" />
     <ClInclude Include="CX265Encode.h" />
     <ClInclude Include="Decoder.h" />
-    <ClInclude Include="DecoderAVS.h" />
     <ClInclude Include="DecoderCopy.h" />
     <ClInclude Include="DecoderFFMpeg.h" />
-    <ClInclude Include="DecoderMencoder.h" />
-    <ClInclude Include="DecoderMplayer.h" />
-    <ClInclude Include="DecoderVLC.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="DshowUtils.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="encoderCommon.h" />
     <ClInclude Include="FaacEncode.h" />
-    <ClInclude Include="FFMpegAVEncoder.h" />
     <ClInclude Include="FileQueue.h" />
     <ClInclude Include="MediaSplitter.h" />
     <ClInclude Include="..\common\MEvaluater.h" />

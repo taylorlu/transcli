@@ -1,4 +1,4 @@
-#include <string.h>
+ï»¿#include <string.h>
 #include <sstream>
 
 #include "clihelper.h"
@@ -1615,10 +1615,10 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		if(cropx < 0) cropx = 0;
 		if(cropy < 0) cropy = 0;
 		if(cropx > 1) {
-			cropx = ((int)(cropx/2+0.5f))*2.f;	// ×ó±ßÈç¹ûÊÇÆæÊý£¬È¡´óÒ»µãµÄÅ¼Êý
+			cropx = ((int)(cropx/2+0.5f))*2.f;	// å·¦è¾¹å¦‚æžœæ˜¯å¥‡æ•°ï¼Œå–å¤§ä¸€ç‚¹çš„å¶æ•°
 		}
 		if(cropy > 1) {
-			cropy = ((int)(cropy/2)+0.5f)*2.f;	// ¶¥±ßÈç¹ûÊÇÆæÊý£¬È¡´óÒ»µãµÄÅ¼Êý
+			cropy = ((int)(cropy/2)+0.5f)*2.f;	// é¡¶è¾¹å¦‚æžœæ˜¯å¥‡æ•°ï¼Œå–å¤§ä¸€ç‚¹çš„å¶æ•°
 		}
 		if(cropW > 1) {
 			cropW = ((int)(cropW/2))*2.f;

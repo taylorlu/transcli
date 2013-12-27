@@ -27,9 +27,6 @@
     <ClInclude Include="libxml2-2.7.8\include\libxml\chvalid.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="libxml2-2.7.8\include\libxml\debugXML.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="libxml2-2.7.8\include\libxml\dict.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -48,19 +45,7 @@
     <ClInclude Include="libxml2-2.7.8\include\libxml\hash.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="libxml2-2.7.8\include\libxml\HTMLparser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libxml2-2.7.8\include\libxml\HTMLtree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="libxml2-2.7.8\include\libxml\list.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libxml2-2.7.8\include\libxml\nanoftp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libxml2-2.7.8\include\libxml\nanohttp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libxml2-2.7.8\include\libxml\parser.h">
@@ -139,9 +124,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libxml2-2.7.8\include\libxml\xmlstring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="libxml2-2.7.8\include\libxml\xmlunicode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="libxml2-2.7.8\include\libxml\xmlversion.h">

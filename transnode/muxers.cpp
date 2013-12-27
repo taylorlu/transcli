@@ -154,13 +154,13 @@ bool validateMp4File(const char* mp4file)
 	cmdString += " -f null -y "FFMPEG_NUL;
 		
 	proc.flags = SF_REDIRECT_OUTPUT;
-	bool success = proc.Spawn(cmdString.c_str());
+    proc.Spawn(cmdString.c_str());
 	int procWaitRet = proc.Wait(500);
 	if(procWaitRet == -1 || (procWaitRet == 1 && proc.GetExitCode() != 0)) {
 		return true;
 	}
 
-	bool parseEnd = false;
+    //bool parseEnd = false;
 	const int bufSize = 1024;
 	char buf[bufSize+1] = {0};
 	int readTryCount = 0;
@@ -417,7 +417,7 @@ public:
 			} else {
 				if (!TsMoveFile(muxfile.c_str(), destFile)) {
 					logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), destFile);
-					if (!CopyFile(muxfile.c_str(), destFile, FALSE)) {
+                    if (!CopyFileA(muxfile.c_str(), destFile, FALSE)) {
 						LPVOID lpMsgBuf = GetLastErrorMsg();
 						logger_err(LOGM_TS_MUX, "Failed to copy, error:%s.\n", (char*)lpMsgBuf);
 						LocalFree(lpMsgBuf);
@@ -777,7 +777,7 @@ public:
 			Sleep(WAIT_INTERVAL_MS);
 			if (!TsMoveFile(muxfile.c_str(), outputUrl.c_str())) {
 				logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), outputUrl.c_str());
-				if (!CopyFile(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
+                if (!CopyFileA(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
 					if(!checkAvailableSpace(outputUrl.c_str())) {
 						return MUX_ERR_NOT_ENOUGH_SPACE;
 					}
@@ -863,7 +863,7 @@ public:
 		Sleep(WAIT_INTERVAL_MS);
 		if (!TsMoveFile(muxfile.c_str(), outputUrl.c_str())) {
 			logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), outputUrl.c_str());
-			if (!CopyFile(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
+            if (!CopyFileA(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
 				if(!checkAvailableSpace(outputUrl.c_str())) {
 					return MUX_ERR_NOT_ENOUGH_SPACE;
 				}
@@ -907,7 +907,7 @@ public:
 					RemoveFile(audioFile.c_str());
 					if (!TsMoveFile(audioTmpFile.c_str(), audioFile.c_str())) {
 						logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, audioTmpFile.c_str(), audioFile.c_str());
-						if (!CopyFile(audioTmpFile.c_str(), audioFile.c_str(), FALSE)) {
+                        if (!CopyFileA(audioTmpFile.c_str(), audioFile.c_str(), FALSE)) {
 							logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 							ret = false;
 							break;
@@ -930,7 +930,7 @@ public:
 				RemoveFile(videoFile.c_str());
 				if (!TsMoveFile(videoTmpFile.c_str(), videoFile.c_str())) {
 					logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, videoTmpFile.c_str(), videoFile.c_str());
-					if (!CopyFile(videoTmpFile.c_str(), videoFile.c_str(), FALSE)) {
+                    if (!CopyFileA(videoTmpFile.c_str(), videoFile.c_str(), FALSE)) {
 						logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 						ret = false;
 						break;
@@ -1046,7 +1046,7 @@ public:
 		Sleep(WAIT_INTERVAL_MS);
 		if (!TsMoveFile(muxfile.c_str(), outputUrl.c_str())) {
 			logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), outputUrl.c_str());
-			if (!CopyFile(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
+            if (!CopyFileA(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
 				logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 				return MUX_ERR_MUXER_FAIL;
 			}
@@ -1110,7 +1110,7 @@ public:
 
 		RemoveFile(destFile.c_str());
 		if (!TsMoveFile(item->fileName.c_str(), destFile.c_str())) {
-			if(CopyFile(item->fileName.c_str(), destFile.c_str(), FALSE) == FALSE) {
+            if(CopyFileA(item->fileName.c_str(), destFile.c_str(), FALSE) == FALSE) {
 				if(!checkAvailableSpace(destFile.c_str())) {
 					return MUX_ERR_NOT_ENOUGH_SPACE;
 				}

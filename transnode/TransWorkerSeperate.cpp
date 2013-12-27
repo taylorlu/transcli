@@ -1,4 +1,4 @@
-#ifdef WIN32
+ï»¿#ifdef WIN32
 #include <io.h>
 #endif
 #include <stdio.h>
@@ -52,10 +52,10 @@
 #include "MediaSplitter.h"
 
 
-#include "DecoderMencoder.h"
-#include "DecoderMplayer.h"
-#include "DecoderVLC.h"
-#include "DecoderAVS.h"
+//#include "DecoderMencoder.h"
+//#include "DecoderMplayer.h"
+//#include "DecoderVLC.h"
+//#include "DecoderAVS.h"
 #include "DecoderCopy.h"
 #include "DecoderFFMpeg.h"
 
@@ -598,27 +598,29 @@ bool CTransWorkerSeperate::setDecoderParam(video_info_t* pVInfo, CXMLPref* pVide
 
 CDecoder* CTransWorkerSeperate::createAudioDecoder(audio_decoder_t decType)
 {
-	switch(decType) {
-	case AD_MPLAYER: return (new CDecoderMplayer);
-	case AD_AVS: return (new CDecoderAVS);
+    return (new CDecoderFFMpeg);
+    //switch(decType) {
+    //case AD_MPLAYER: return (new CDecoderMplayer);
+    //case AD_AVS: return (new CDecoderAVS);
 	//case AD_VLC: return (new CDecoderVLC);
-	case AD_FFMPEG: return (new CDecoderFFMpeg);
-	default: return (new CDecoderMencoder);
-	}
+    //case AD_FFMPEG: return (new CDecoderFFMpeg);
+    //default: return (new CDecoderMencoder);
+    //}
 }
 
 CDecoder* CTransWorkerSeperate::createVideoDecoder(video_decoder_t decType)
 {
-	switch(decType) {
-	case VD_MPLAYER: return (new CDecoderMplayer);
-	case VD_AVS: return (new CDecoderAVS);
+    return (new CDecoderFFMpeg);
+    //switch(decType) {
+    //case VD_MPLAYER: return (new CDecoderMplayer);
+    //case VD_AVS: return (new CDecoderAVS);
 	//case VD_VLC: return (new CDecoderVLC);
-	case VD_FFMPEG: return (new CDecoderFFMpeg);
+    //case VD_FFMPEG: return (new CDecoderFFMpeg);
 //#ifdef WIN32
 //	case VD_HKV: return (new CDecoderHik);
 //#endif
-	default: return (new CDecoderMencoder);
-	}
+    //default: return (new CDecoderMencoder);
+    //}
 }
 
 bool CTransWorkerSeperate::startDecoder(const char* srcFileName)
@@ -705,7 +707,7 @@ bool CTransWorkerSeperate::startDecoder(const char* srcFileName)
 		}
 	}
 
-	if(!success && (m_pAudioDec == m_pVideoDec) && m_pVideoDec) {	// Try another decoder once
+    /*if(!success && (m_pAudioDec == m_pVideoDec) && m_pVideoDec) {	// Try another decoder once
 		logger_warn(m_logType, "First decoder failed, try another one.\n");
 		delete m_pAudioDec;
 		if(m_videoDecType == VD_FFMPEG) {
@@ -721,7 +723,7 @@ bool CTransWorkerSeperate::startDecoder(const char* srcFileName)
 		}
 		if(!setDecoderParam(pVInfo, pVideoPref, pAInfo, pAudioPref)) return false;
 		success = m_pAudioDec->Start(srcFileName);
-	}
+    }*/
 	
 	return success;
 }
@@ -1073,9 +1075,9 @@ THREAD_RET_T WINAPI CTransWorkerSeperate::auxAudioAnalyseEntry(void* decoderPara
 	uint8_t* pOriginAudioBuf = (uint8_t*)malloc(pcmBufLen);
 
 	// Initialize replay gain analyse
-	void* rgContext = CreateGainContext();
-	if(!InitGainAnalysis(rgContext, pWav->sample_rate)) {
-		FreeGainContext(rgContext);
+	void* rgContext = zmlCreateGainContext();
+	if(!zmlInitGainAnalysis(rgContext, pWav->sample_rate)) {
+		zmlFreeGainContext(rgContext);
 		logger_err(LOGM_TS_WK_SEP, "Init replay gain analyse failed.\n");
 		return -1;
 	}
@@ -1127,7 +1129,7 @@ THREAD_RET_T WINAPI CTransWorkerSeperate::auxAudioAnalyseEntry(void* decoderPara
 					readLen = sampleNumEachCh*(pWav->bits >> 3)*pWav->channels;
 				}
 				conv16Float(pOriginAudioBuf, readLen, leftBuf, rightBuf, pWav->channels);
-				if(!AnalyzeSamples(rgContext, leftBuf, rightBuf, sampleNumEachCh, pWav->channels)) {
+				if(!zmlAnalyzeSamples(rgContext, leftBuf, rightBuf, sampleNumEachCh, pWav->channels)) {
 					logger_err(LOGM_TS_WK_SEP, "Init replay gain analyse failed.\n");
 					ret = -1;
 					break;
@@ -1139,11 +1141,11 @@ THREAD_RET_T WINAPI CTransWorkerSeperate::auxAudioAnalyseEntry(void* decoderPara
 	if(rgContext) {
 		if(ret == 0) {
 			audio_info_t* aInfo = curDecoder->GetAudioInfo();
-			aInfo->volGain = (float)GetTitleGain(rgContext);
+			aInfo->volGain = (float)zmlGetTitleGain(rgContext);
 		}
 		free(leftBuf);
 		free(rightBuf);
-		FreeGainContext(rgContext);
+		zmlFreeGainContext(rgContext);
 	}
 	free(pOriginAudioBuf);
 	return ret;
@@ -1517,7 +1519,7 @@ bool CTransWorkerSeperate::appendBlankVideo(CVideoEncoder* pEncoder)
 			resolution_t videoRes = pEncoder->GetVideoInfo()->res_out;
 			int planeSize = videoRes.width*videoRes.height;
 			uint8_t* buf = (uint8_t*)malloc(bufSize);
-			// YUV ÎªºÚÉ«µÄÖµÎª(0, 128, 128)
+			// YUV ä¸ºé»‘è‰²çš„å€¼ä¸º(0, 128, 128)
 			memset(buf, 128, bufSize);
 			memset(buf, 0, planeSize);
 			for(int i=totalFrames-1; i>=0; --i) {
@@ -1845,9 +1847,9 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 	void* rgContext = NULL;
 	Float_t *leftBuf = NULL, *rightBuf = NULL;
 	if(m_bAutoVolumeGain) {
-		rgContext = CreateGainContext();
-		if(!InitGainAnalysis(rgContext, pWav->sample_rate)) {
-			FreeGainContext(rgContext);
+		rgContext = zmlCreateGainContext();
+		if(!zmlInitGainAnalysis(rgContext, pWav->sample_rate)) {
+			zmlFreeGainContext(rgContext);
 			logger_err(m_logType, "Init replay gain analyse failed.\n");
 			return -1;
 		}
@@ -1905,7 +1907,7 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 					readLen = sampleNumEachCh*(pWav->bits >> 3)*pWav->channels;
 				}
 				conv16Float(pOriginAudioBuf, readLen, leftBuf, rightBuf, pWav->channels);
-				if(!AnalyzeSamples(rgContext, leftBuf, rightBuf, sampleNumEachCh, pWav->channels)) {
+				if(!zmlAnalyzeSamples(rgContext, leftBuf, rightBuf, sampleNumEachCh, pWav->channels)) {
 					logger_err(m_logType, "Init replay gain analyse failed.\n");
 					ret = -1;
 					break;
@@ -1925,7 +1927,7 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 	if(rgContext) {
 		if(ret == 0) {
 			audio_info_t* aInfo = m_pAudioDec->GetAudioInfo();
-			float volGain = (float)GetTitleGain(rgContext);
+			float volGain = (float)zmlGetTitleGain(rgContext);
 			volGain += (m_fVolumeNormalDB - 89);
 			aInfo->volGain = volGain;
 			// If mapping 2 channel to 2 track
@@ -1936,7 +1938,7 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 		}
 		free(leftBuf);
 		free(rightBuf);
-		FreeGainContext(rgContext);
+		zmlFreeGainContext(rgContext);
 	}
 
 	if(!m_clipStartSet.empty()) m_audioClipEnd = 1;
@@ -2507,7 +2509,7 @@ THREAD_RET_T CTransWorkerSeperate::encodeVideo(size_t videoIdx)
 	pVideoEncode->Stop();
 	if(pVideoBuf) free(pVideoBuf);
 	if(encodeRet == 0) pVideoEncode->CloseReadHandle();
-	//pVideoEncode->SetVideoFilter(NULL);			// °ÑVideoFilter´ÓVideo Encoder ÖÐÈ¥µô
+	//pVideoEncode->SetVideoFilter(NULL);			// æŠŠVideoFilterä»ŽVideo Encoder ä¸­åŽ»æŽ‰
 
 	#undef FAIL_INFO
 	return encodeRet;
@@ -2537,7 +2539,6 @@ CAudioEncoder* CTransWorkerSeperate::createAudioEncoder(audio_encoder_t encType,
 #else
 		pAudioEnc = new CFFmpegAudioEncoder(tmpFile.c_str()); break;
 #endif
-		break;
 	case AE_MP3:
 		pAudioEnc = new CMp3Encode(tmpFile.c_str()); break;
 	case AE_FFMPEG:
@@ -2984,7 +2985,7 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 {
 	// Parse video info
 	mediaInfo->goRoot();
-	// Find first invalid video£¨Some ts file will contain several invalid video tracks£©
+	// Find first invalid videoï¼ˆSome ts file will contain several invalid video tracksï¼‰
 	size_t videoIdx = 0;
 	void* videoNode = mediaInfo->findChildNode("video");
 	while(videoNode) {
@@ -2995,7 +2996,7 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 		m_srcVideoAttrib->id = videoIdx;
 		int dar_num = mediaInfo->getChildNodeValueInt("dar_num");
 		parseMediaVideoInfoNode(mediaInfo, m_srcVideoAttrib);
-		// ÓÐflvÊÓÆµÓÐSorenson SparkºÍH.264Á½¸öÊÓÆµ¹ì£¬ÆäÖÐÓÐÐ§µÄÒ»¸ödarÊÇÓÐÐ§Öµ£¬ÁíÍâÒ»¸öÎª0:0,ÎÞÐ§¡£
+		// æœ‰flvè§†é¢‘æœ‰Sorenson Sparkå’ŒH.264ä¸¤ä¸ªè§†é¢‘è½¨ï¼Œå…¶ä¸­æœ‰æ•ˆçš„ä¸€ä¸ªdaræ˜¯æœ‰æ•ˆå€¼ï¼Œå¦å¤–ä¸€ä¸ªä¸º0:0,æ— æ•ˆã€‚
 		if(m_srcVideoAttrib->width > 0 && dar_num > 0) break;
 		videoNode = mediaInfo->findNextNode("video");
 		videoIdx++;

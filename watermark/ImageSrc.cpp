@@ -1,6 +1,7 @@
 #include "ImageSrc.h"
 #define cimg_use_jpeg
 #define cimg_use_png
+#define cimg_display 0
 #include "cimg/CImg.h"
 #include "util.h"
 #include "logger.h"

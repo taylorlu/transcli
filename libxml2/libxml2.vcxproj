@@ -40,6 +40,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SolutionDir)\strpro;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)lib\</OutDir>
+    <TargetName>xml2</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)lib\</OutDir>
@@ -83,7 +84,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>libiconv.lib</AdditionalDependencies>
+      <AdditionalDependencies>iconv.lib</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -96,18 +97,13 @@
     <ClInclude Include="libxml2-2.7.8\include\libxml\c14n.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\catalog.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\chvalid.h" />
-    <ClInclude Include="libxml2-2.7.8\include\libxml\debugXML.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\dict.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\DOCBparser.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\encoding.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\entities.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\globals.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\hash.h" />
-    <ClInclude Include="libxml2-2.7.8\include\libxml\HTMLparser.h" />
-    <ClInclude Include="libxml2-2.7.8\include\libxml\HTMLtree.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\list.h" />
-    <ClInclude Include="libxml2-2.7.8\include\libxml\nanoftp.h" />
-    <ClInclude Include="libxml2-2.7.8\include\libxml\nanohttp.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\parser.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\parserInternals.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\pattern.h" />
@@ -134,7 +130,6 @@
     <ClInclude Include="libxml2-2.7.8\include\libxml\xmlschemas.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\xmlschemastypes.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\xmlstring.h" />
-    <ClInclude Include="libxml2-2.7.8\include\libxml\xmlunicode.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\xmlversion.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\xmlwriter.h" />
     <ClInclude Include="libxml2-2.7.8\include\libxml\xpath.h" />

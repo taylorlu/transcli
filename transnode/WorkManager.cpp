@@ -40,7 +40,7 @@ bool CWorkManager::Initialize(int maxWorkerCount /* = 300 */)
 	// Set Current Directory
 #ifndef ENABLE_SINGLE_MODE
 	char curDir[MAX_PATH] = {0};
-	if (GetAppDir(curDir, MAX_PATH) > 0) SetCurrentDirectory(curDir);
+    if (GetAppDir(curDir, MAX_PATH) > 0) SetCurrentDirectoryA(curDir);
 #endif
 	
 	m_maxCount = maxWorkerCount;

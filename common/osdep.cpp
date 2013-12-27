@@ -68,7 +68,7 @@ int GetAppDir(char *dir, int size)
 {
     if (dir == NULL || size <= 0) return 0;
 
-	if (GetModuleFileName(GetModuleHandle(NULL), dir, size) == 0) return 0;
+    if (GetModuleFileNameA(GetModuleHandleA(NULL), dir, size) == 0) return 0;
 
 	char* p = strrchr(dir, '\\');
 	if (p) *p = 0;

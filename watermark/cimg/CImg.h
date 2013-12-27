@@ -4458,15 +4458,15 @@ namespace cimg_library {
         st_path = new char[MAX_PATH];
         std::memset(st_path,0,MAX_PATH);
         // Note : in the following line, 0x26 = CSIDL_PROGRAM_FILES (not defined on every compiler).
-#if !defined(__INTEL_COMPILER)
-        if (!SHGetSpecialFolderPathA(0,st_path,0x0026,false)) {
-          const char *const pfPath = getenv("PROGRAMFILES");
-          if (pfPath) std::strncpy(st_path,pfPath,MAX_PATH-1);
-          else std::strcpy(st_path,"C:\\PROGRA~1");
-        }
-#else
+//#if !defined(__INTEL_COMPILER)
+//        if (!SHGetSpecialFolderPathA(0,st_path,0x0026,false)) {
+//          const char *const pfPath = getenv("PROGRAMFILES");
+//          if (pfPath) std::strncpy(st_path,pfPath,MAX_PATH-1);
+//          else std::strcpy(st_path,"C:\\PROGRA~1");
+//        }
+//#else
         std::strcpy(st_path,"C:\\PROGRA~1");
-#endif
+//#endif
       }
       return st_path;
     }
