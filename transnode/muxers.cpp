@@ -106,6 +106,7 @@ bool CMuxer::ContainStream(int streamType, size_t index)
 
 bool CMuxer::checkAvailableSpace(const char* filePath)
 {
+#ifdef WIN32
 	int64_t availableSpace = GetFreeSpaceKb(filePath);
 	if(availableSpace != -1) {
 		if(availableSpace < 1024) {		// Smaller than 1M
@@ -113,6 +114,7 @@ bool CMuxer::checkAvailableSpace(const char* filePath)
 			return false;
 		}
 	}
+#endif
 	return true;
 }
 
@@ -394,14 +396,11 @@ public:
 			}
 
             if (muxRet != 0) {
-				if(!checkAvailableSpace(muxfile.c_str())) {
-					muxRet = MUX_ERR_NOT_ENOUGH_SPACE;
-					break;
-				}
                 logger_err(LOGM_TS_MUX, "Failed to mux with MP4Box, return code:%d.\n", muxRet);
 				muxRet = MUX_ERR_MUXER_FAIL;
 				break;
             }
+
             const char* destFile = m_pFileQueue->GetCurDestFile();
             if (destFile == NULL || (*destFile) == NULL) {
                FAIL_INFO("Invaild target File name.\n");
@@ -417,10 +416,10 @@ public:
 			} else {
 				if (!TsMoveFile(muxfile.c_str(), destFile)) {
 					logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), destFile);
-                    if (!CopyFileA(muxfile.c_str(), destFile, FALSE)) {
-						LPVOID lpMsgBuf = GetLastErrorMsg();
+                    if (!TsCopyFile(muxfile.c_str(), destFile)) {
+						void* lpMsgBuf = GetLastErrorMsg();
 						logger_err(LOGM_TS_MUX, "Failed to copy, error:%s.\n", (char*)lpMsgBuf);
-						LocalFree(lpMsgBuf);
+						FreeErrorMsgBuf(lpMsgBuf);
 						muxRet = MUX_ERR_MUXER_FAIL;
 						break;
 					}
@@ -546,10 +545,6 @@ private:
 		ffmpegCmd += "\"";
 		muxRet = CProcessWrapper::Run(ffmpegCmd.c_str());
 		if(muxRet != 0) {
-			if(!checkAvailableSpace(outFlv)) {
-				RemoveFile(outFlv);
-				return MUX_ERR_NOT_ENOUGH_SPACE;
-			}
 			RemoveFile(outFlv);
 			logger_err(LOGM_TS_MUX, "Failed to use ffmpeg to remux flv file.\n");
 			return MUX_ERR_MUXER_FAIL;
@@ -764,10 +759,6 @@ public:
  			int muxRet = CProcessWrapper::Run(s.str().c_str());
 			if(!m_pFileQueue->GetKeepTemp()) RemoveFile(metafile.c_str());
 			if(muxRet != MUX_ERR_SUCCESS) {
-				if(!checkAvailableSpace(muxfile.c_str())) {
-					RemoveFile(muxfile.c_str());
-					return MUX_ERR_NOT_ENOUGH_SPACE;
-				}
 				logger_err(LOGM_TS_MUX, "Failed to mux with tsMuxer, return code:%d.\n", muxRet);
 				return MUX_ERR_MUXER_FAIL;
 			}
@@ -777,10 +768,7 @@ public:
 			Sleep(WAIT_INTERVAL_MS);
 			if (!TsMoveFile(muxfile.c_str(), outputUrl.c_str())) {
 				logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), outputUrl.c_str());
-                if (!CopyFileA(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
-					if(!checkAvailableSpace(outputUrl.c_str())) {
-						return MUX_ERR_NOT_ENOUGH_SPACE;
-					}
+                if (!TsCopyFile(muxfile.c_str(), outputUrl.c_str())) {
 					logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 					return MUX_ERR_MUXER_FAIL;
 				}
@@ -850,10 +838,6 @@ public:
 #endif
 
 		if(CProcessWrapper::Run(sstr.str().c_str()) == 2 ) {  // MKV returns 2 if fail
-			if(!checkAvailableSpace(muxfile.c_str())) {
-				RemoveFile(muxfile.c_str());
-				return MUX_ERR_NOT_ENOUGH_SPACE;
-			}
 			logger_err(LOGM_TS_MUX, "Failed to mux with MKV.");
 			return MUX_ERR_MUXER_FAIL;
 		}
@@ -863,10 +847,7 @@ public:
 		Sleep(WAIT_INTERVAL_MS);
 		if (!TsMoveFile(muxfile.c_str(), outputUrl.c_str())) {
 			logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), outputUrl.c_str());
-            if (!CopyFileA(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
-				if(!checkAvailableSpace(outputUrl.c_str())) {
-					return MUX_ERR_NOT_ENOUGH_SPACE;
-				}
+            if (!TsCopyFile(muxfile.c_str(), outputUrl.c_str())) {
 				logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 				return MUX_ERR_MUXER_FAIL;
 			}
@@ -907,7 +888,7 @@ public:
 					RemoveFile(audioFile.c_str());
 					if (!TsMoveFile(audioTmpFile.c_str(), audioFile.c_str())) {
 						logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, audioTmpFile.c_str(), audioFile.c_str());
-                        if (!CopyFileA(audioTmpFile.c_str(), audioFile.c_str(), FALSE)) {
+                        if (!TsCopyFile(audioTmpFile.c_str(), audioFile.c_str())) {
 							logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 							ret = false;
 							break;
@@ -930,7 +911,7 @@ public:
 				RemoveFile(videoFile.c_str());
 				if (!TsMoveFile(videoTmpFile.c_str(), videoFile.c_str())) {
 					logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, videoTmpFile.c_str(), videoFile.c_str());
-                    if (!CopyFileA(videoTmpFile.c_str(), videoFile.c_str(), FALSE)) {
+                    if (!TsCopyFile(videoTmpFile.c_str(), videoFile.c_str())) {
 						logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 						ret = false;
 						break;
@@ -1027,10 +1008,6 @@ public:
 #endif
 		int muxRet = CProcessWrapper::Run(sstr.str().c_str()); // ffmpeg returns 0 on success
 		if(muxRet != MUX_ERR_SUCCESS) {
-			if(!checkAvailableSpace(muxfile.c_str())) {
-				RemoveFile(muxfile.c_str());
-				return MUX_ERR_NOT_ENOUGH_SPACE;
-			}
 			logger_err(LOGM_TS_MUX, "Failed to mux with FFMpeg, return code:%d.\n", muxRet);
 			return MUX_ERR_MUXER_FAIL;
 		}
@@ -1046,7 +1023,7 @@ public:
 		Sleep(WAIT_INTERVAL_MS);
 		if (!TsMoveFile(muxfile.c_str(), outputUrl.c_str())) {
 			logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), outputUrl.c_str());
-            if (!CopyFileA(muxfile.c_str(), outputUrl.c_str(), FALSE)) {
+            if (!TsCopyFile(muxfile.c_str(), outputUrl.c_str())) {
 				logger_err(LOGM_TS_MUX, "Failed to copy.\n");
 				return MUX_ERR_MUXER_FAIL;
 			}
@@ -1110,10 +1087,7 @@ public:
 
 		RemoveFile(destFile.c_str());
 		if (!TsMoveFile(item->fileName.c_str(), destFile.c_str())) {
-            if(CopyFileA(item->fileName.c_str(), destFile.c_str(), FALSE) == FALSE) {
-				if(!checkAvailableSpace(destFile.c_str())) {
-					return MUX_ERR_NOT_ENOUGH_SPACE;
-				}
+            if(!TsCopyFile(item->fileName.c_str(), destFile.c_str())) {
 				logger_err(LOGM_TS_MUX, "Generate final music file failed.\n");
 				return MUX_ERR_MUXER_FAIL;
 			}

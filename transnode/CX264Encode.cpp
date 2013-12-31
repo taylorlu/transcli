@@ -820,7 +820,7 @@ bool CX264Encode::Stop()
 			if(m_encodePass == 2) {		// Backup pass1 log
 				if(m_pXmlPrefs->GetBoolean("videoenc.x264.backup1passLog")) {
 					std::string backupFile = m_destFileName + ".psnr_pass1.txt";
-                    CopyFileA(psnrFile.c_str(), backupFile.c_str(), TRUE);
+                    TsCopyFile(psnrFile.c_str(), backupFile.c_str());
 				}
 			} else {	// Remove Qp log file after done
 				if(m_pXmlPrefs->GetBoolean("videoenc.x264.removeQpLog")) {

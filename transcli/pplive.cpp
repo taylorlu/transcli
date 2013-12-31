@@ -838,10 +838,14 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			while (cnode) {
 				timed_rect_t& delogoPos = config->source.delogo_pos[delogoIdx];
 				const char* posStr = xmlConfig.getAttribute("position");
-				if(!ParseRectFloat(posStr, &delogoPos.rect)) continue;
+				if(!ParseRectFloat(posStr, &delogoPos.rect)) {
+					cnode = xmlConfig.findNextNode("pos");
+					continue;
+				}
 
 				if(FloatEqual(delogoPos.rect.left,0) && FloatEqual(delogoPos.rect.right,0) &&
 					FloatEqual(delogoPos.rect.top,0) && FloatEqual(delogoPos.rect.bottom,0)) {
+						cnode = xmlConfig.findNextNode("pos");
 						continue;
 				}
 

@@ -102,6 +102,7 @@ bool GetFileListInFolder(const char *path /*IN*/, std::vector<std::string>& outF
 char* ReadTextFile(const char* txtFile);	// Return variable need to be free by user
 bool  RemoveFile(const char* filePath);
 bool  TsMoveFile(const char* srcFile, const char* destFile);
+bool  TsCopyFile(const char* srcFile, const char* destFile);
 char *RunAndGetStdOut(const char *psz_cmd, unsigned timeout = 0);
 void EnsureMultipleOfDivisor(int& num, int divisor);
 void NormalizeResolution(int& w, int& h, int darNum, int darDen, int dividor=0);
@@ -116,8 +117,9 @@ char * Strsep (char **stringp, const char *delim);
 // If failed, return -1
 int64_t GetFreeSpaceKb(const char* filePath);
 
-// Return string error message of windows error. Use LocalFree to free memory
+// Return string error message of windows error. Use FreeErrorMsgBuf to free memory
 void* GetLastErrorMsg();
+void  FreeErrorMsgBuf(void* errMsgBuf);
 
 // Math
 bool FloatEqual(float a, float b, float epsilon = 1e-4);

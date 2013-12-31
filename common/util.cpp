@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <direct.h>
+
 #ifndef WIN32
 #include <errno.h>
 #include <sys/socket.h>
@@ -15,6 +16,11 @@
 #include <dirent.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/sendfile.h>
+#include <sys/statvfs.h>
+#define _abs64 llabs
+#define _stat64 stat
+#define max(x,y) ((x)>(y)?(x):(y))
 #endif
 
 #include "bitconfig.h"
@@ -24,14 +30,10 @@
 #include "BiThread.h"
 #include "bit_osdep.h"
 #include "logger.h"
+
 extern "C" {
 #include "md5.h"
 }
-#ifndef WIN32
-#define _abs64 llabs
-#define _stat64 stat
-#define max(x,y) ((x)>(y)?(x):(y))
-#endif
 
 using namespace std;
 
@@ -423,6 +425,41 @@ bool  TsMoveFile(const char* srcFile, const char* destFile)
     return (::MoveFileA(srcFile, destFile) == TRUE);
 #else
 	return (::rename(srcFile, destFile) == 0);
+#endif
+}
+
+bool  TsCopyFile(const char* srcFile, const char* destFile)
+{
+	if(!destFile || !destFile) {
+		return false;
+	}
+
+	if(!FileExist(srcFile)) {
+		logger_err(LOGM_UTIL_UTIL, "Source file doesn't exist when move file.\n");
+		return false;
+	}
+
+	int copyRet;
+#ifdef WIN32
+    copyRet = CopyFileA(srcFile, destFile, FALSE);
+	return (copyRet != 0);
+#else
+	int input, output;
+    if( (input = open(srcFile, O_RDONLY)) == -1)
+        return false;
+
+    if( (output = open(destFile, O_WRONLY | O_CREAT)) == -1)
+    {
+        close(input);
+        return false;
+    }
+
+    off_t bytesCopied;
+    copyRet = sendfile(output, input, 0, &bytesCopied, 0, 0);
+
+    close(input);
+    close(output);
+	return (copyRet != -1);
 #endif
 }
 
@@ -958,17 +995,31 @@ char* Strsep(char** stringp, const char* delim)
 
 void* GetLastErrorMsg()
 {
+#ifdef WIN32
 	DWORD dwErr = GetLastError();
 	LPVOID lpMsgBuf;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |FORMAT_MESSAGE_IGNORE_INSERTS,
 	NULL, dwErr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),(LPTSTR) &lpMsgBuf, 0, NULL );
 	return lpMsgBuf;
+#else
+	return strerror(errno);
+#endif
+}
+
+void FreeErrorMsgBuf(void* errMsgBuf)
+{
+#ifdef WIN32
+	LocalFree(errMsgBuf);
+#else
+
+#endif
 }
 
 int64_t GetFreeSpaceKb(const char* filePath)
 {
-	if(!filePath || !(filePath) || strlen(filePath) < 2) return -1;
+	if(!filePath || !(*filePath)) return -1;
 
+#ifdef WIN32
 	ULARGE_INTEGER nFreeBytesAvailable;
     ULARGE_INTEGER nTotalNumberOfBytes;
 	ULARGE_INTEGER nTotalNumberOfFreeBytes;
@@ -980,9 +1031,9 @@ int64_t GetFreeSpaceKb(const char* filePath)
 			strncpy(sharePath, filePath, forthSlash-filePath+1);
             BOOL bRet = GetDiskFreeSpaceExA(sharePath, &nFreeBytesAvailable, &nTotalNumberOfBytes, &nTotalNumberOfFreeBytes);
 			if(!bRet) {
-				LPVOID errMsg = GetLastErrorMsg();
+				void* errMsg = GetLastErrorMsg();
 				logger_err(LOGM_UTIL_UTIL, "GetDiskFreeSpaceEx failed: %s\n", (char*)errMsg);
-				LocalFree(errMsg);
+				FreeErrorMsgBuf(errMsg);
 				return 0;
 			}
 			return (int64_t)(nFreeBytesAvailable.QuadPart/1024);
@@ -993,7 +1044,7 @@ int64_t GetFreeSpaceKb(const char* filePath)
 			strncpy(drivePath, filePath, 3);
             BOOL bRet = GetDiskFreeSpaceExA(drivePath, &nFreeBytesAvailable, &nTotalNumberOfBytes, &nTotalNumberOfFreeBytes);
 			if(!bRet) {
-				LPVOID errMsg = GetLastErrorMsg();
+				void* errMsg = GetLastErrorMsg();
 				logger_err(LOGM_UTIL_UTIL, "GetDiskFreeSpaceEx failed: %s\n", (char*)errMsg);
 				LocalFree(errMsg);
 				return 0;
@@ -1001,6 +1052,24 @@ int64_t GetFreeSpaceKb(const char* filePath)
 			return (int64_t)(nFreeBytesAvailable.QuadPart/1024);
 		}
 	}
+#else
+   struct statvfs buf;
+   if (statvfs(filePath, &buf) != -1) {
+      unsigned long blksize, blocks, freeblks; //used,
+	  int64_t disk_size, free;
+      blksize = buf.f_bsize;
+      blocks = buf.f_blocks;
+      freeblks = buf.f_bfree;
+
+      disk_size = (int64_t)blocks*(int64_t)blksize;
+      free = (int64_t)freeblks*(int64_t)blksize;
+      //used = disk_size - free;
+
+      return free;
+   } else {
+	   logger_err(LOGM_UTIL_UTIL, "GetDiskFreeSpaceEx failed: %s\n", (char*)GetLastErrorMsg()); 
+   }
+#endif
 	return -1;
 }
 
