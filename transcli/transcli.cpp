@@ -324,7 +324,7 @@ int main( int argc, char **argv )
 		return -1;
 	}*/
 
-	printf("Transcli Version %s\n\n", verStr);
+	logger_info(LOGM_GLOBAL, "Transcli Version %s\n\n", verStr);
 
 	//set dir
 #ifndef _WIN32

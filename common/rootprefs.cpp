@@ -753,7 +753,7 @@ bool CRootPrefs::InitRootForMaster(const char *strPrefs)
 		outDirNodeVal = m_prefsDoc->getChildNodeValue("node", "key", "overall.task.destdir");
 	}
 	m_pStrDestDir = set.UTF8toANSI(outDirNodeVal);
-	m_prefsDoc->Save("e:\\simpleTask.xml");
+	//m_prefsDoc->Save("e:\\simpleTask.xml");
 	return true;
 }
 

@@ -9,7 +9,7 @@
 #include <time.h>
 #include <algorithm>
 
-#include "gain_analysis.h"
+#include "zml_gain_analysis.h"
 #include "bitconfig.h"
 
 #ifdef DEMO_RELEASE

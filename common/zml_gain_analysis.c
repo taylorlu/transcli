@@ -1,7 +1,7 @@
-/*
+﻿/*
  *  ReplayGainAnalysis - analyzes input samples and give the recommended dB change
  *  Copyright (C) 2001-2009 David Robinson and Glen Sawyer
- *  Improvements and optimizations added by Frank Klemm, and by Marcel M�ller 
+ *  Improvements and optimizations added by Frank Klemm, and by Marcel M黮ler 
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -99,7 +99,7 @@
 #include <mmintrin.h>
 #endif
 
-#include "gain_analysis.h"
+#include "zml_gain_analysis.h"
 
 typedef unsigned short  Uint16_t;
 typedef signed short    Int16_t;
@@ -391,7 +391,7 @@ int
 zmlInitGainAnalysis (void* gainContext, long samplefreq)
 {
 	rg_context* rg = (rg_context*)gainContext;
-    if (ResetSampleFrequency(gainContext,samplefreq) != INIT_GAIN_ANALYSIS_OK) {
+    if (zmlResetSampleFrequency(gainContext,samplefreq) != INIT_GAIN_ANALYSIS_OK) {
         return INIT_GAIN_ANALYSIS_ERROR;
     }
 

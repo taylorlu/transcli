@@ -1,4 +1,4 @@
-/*
+﻿/*
  *  ReplayGainAnalysis - analyzes input samples and give the recommended dB change
  *  Copyright (C) 2001-2009 David Robinson and Glen Sawyer
  *
@@ -25,8 +25,8 @@
  *    http://www.replaygain.org/
  */
 
-#ifndef GAIN_ANALYSIS_H
-#define GAIN_ANALYSIS_H
+#ifndef ZML_GAIN_ANALYSIS_H
+#define ZML_GAIN_ANALYSIS_H
 
 #define GAIN_NOT_ENOUGH_SAMPLES  -24601
 #define GAIN_ANALYSIS_ERROR           0
@@ -52,4 +52,4 @@ Float_t   zmlGetAlbumGain     (void* gainContext);
 }
 #endif
 
-#endif /* GAIN_ANALYSIS_H */
+#endif /* ZML_GAIN_ANALYSIS_H */

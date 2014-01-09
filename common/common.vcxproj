@@ -87,7 +87,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="gain_analysis.c" />
     <ClCompile Include="getopt.c" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="md5.c" />
@@ -107,13 +106,13 @@
     <ClCompile Include="util.cpp" />
     <ClCompile Include="xmlpref.cpp" />
     <ClCompile Include="yuvUtil.cpp" />
+    <ClCompile Include="zml_gain_analysis.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\bitconfig.h" />
     <ClInclude Include="..\include\bit_osdep.h" />
     <ClInclude Include="..\include\svnver.h" />
     <ClInclude Include="fftmath.h" />
-    <ClInclude Include="gain_analysis.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="MediaInfoDLL.h" />
     <ClInclude Include="MediaTools.h" />
@@ -124,6 +123,7 @@
     <ClInclude Include="tsdef.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="yuvUtil.h" />
+    <ClInclude Include="zml_gain_analysis.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\strpro\StrPro.vcxproj">
