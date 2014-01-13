@@ -1,4 +1,4 @@
-#ifndef _TS_DEF_H_
+ï»¿#ifndef _TS_DEF_H_
 #define _TS_DEF_H_
 
 #include <stdint.h> //for uint32_t
@@ -50,39 +50,39 @@ enum {
 	QUERY_CMD_SET_IGNORE_ERRIDX
 };
 
-// ÈÎÎñĞÅÏ¢
+// ä»»åŠ¡ä¿¡æ¯
 typedef struct {
-	int id;						// ÈÎÎñID
-	int nodeId;					// ¹¤×÷½ÚµãID
-	int localId;				// ¹¤×÷½ÚµãÉÏÈÎÎñµÄ±¾µØID
-	float progress;				// ÈÎÎñ½ø¶È°Ù·Ö±È£¨0~100£©
-	int elapsed_time;			// ÈÎÎñ¾­ÀúµÄÊ±¼ä
-	char speed[16];				// ×ªÂëËÙÂÊ
-	task_state_t state;			// ÈÎÎñ×´Ì¬
-	task_state_t lastState;		// ÉÏÒ»¸öÈÎÎñ×´Ì¬
-	int	  error_code;			// ´íÎó´úÂë
-	//char dstmd5[32];			// Ä¿±êÎÄ¼şMd5
+	int id;						// ä»»åŠ¡ID
+	int nodeId;					// å·¥ä½œèŠ‚ç‚¹ID
+	int localId;				// å·¥ä½œèŠ‚ç‚¹ä¸Šä»»åŠ¡çš„æœ¬åœ°ID
+	float progress;				// ä»»åŠ¡è¿›åº¦ç™¾åˆ†æ¯”ï¼ˆ0~100ï¼‰
+	int elapsed_time;			// ä»»åŠ¡ç»å†çš„æ—¶é—´
+	char speed[16];				// è½¬ç é€Ÿç‡
+	task_state_t state;			// ä»»åŠ¡çŠ¶æ€
+	task_state_t lastState;		// ä¸Šä¸€ä¸ªä»»åŠ¡çŠ¶æ€
+	int	  error_code;			// é”™è¯¯ä»£ç 
+	//char dstmd5[32];			// ç›®æ ‡æ–‡ä»¶Md5
 } ts_task_info_t;
 
 typedef struct {
-	int error_task_num;			// ´íÎóÈÎÎñÊı
-	int completed_task_num;		// Íê³ÉÈÎÎñÊı
-	int current_gpu_enable;		// ÊÇ·ñ¾ß±¸gpu±àÂëÄÜÁ¦
-	int cpu_core_number;		// CPUºË¸öÊı
-	int cpu_usage;				// ÄÚ´æÊ¹ÓÃÂÊ
-	int phymem_size;			// ÄÚ´æ´óĞ¡ (in KB)
-	int phymem_usage;			// ÄÚ´æÊ¹ÓÃÂÊ
-	int run_time;				// Node ÔËĞĞÊ±¼ä(Unit: sec)
+	int error_task_num;			// é”™è¯¯ä»»åŠ¡æ•°
+	int completed_task_num;		// å®Œæˆä»»åŠ¡æ•°
+	int current_gpu_enable;		// æ˜¯å¦å…·å¤‡gpuç¼–ç èƒ½åŠ›
+	int cpu_core_number;		// CPUæ ¸ä¸ªæ•°
+	int cpu_usage;				// å†…å­˜ä½¿ç”¨ç‡
+	int phymem_size;			// å†…å­˜å¤§å° (in KB)
+	int phymem_usage;			// å†…å­˜ä½¿ç”¨ç‡
+	int run_time;				// Node è¿è¡Œæ—¶é—´(Unit: sec)
 } ts_node_info_t;
 
 typedef struct {
-	int up_time;				// ·şÎñÆ÷Æô¶¯Ö®ºó×Ü¹²ÔËĞĞµÄÊ±¼ä£¨Ãë£©
-	int active_streams;			// Ä¿Ç°ÕıÔÚ´¦ÀíµÄÁ÷µÄÊıÁ¿
-	int overall_cpu_load;		// ×ÜÌåCPUÊ¹ÓÃÂÊ
-	int overall_gpu_load;		// ×ÜÌåGPUÊ¹ÓÃÂÊ
-	int request_count;			// ×ÜÇëÇóÊıÁ¿
-	int request_completed;		// Íê³ÉµÄÇëÇóÊıÁ¿
-	int request_error;			// ³ö´íµÄÇëÇóÊıÁ¿
+	int up_time;				// æœåŠ¡å™¨å¯åŠ¨ä¹‹åæ€»å…±è¿è¡Œçš„æ—¶é—´ï¼ˆç§’ï¼‰
+	int active_streams;			// ç›®å‰æ­£åœ¨å¤„ç†çš„æµçš„æ•°é‡
+	int overall_cpu_load;		// æ€»ä½“CPUä½¿ç”¨ç‡
+	int overall_gpu_load;		// æ€»ä½“GPUä½¿ç”¨ç‡
+	int request_count;			// æ€»è¯·æ±‚æ•°é‡
+	int request_completed;		// å®Œæˆçš„è¯·æ±‚æ•°é‡
+	int request_error;			// å‡ºé”™çš„è¯·æ±‚æ•°é‡
 } ts_stats_t;
 
 typedef enum {
@@ -312,18 +312,18 @@ typedef enum {
 } scan_type_t;
 
 //typedef struct {
-//	video_encoder_t video_enc;	// ÊÓÆµ±àÂëÆ÷
-//	int rate_mode;				// ÂëÂÊ¿ØÖÆÄ£Ê½
-//	int video_bitrate;			// ÊÓÆµÂëÂÊ
-//	int video_peakrate;			// ÊÓÆµ·åÖµÂëÂÊ
-//	int width;					// »­Ãæ¿í¶È£¨ÏñËØ£©
-//	int height;					// »­Ãæ¸ß¶È£¨ÏñËØ£©
-//	int fps_num;				// Ö¡ÂÊ£¨·Ö×Ó£©
-//	int fps_den;				// Ö¡ÂÊ£¨·ÖÄ¸£©
-//	audio_encoder_t audio_enc;	// ÒôÆµ±àÂë¸ñÊ½
-//	int audio_bitrate;			// ÒôÆµÂëÂÊ
-//	int sample_rate;			// ²ÉÑùÂÊ
-//	int channels;				// ÉùµÀÊı
+//	video_encoder_t video_enc;	// è§†é¢‘ç¼–ç å™¨
+//	int rate_mode;				// ç ç‡æ§åˆ¶æ¨¡å¼
+//	int video_bitrate;			// è§†é¢‘ç ç‡
+//	int video_peakrate;			// è§†é¢‘å³°å€¼ç ç‡
+//	int width;					// ç”»é¢å®½åº¦ï¼ˆåƒç´ ï¼‰
+//	int height;					// ç”»é¢é«˜åº¦ï¼ˆåƒç´ ï¼‰
+//	int fps_num;				// å¸§ç‡ï¼ˆåˆ†å­ï¼‰
+//	int fps_den;				// å¸§ç‡ï¼ˆåˆ†æ¯ï¼‰
+//	audio_encoder_t audio_enc;	// éŸ³é¢‘ç¼–ç æ ¼å¼
+//	int audio_bitrate;			// éŸ³é¢‘ç ç‡
+//	int sample_rate;			// é‡‡æ ·ç‡
+//	int channels;				// å£°é“æ•°
 //	int	disableAudio;
 //	int	disableVideo;
 //	char* prefXml;				// additional setting

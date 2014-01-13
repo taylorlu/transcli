@@ -1207,7 +1207,7 @@ TRIO_ARGS5((type, format, parameters, arglist, argarray),
    */
   memset(usedEntries, 0, sizeof(usedEntries));
 
-  save_errno = errno;
+  save_errno = 0/*errno*/;
   index = 0;
   parameterPosition = 0;
 #if defined(TRIO_COMPILER_SUPPORTS_MULTIBYTE)

@@ -89,6 +89,9 @@
     <Lib>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
+    <PreBuildEvent>
+      <Command>copy /Y $(ProjectDir)libxml2-2.7.8\include\win32config.h $(ProjectDir)libxml2-2.7.8\config.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />

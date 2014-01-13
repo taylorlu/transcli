@@ -6,17 +6,23 @@ CONFIG -= qt
 DEFINES += STRPRO_STATIC WATERMARK_STATIC
 INCLUDEPATH += ./ ../include ../common ../transnode ../strpro
 
-LIBS += -L$$_PRO_FILE_PWD_/../lib -L$$_PRO_FILE_PWD_/../lib/ia32
+LIBS += -L$$_PRO_FILE_PWD_/../lib
 LIBS += -ltransnode -lfaac -llame -lx264 \
    -lx265 -lxvidcore -leac3enc -lsamplerate -lwatermark -lcommon -lstrpro -lxml2 -liconv -lzlib1
 
-DEPENDPATH += $$_PRO_FILE_PWD_/../lib $$_PRO_FILE_PWD_/../lib/ia32
+DEPENDPATH += $$_PRO_FILE_PWD_/../lib
 
 SOURCES += clihelper.cpp pplive.cpp transcli.cpp
 
 HEADERS += clihelper.h
+DESTDIR = $$_PRO_FILE_PWD_/../bin
 
 win32 {
-    DESTDIR = $$_PRO_FILE_PWD_/../bin
-    LIBS += -lWSock32 -luser32
+    DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32
+    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32 -lWSock32 -luser32
+}
+
+unix {
+    DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32_linux
+    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32_linux
 }

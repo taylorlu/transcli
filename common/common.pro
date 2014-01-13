@@ -25,13 +25,13 @@ SOURCES += \
     util.cpp \
     xmlpref.cpp \
     yuvUtil.cpp \
-    gain_analysis.c \
+    zml_gain_analysis.c \
     getopt.c \
     md5.c
 
 HEADERS += \
     _getopt.h \
-    gain_analysis.h \
+    zml_gain_analysis.h \
     logger.h \
     md5.h \
     MediaTools.h \

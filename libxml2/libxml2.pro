@@ -55,7 +55,10 @@ SOURCES += \
 unix {
     target.path = /usr/lib
     INSTALLS += target
+    $${QMAKE_COPY} $$_PRO_FILE_PWD_/libxml2-2.7.8/include/config.h $$_PRO_FILE_PWD_/libxml2-2.7.8/config.h
 }
+
 win32 {
     DESTDIR = $$_PRO_FILE_PWD_/../lib
+    $${QMAKE_COPY} $$_PRO_FILE_PWD_/libxml2-2.7.8/include/win32config.h $$_PRO_FILE_PWD_/libxml2-2.7.8/config.h
 }
