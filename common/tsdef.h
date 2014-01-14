@@ -404,7 +404,7 @@ typedef struct {
 	int id;
 	char fileFormat[CODEC_NAME_LEN];		// Video file format(TS/AVI)
 	char codec[CODEC_NAME_LEN];				// video codec name string
-	char profile[CODEC_NAME_LEN];			// video codec name string
+	char profile[CODEC_NAME_LEN];			// video codec profile string
 	char version[CODEC_NAME_LEN];			// video codec version
 	char standard[32];						// video standard (PAL/NTSC/Component)
 	int duration;

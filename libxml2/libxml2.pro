@@ -11,8 +11,7 @@ TEMPLATE = lib
 CONFIG += staticlib
 INCLUDEPATH += ../include
 
-SOURCES += \
-    libxml2-2.7.8/catalog.c \
+SOURCES += libxml2-2.7.8/catalog.c \
     libxml2-2.7.8/chvalid.c \
     libxml2-2.7.8/dict.c \
     libxml2-2.7.8/DOCBparser.c \
@@ -54,11 +53,10 @@ SOURCES += \
 
 unix {
     target.path = /usr/lib
-    INSTALLS += target
-    $${QMAKE_COPY} $$_PRO_FILE_PWD_/libxml2-2.7.8/include/config.h $$_PRO_FILE_PWD_/libxml2-2.7.8/config.h
+    INCLUDEPATH += libxml2-2.7.8/include
 }
 
 win32 {
     DESTDIR = $$_PRO_FILE_PWD_/../lib
-    $${QMAKE_COPY} $$_PRO_FILE_PWD_/libxml2-2.7.8/include/win32config.h $$_PRO_FILE_PWD_/libxml2-2.7.8/config.h
+    INCLUDEPATH += libxml2-2.7.8/win32
 }

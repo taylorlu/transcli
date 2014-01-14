@@ -327,6 +327,7 @@ void CTransWorker::parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_
 		strncpy(pVideoAttrib->version, SAFESTRING(mediaInfo->getChildNodeValue("version")), CODEC_NAME_LEN);
 		strncpy(pVideoAttrib->standard, SAFESTRING(mediaInfo->getChildNodeValue("standard")), 32);
 
+		pVideoAttrib->id = mediaInfo->getChildNodeValueInt("index");
 		pVideoAttrib->duration = vDuration;
 		int vBitrate = mediaInfo->getChildNodeValueInt("bitrate");
 		if(vBitrate > 0) pVideoAttrib->bitrate = vBitrate;

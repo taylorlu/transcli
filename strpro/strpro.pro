@@ -23,3 +23,4 @@ unix {
 win32 {
     DESTDIR = $$_PRO_FILE_PWD_/../lib
 }
+

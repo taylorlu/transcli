@@ -2993,11 +2993,12 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 			m_srcVideoAttrib = new attr_video_t;
 		}	
 		memset(m_srcVideoAttrib, 0, sizeof(attr_video_t));
-		m_srcVideoAttrib->id = videoIdx;
 		int dar_num = mediaInfo->getChildNodeValueInt("dar_num");
 		parseMediaVideoInfoNode(mediaInfo, m_srcVideoAttrib);
 		// 有flv视频有Sorenson Spark和H.264两个视频轨，其中有效的一个dar是有效值，另外一个为0:0,无效。
-		if(m_srcVideoAttrib->width > 0 && dar_num > 0) break;
+		if(m_srcVideoAttrib->width > 0 && dar_num > 0) {
+			break;	
+		}
 		videoNode = mediaInfo->findNextNode("video");
 		videoIdx++;
 	}
