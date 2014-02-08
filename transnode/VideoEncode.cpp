@@ -138,12 +138,12 @@ bool CVideoEncoder::InitWaterMark()
 
 bool CVideoEncoder::GeneratePipeHandle()
 {
-	int bufSize = 0;
-	if(m_vInfo.res_out.width > 720) {
+	int bufSize = m_vInfo.res_out.width*m_vInfo.res_out.height*6;
+	/*if(m_vInfo.res_out.width > 720) {
 		bufSize = 4 << 20;
 	} else {
-		bufSize = m_vInfo.res_out.width*m_vInfo.res_out.height*4;
-	}
+		bufSize 
+	}*/
 
 	if (CProcessWrapper::MakePipe(m_fdRead, m_fdWrite, bufSize, false, false)) {
 		return true;

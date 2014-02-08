@@ -1687,14 +1687,14 @@
         <value>5</value>
       </node>
       <node key="me" type="enum" text="Motion estimation search algorithm">
-        <enum>DIA</enum>
-        <enum>HEX</enum>
-        <enum>UMH</enum>
-        <enum sel="1">STAR</enum>
-        <enum>FULL</enum>
+        <enum>dia</enum>
+        <enum>hex</enum>
+        <enum>umh</enum>
+        <enum sel="1">star</enum>
+        <enum>full</enum>
       </node>
       <node key="subme" type="int" text="Subpel motion estimation" min="0" max="7">
-        <value>6</value>
+        <value>5</value>
         <desc>Adjust subpel refinement quality. This parameter controls quality versus speed tradeoffs involved in the motion estimation decision process.</desc>
       </node>
       <node key="merange" type="int" text="Motion search radius" min="4" max="64">
@@ -1717,7 +1717,7 @@
         <value>3</value>
       </node>
       <node key="bframes" type="int" text="Maximum B frames between I and P frames" max="16">
-        <value>3</value>
+        <value>4</value>
       </node>
       <node key="openGop" type="bool" text="Open Gop">
         <desc>Enable or disable Open Gop</desc>
@@ -1733,6 +1733,10 @@
         <enum>Disabled</enum>
         <enum sel="1">Fast</enum>
         <enum>Trillis</enum>
+      </node>
+      <node key="bpyramid" type="bool" text="Open Gop">
+        <desc>Enable or disable BPyramid</desc>
+        <value>true</value>
       </node>
       <node key="qpstep" type="int" text="Quantizer step" max="50">
         <desc>Maximum value by which the quantizer may be incremented/decremented between frames</desc>

@@ -295,7 +295,9 @@ bool CTransWorkerSeperate::setMuxerPref(CXMLPref* prefs)
 
 bool CTransWorkerSeperate::setSourceAVInfo(StrPro::CXML2* mediaInfo)
 {
-	initAVSrcAttrib(mediaInfo);
+	if(!initAVSrcAttrib(mediaInfo)) {
+		return false;
+	}
 	
 	const char* srcFile = m_streamFiles.GetFirstSrcFile();
 	if(srcFile && strstr(srcFile, "://")) return true;
@@ -321,6 +323,7 @@ bool CTransWorkerSeperate::setSourceAVInfo(StrPro::CXML2* mediaInfo)
 		m_streamFiles.ClearAudioFiles();
 		invalidAudio = true;
 	}
+	
 	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
 		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) {
 		logger_err(m_logType, "Invalid Video Attrib, Clean up all video encoder!\n");
@@ -2861,8 +2864,7 @@ bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 		audioNode = mediaInfo->findNextNode("audio");
 		audioIdx++;
     }
-	if(m_audioEncs.empty()) return true;
-
+	
 	bool srcHasMultiAudioTrack = (audioIdx > 1);
 
 	CAudioEncoder* pFirstAudio = m_audioEncs[0];
@@ -2973,7 +2975,9 @@ bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 				}
 			}
 			audio_info_t* pinfo = pAudioEnc->GetAudioInfo();
-			setAudioEncAttrib(pinfo, pAudioEnc->GetAudioPref(), pAttrib);
+			if(!setAudioEncAttrib(pinfo, pAudioEnc->GetAudioPref(), pAttrib)) {
+				return false;
+			}
 		}
 	}
 
@@ -3024,13 +3028,13 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo)
 {
 	if(!m_audioEncs.empty() || m_bCopyAudio) {
-		initSrcAudioAttrib(mediaInfo);
+		if(!initSrcAudioAttrib(mediaInfo)) return false;
 	}
 	if(!m_videoEncs.empty() || m_bCopyVideo) {
-		initSrcVideoAttrib(mediaInfo);
+		if(!initSrcVideoAttrib(mediaInfo)) return false;
 	}
 	if(!m_videoEncs.empty()) {
-		initSrcSubtitleAttrib(mediaInfo, m_videoEncs[0]->GetVideoPref());
+		if(!initSrcSubtitleAttrib(mediaInfo, m_videoEncs[0]->GetVideoPref())) return false;
 	}
 	return true;
 }

@@ -361,7 +361,7 @@ void CTransWorker::parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_
 	}
 }
 
-void CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, attr_audio_t* pAudioAttrib)
+bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, attr_audio_t* pAudioAttrib)
 {
 	pAInfo->in_srate = pAudioAttrib->samplerate;
 	pAInfo->in_channels = pAudioAttrib->channels;
@@ -371,6 +371,14 @@ void CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 	memset(pAInfo->lang, 0, 32);
 	if(*(pAudioAttrib->lang)) {
 		strncpy(pAInfo->lang, pAudioAttrib->lang, 32);
+	}
+
+	// If encoding E-AC3 audio, if source channel < 6, then report error
+	if(audioPref->GetBoolean("overall.dolby.sixchOnly")) {
+		if(pAInfo->format == AC_EAC3 && pAInfo->in_channels < 6) {
+			logger_err(m_logType, "Source audio channels is less than 6, invalid for DD+ encoding.\n");
+			return false;
+		}
 	}
 
 	if(pAInfo->out_channels == 0) {
@@ -450,6 +458,7 @@ void CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 		audioPref->SetInt(brField, brSetting);
 	}
 
+	return true;
 	// Parse source audio format
 	//if(pAudioAttrib->codec && *(pAudioAttrib->codec)) {	// && pAudioAttrib->channels == 6
 	//	if(!_stricmp(pAudioAttrib->codec, "DTS")) {
@@ -488,7 +497,7 @@ void CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 	}*/
 }
 
-void CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,attr_video_t* pVideoAttrib)
+bool CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,attr_video_t* pVideoAttrib)
 {
 	pVInfo->src_dar.num = pVideoAttrib->dar_num;
 	pVInfo->src_dar.den = pVideoAttrib->dar_den;
@@ -530,6 +539,8 @@ void CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,at
 			pVInfo->src_container = CF_MP4;
 		}
 	}
+
+	return true;
 	//if(pVideoAttrib->is_vfr) {	// Disable sync correction
 	//	videoPref->SetBoolean("videofilter.extra.syncCorrection", false);
 	//}

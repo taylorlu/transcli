@@ -98,8 +98,8 @@ protected:
 	void parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_t* pVideoAttrib);
 
 	// Ajust dest audio/video properties according to source attribute
-	void setAudioEncAttrib(audio_info_t* pAInfo,CXMLPref* audioPref,attr_audio_t* pAudioAttrib);
-	void setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,attr_video_t* pVideoAttrib);
+	bool setAudioEncAttrib(audio_info_t* pAInfo,CXMLPref* audioPref,attr_audio_t* pAudioAttrib);
+	bool setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,attr_video_t* pVideoAttrib);
 
 	// Audio encoding thread
 	bool createTranscodeAudioThread();

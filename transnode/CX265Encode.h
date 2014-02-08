@@ -9,7 +9,7 @@
 #include "x265.h"
 #include "BiThread.h"
 
-#define DUMP_YUV 1
+//#define DUMP_YUV 1
 
 class CStreamOutput;
 //struct cli_pulldown_t;

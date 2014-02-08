@@ -292,6 +292,13 @@ bool CX265Encode::Initialize()
 		m_x265Param.bEnableWeightedBiPred = 0;
 	}
 	
+	bool bEnableBpyramid = m_pXmlPrefs->GetBoolean("videoenc.x265.bpyramid");
+	if(bEnableBpyramid) {
+		m_x265Param.bBPyramid = 1;
+	} else {
+		m_x265Param.bBPyramid = 0;
+	}
+
 	int cbqpoffs = m_pXmlPrefs->GetInt("videoenc.x265.cbqpoffs");
 	if(cbqpoffs > 0) m_x265Param.cbQpOffset = cbqpoffs;
 
