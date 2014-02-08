@@ -8,6 +8,7 @@
 #include "util.h"
 #include "logger.h"
 #include "bitconfig.h"
+#include "bit_osdep.h"
 
 CDecoderCopy::CDecoderCopy(void)
 {

@@ -4,6 +4,7 @@
 #include <process.h>
 #else
 #include <unistd.h>
+#include <dirent.h>
 #endif
 #include "bit_osdep.h"
 #include "FileQueue.h"
@@ -21,7 +22,11 @@ CFileQueue::CFileQueue(void):m_workerId(0), m_srcFileIndex(0)
 	m_videoIter = m_videoItems.begin();
 	m_subIter = m_subItems.begin();
 	m_destFileIter = m_destFiles.begin();
+#ifdef WIN32
 	m_curProcessId = _getpid();
+#else
+    m_curProcessId = getpid();
+#endif
 	SetTempDir(""); //set default temp dir
 	m_keepTemp = false;
 }
@@ -70,28 +75,32 @@ bool CFileQueue::SetTempDir(const char* dir)
 
 void CFileQueue::CleanTempDir()
 {
+#ifdef WIN32
 	SYSTEMTIME curSysTime;
 	GetSystemTime(&curSysTime);
 	// Every 2 hours execute once
 	if(curSysTime.wMinute < 30) return;
+#else
+    time_t tmpTime = time(0);
+    tm *curSysTime = localtime(&tmpTime);
+    if(curSysTime->tm_min < 30) return;
+#endif
 
 	const char* cleanTypes = ".264,.aac,.m4a,.mp4,.avs,.flv,.wmv,.m2v,.mp3,.m4v,.ac3,.wma,.f4v,.ffindex,.mpg,.ts";
 	const char* fileContain = "x264stat_";
-	WIN32_FIND_DATAA FindFileData;
-	HANDLE hFind = NULL;
-	bool ret = true;
 
 	string findPath(m_tempDir);
-	findPath.push_back('*');
+    std::vector<std::string> allCleanFiles;
 
-	hFind = FindFirstFileA(findPath.c_str(), &FindFileData);   
-
+#ifdef WIN32
+    findPath.push_back('*');
+    WIN32_FIND_DATAA FindFileData;
+    HANDLE hFind = FindFirstFileA(findPath.c_str(), &FindFileData);
 	if (hFind == INVALID_HANDLE_VALUE) {
 		logger_warn(LOGM_TS_FQ, "Invalid find path: %s\n", findPath.c_str());
 		return ;
 	}
 
-	std::vector<std::string> allCleanFiles;
 	do {
 		if((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
 			string fullPath(m_tempDir);
@@ -112,6 +121,34 @@ void CFileQueue::CleanTempDir()
 		} 
 	} while(FindNextFileA(hFind, &FindFileData));
 	FindClose(hFind);
+#else
+    DIR *dp = NULL;
+    dp = opendir(findPath.c_str());
+    if (dp == NULL) {
+        logger_err(LOGM_TS_FQ, "Failed to open dir:%s\n", findPath.c_str());
+        return;
+    }
+
+    struct dirent   *dirp;
+    struct stat stStat;
+
+    while ((dirp = readdir(dp)) != NULL) {
+        if((dirp->d_name[0]== '.') && (dirp->d_name[1]== '.' || dirp->d_name[1]==0)) continue;
+
+        string fullPath(findPath);
+        fullPath += dirp->d_name;
+
+        if (stat(fullPath.c_str(), &stStat) == -1) continue;
+
+        if (stStat.st_mode & S_IFREG) {
+            if (!MatchFilterCase(dirp->d_name, cleanTypes) &&
+                !strstr(dirp->d_name, fileContain)) continue;
+            allCleanFiles.push_back(fullPath);
+        }
+    }
+
+    closedir(dp);
+#endif
 
 	// Delete outdate temp file
 	for (size_t i=0; i<allCleanFiles.size(); ++i) {

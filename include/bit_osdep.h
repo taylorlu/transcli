@@ -37,6 +37,7 @@ __int64 atoll(const char *nptr);
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <fcntl.h>
 
 #define _open open
 #define _lseek(x,y,z) lseek((x),(y),(z))

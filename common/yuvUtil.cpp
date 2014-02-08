@@ -6,6 +6,7 @@
 #include "util.h"
 #include "logger.h"
 #include "bitconfig.h"
+#include "bit_osdep.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -127,7 +128,7 @@ CYuvUtil::FrameRect CYuvUtil::AutoDetectCrop(const char* fileName, int duration,
 		#endif
 		bool success = proc.Spawn(cmdString.c_str());
 		int procWaitRet = proc.Wait(500);
-		if(procWaitRet == -1 || (procWaitRet == 1 && proc.GetExitCode() != 0)) {
+        if(procWaitRet == -1 ) {
 			success = false;
 		}
 

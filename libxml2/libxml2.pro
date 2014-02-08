@@ -57,6 +57,6 @@ unix {
 }
 
 win32 {
-    DESTDIR = $$_PRO_FILE_PWD_/../lib
     INCLUDEPATH += libxml2-2.7.8/win32
 }
+DESTDIR = $$_PRO_FILE_PWD_/../lib

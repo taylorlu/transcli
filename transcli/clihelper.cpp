@@ -4,7 +4,7 @@
 #include "logger.h"
 #include "StrPro/StrProInc.h"
 #include "util.h"
-
+#include "bit_osdep.h"
 #define BUFFER_SIZE 1024
 
 static void changeSetting(std::string& stdPref, const char* changeStart, const char* newVal)
@@ -121,8 +121,6 @@ CCliHelper* CliHelperFactory(cli_type_t t)
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 #include <sstream>
-#include <direct.h>
-
 #include "processwrapper.h"
 #include "MEvaluater.h"
 #include "util.h"

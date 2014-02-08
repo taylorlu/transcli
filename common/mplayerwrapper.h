@@ -17,7 +17,6 @@
 #define DD
 #endif
 #else
-#include "linux_def.h"
 #include <pthread.h>
 #endif
 

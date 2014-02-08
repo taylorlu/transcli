@@ -65,6 +65,5 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
 }
-win32 {
-    DESTDIR = $$_PRO_FILE_PWD_/../lib
-}
+
+DESTDIR = $$_PRO_FILE_PWD_/../lib

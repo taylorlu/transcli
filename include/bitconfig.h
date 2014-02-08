@@ -34,7 +34,7 @@
 
 #define HAVE_GPL
 #define DEBUG_EXTERNAL_CMD 1
-
+//#define HAVE_VIDEO_ENHANCE 1
 //////////////////////////////////////////////////////////////////////////////
 #if defined(HAVE_GPL)
 #define HAVE_LIBX264 1

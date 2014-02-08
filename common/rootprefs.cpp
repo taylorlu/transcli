@@ -104,6 +104,11 @@ static bool modifyEpisodeParam(StrPro::CXML2& prefDoc, int videoBr)
 	return true;
 }
 
+struct mbrlevel_t {
+    const char* prefix;
+    int wMax, wMin, bMax, bMin;	// width and bitrate range
+};
+
 static bool processMBR(StrPro::CXML2* pMediaInfo, StrPro::CXML2& prefDoc)
 {
 	// Get current input media's width and bitrate
@@ -131,10 +136,6 @@ static bool processMBR(StrPro::CXML2* pMediaInfo, StrPro::CXML2& prefDoc)
 	if(prefDoc.goToKey("/root/output/presets") && prefDoc.getChildCount() > 2) {
 		StrPro::CXML2 mbrDoc;
 		if(mbrDoc.Open("pptvMbr.xml") == 0 && mbrDoc.goToKey("/pptvmbr/mbrset")) {
-			struct mbrlevel_t {
-				const char* prefix;
-				int wMax, wMin, bMax, bMin;	// width and bitrate range
-			};
 			// Parse mbr levels constrain
 			std::vector<mbrlevel_t> mbrSet;
 			void* levelNode = mbrDoc.findChildNode("level");

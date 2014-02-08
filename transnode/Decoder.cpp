@@ -28,8 +28,7 @@ CDecoder::~CDecoder(void)
 void CDecoder::Cleanup() 
 {
 	// Get exit code
-	if(m_proc.procInfo.hProcess) {
-		m_proc.IsProcessRunning(&m_exitCode);
+    if(m_proc.IsProcessRunning(&m_exitCode)) {
 		m_proc.Cleanup();
 		//logger_info(LOGM_TS_VD, "Decoder exit code:%d.\n", m_exitCode);
 	}
@@ -221,21 +220,21 @@ bool CDecoder::Start(const char* sourceFile)
 	m_bDecodeEnd = false;
 
 	if(m_bDecAudio) {		// Read PCM data and create audio encoders
-#ifdef WIN32
+//#ifdef WIN32
 		CProcessWrapper::MakePipe(m_fdReadAudio, fdAWrite, AUDIO_PIPE_BUFFER, false, true);
-#else 
-		m_proc.flags |= SF_USE_AUDIO_PIPE;
-		m_proc.flags |= SF_INHERIT_WRITE;
-#endif
+//#else
+        //m_proc.flags |= SF_USE_AUDIO_PIPE;
+        //m_proc.flags |= SF_INHERIT_WRITE;
+//#endif
 	}
 		
 	if(m_bDecVideo) {		// Read YUV data and create video encoders
-#ifdef WIN32
+//#ifdef WIN32
 		CProcessWrapper::MakePipe(m_fdReadVideo, fdVWrite, VIDEO_PIPE_BUFFER, false, true);
-#else
-		m_proc.flags |= SF_USE_VIDEO_PIPE;
-		m_proc.flags |= SF_INHERIT_WRITE;
-#endif
+//#else
+//		m_proc.flags |= SF_USE_VIDEO_PIPE;
+//		m_proc.flags |= SF_INHERIT_WRITE;
+//#endif
 	}
  
 	if(m_cmdString.empty()) {
@@ -280,17 +279,13 @@ bool CDecoder::Start(const char* sourceFile)
 			success = m_proc.Spawn(finalCmdStr.c_str()) && m_proc.Wait(DECODER_START_TIME) == 0;
 		}
 	}
-#ifdef WIN32
+
 	if(fdAWrite != -1) {
 		_close(fdAWrite);
 	}
 	if(fdVWrite != -1) {
 		_close(fdVWrite);
 	}
-#else
-       m_fdReadAudio = m_proc.fdReadAudio;
-       m_fdReadVideo = m_proc.fdReadVideo;
-#endif
 
 	return success;
 }

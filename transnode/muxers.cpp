@@ -158,7 +158,7 @@ bool validateMp4File(const char* mp4file)
 	proc.flags = SF_REDIRECT_OUTPUT;
     proc.Spawn(cmdString.c_str());
 	int procWaitRet = proc.Wait(500);
-	if(procWaitRet == -1 || (procWaitRet == 1 && proc.GetExitCode() != 0)) {
+    if(procWaitRet == -1) {
 		return true;
 	}
 
@@ -254,8 +254,8 @@ public:
 
 		std::ostringstream sstr;
 		std::string tmpdir = m_pFileQueue->GetTempDir();
-		if(tmpdir.back() == '\\' || tmpdir.back() == '/') {
-			tmpdir.pop_back();
+        if(*tmpdir.rbegin() == '\\' || *tmpdir.rbegin() == '/') {
+            tmpdir.erase(tmpdir.end()-1);
 		}
 		
 		sstr << MP4BOX << " -quiet -tmp \"" << tmpdir << "\"";
@@ -369,7 +369,7 @@ public:
 			//Tagging(muxfile, is3GP);
 			const char* strValue = m_pref->GetString("overall.tagging.copyright");
 			if(strValue && *strValue) {
-				sstr << " -cprt " << strValue;
+                sstr << " -cprt \"" << strValue << "\"";
 			}
 		}
 
@@ -568,9 +568,7 @@ private:
 			logger_err(LOGM_TS_MUX, "Failed to use flvmdi to index flv file.\n");
 			return MUX_ERR_MUXER_FAIL;
 		}
-#endif
-
-#if 0
+#else
 		bool bEnableMdi = m_pref->GetBoolean("muxer.yamdi.enabled");
 		if(!bEnableMdi) return MUX_ERR_SUCCESS;
 		std::string mdiCmd = YAMDI;
@@ -974,7 +972,7 @@ public:
 			return MUX_ERR_MUXER_FAIL;
 		}
 
-		sstr << FFMPEG_MUXER;
+        sstr << FFMPEG;
 		int order = m_pref->GetInt("overall.container.trackOrder");
 		if ( order == 0) {	//video first
 			sstr << videoTrackStr.str() << audioTrackStr.str();

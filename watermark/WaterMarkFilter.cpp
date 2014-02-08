@@ -10800,7 +10800,7 @@ void CWaterMarkFilter::AddShowTimeAndPosition(int startMs, int endMs,
 		m_moveLogo.moveSpeed = speed;
 		m_moveLogo.curPos = pos;
 		if(route && *route) {
-			char *routeStr = _strdup(route);
+            char *routeStr = strdup(route);
 			char *tmpStr = routeStr;
 			char *p = NULL;
 			while((p = Strsep(&tmpStr, ",")) != NULL) {

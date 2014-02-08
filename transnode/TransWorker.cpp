@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
+#include <math.h>
 
 #include "MEvaluater.h"
 #include "TransWorker.h"
@@ -16,7 +17,7 @@
 
 #include "util.h"
 #include "yuvUtil.h"
-#include "strpro/StrHelper.h"
+#include "StrPro/StrHelper.h"
 #include "logger.h"
 #include "WorkManager.h"
 #include "PlaylistGenerator.h"
@@ -896,7 +897,7 @@ bool CTransWorker::processLosslessClip()
 	}
 
 	for (size_t i=0; i<spliters.size(); ++i) {
-		spliters[i]->Wait(INFINITE);
+        spliters[i]->Wait(0xFFFFFFFF);      // Infinite
 	}
 
 	// Concat

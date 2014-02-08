@@ -1,7 +1,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
-#include <direct.h>
 
 #ifndef WIN32
 #include <errno.h>
@@ -21,6 +20,8 @@
 #define _abs64 llabs
 #define _stat64 stat
 #define max(x,y) ((x)>(y)?(x):(y))
+#else
+#include <direct.h>
 #endif
 
 #include "bitconfig.h"
@@ -455,7 +456,7 @@ bool  TsCopyFile(const char* srcFile, const char* destFile)
     }
 
     off_t bytesCopied;
-    copyRet = sendfile(output, input, 0, &bytesCopied, 0, 0);
+    copyRet = sendfile(output, input, &bytesCopied, 0);
 
     close(input);
     close(output);
@@ -922,13 +923,6 @@ int GetRandBetween(int minVal, int maxVal)
 	srand((unsigned int)(time(NULL)));
 	int retVal = (rand()%(maxVal-minVal+1)) + minVal;
 	return retVal;
-}
-
-int GetCpuCoreNum()
-{
-	SYSTEM_INFO sysinfo;
-	GetSystemInfo( &sysinfo );
-	return sysinfo.dwNumberOfProcessors;
 }
 
 char* ReadTextFile(const char* txtFile)

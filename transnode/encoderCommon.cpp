@@ -615,7 +615,7 @@ std::string genDestFileName(const char* fileTitle, CXMLPref* muxerPref, const ch
 		}
 	}
 
-	if(destFile.back() != '\\' && destFile.back() != '/') {
+    if(*destFile.rbegin() != '\\' && *destFile.rbegin() != '/') {
 		destFile += PATH_DELIMITER;
 	}
 

@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include "bit_osdep.h"
-#include "DecoderFFmpeg.h"
+#include "DecoderFFMpeg.h"
 #include "MEvaluater.h"
 #include "util.h"
 //#include "WorkManager.h"	// Get cpu core num
@@ -148,7 +148,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	}
 	
 	// -analyzeduration 20000000 to solve files that audio timestamp is leading video for about 20s
-	cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\" -v error";
+    cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\" -v info";
 
 	if(m_bDecAudio) {
 		if(!m_bDecVideo) cmd << " -vn";
@@ -173,8 +173,8 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 			audioFilterStr.insert(0, audioCompensate);
 		} 
 		if(!audioFilterStr.empty()) {
-			if(audioFilterStr.back() == ',') {
- 				audioFilterStr.pop_back();
+            if(*audioFilterStr.rbegin() == ',') {
+                audioFilterStr.erase(audioFilterStr.end()-1);
 			}
 			cmd << " -filter:a " << audioFilterStr;
 		}
@@ -227,8 +227,8 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 			if(subOption == 1) {	// External text sub
 				videoFilterStr += GenTextSubOptions(mediaFile, externSub);
 			}
-			if(videoFilterStr.back() == ',') {
- 				videoFilterStr.pop_back();
+            if(*videoFilterStr.rbegin() == ',') {
+                videoFilterStr.erase(videoFilterStr.end()-1);
 			}
 			if(subOption == 2) {
 				cmd << " -filter_complex \"" << videoFilterStr << "\""; // -fix_sub_duration";
@@ -533,11 +533,11 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 	std::string backCmd = backPart.str();
 	if(subType == 2) {	// Overlay image subtitle
 		const char* subIdStr = m_pVideoPref->GetString("overall.subtitle.sid");
-		if(foreCmd.back() == ',') {
- 			foreCmd.pop_back();
+        if(*foreCmd.rbegin() == ',') {
+            foreCmd.erase(foreCmd.end()-1);
 		}
-		if(backCmd.back() == ',') {
- 			backCmd.pop_back();
+        if(*backCmd.rbegin() == ',') {
+            backCmd.erase(backCmd.end()-1);
 		}
 
 		char vstream[10] = {0};

@@ -40,7 +40,13 @@ bool CWorkManager::Initialize(int maxWorkerCount /* = 300 */)
 	// Set Current Directory
 #ifndef ENABLE_SINGLE_MODE
 	char curDir[MAX_PATH] = {0};
-    if (GetAppDir(curDir, MAX_PATH) > 0) SetCurrentDirectoryA(curDir);
+    if (GetAppDir(curDir, MAX_PATH) > 0) {
+#ifdef WIN32
+        SetCurrentDirectoryA(curDir);
+#else
+        chdir(curDir);
+#endif
+    }
 #endif
 	
 	m_maxCount = maxWorkerCount;
@@ -413,7 +419,7 @@ bool CWorkManager::GetTasksIdString(char* tasksIdStr)
 			}
 		}
 		if(!tempStr.empty()) {
-			tempStr.pop_back();
+            tempStr.erase(tempStr.end()-1);
 			strcpy(tasksIdStr, tempStr.c_str());
 			return true;
 		}

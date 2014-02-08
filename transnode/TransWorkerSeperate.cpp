@@ -65,7 +65,7 @@
 #include "AudioResampler.h"
 #include "util.h"
 #include "yuvUtil.h"
-#include "strpro/StrHelper.h"
+#include "StrPro/StrHelper.h"
 #include "PlaylistGenerator.h"
 #include "TransnodeUtils.h"
 #include "WorkManager.h"
@@ -1425,10 +1425,10 @@ THREAD_RET_T CTransWorkerSeperate::mainFunc()
 void CTransWorkerSeperate::waitForCopyStreams()
 {
 	if(m_bCopyAudio && m_pAudioDec) {
-		m_pAudioDec->Wait(INFINITE);
+        m_pAudioDec->Wait(0xFFFFFFFF);  //Infinite
 	}
 	if(m_bCopyVideo && m_pVideoDec) {
-		m_pVideoDec->Wait(INFINITE);
+        m_pAudioDec->Wait(0xFFFFFFFF);  //Infinite
 	}
 }
 
@@ -3621,8 +3621,8 @@ bool CTransWorkerSeperate::parseWatchfoderConfig(CXMLPref* prefs)
 			if (relDirLen > watchFolderPath.size()) {
 				relativeDir.erase(0, watchFolderPath.size()+1);
 				if(!relativeDir.empty()) {
-					if(relativeDir.back() == '\\' || relativeDir.back() == '/') {
-						relativeDir.pop_back();
+                    if(*relativeDir.rbegin() == '\\' || *relativeDir.rbegin() == '/') {
+                        relativeDir.erase(relativeDir.end()-1);
 					}
 					m_streamFiles.SetRelativeDir(relativeDir.c_str());
 				}

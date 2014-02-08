@@ -2,11 +2,11 @@
 #include "AudioEncode.h"
 #include "VideoEncode.h"
 
-#ifndef WIN32
-#define COMMUNICATION_USE_FIFO
-#else
-#undef COMMUNICATION_USE_FIFO
-#endif
+//#ifndef WIN32
+//#define COMMUNICATION_USE_FIFO
+//#else
+//#undef COMMUNICATION_USE_FIFO
+//#endif
 
 //#ifndef WIN32
 #define USE_NEW_X264

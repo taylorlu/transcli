@@ -15,10 +15,8 @@ SOURCES += \
     logger.cpp \
     MediaTools.cpp \
     MEvaluater.cpp \
-    mplayerwrapper.cpp \
     osdep.cpp \
     PlaylistGenerator.cpp \
-    processwrapper.cpp \
     rootprefs.cpp \
     SplitterPrefs.cpp \
     streamprefs.cpp \
@@ -36,7 +34,6 @@ HEADERS += \
     md5.h \
     MediaTools.h \
     MEvaluater.h \
-    mplayerwrapper.h \
     PlaylistGenerator.h \
     processwrapper.h \
     SplitterPrefs.h \
@@ -44,9 +41,11 @@ HEADERS += \
     util.h \
     yuvUtil.h
 unix {
+    SOURCES += processwrapper_linux.cpp
     target.path = /usr/lib
     INSTALLS += target
 }
 win32 {
-    DESTDIR = $$_PRO_FILE_PWD_/../lib
+    SOURCES += processwrapper.cpp
 }
+DESTDIR = $$_PRO_FILE_PWD_/../lib

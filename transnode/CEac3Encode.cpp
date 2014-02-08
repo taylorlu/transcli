@@ -73,13 +73,13 @@ static void enc_error(int iserror, const char* p_msg, const char *p_file, int li
     if (iserror)
     {
         /* build error string */
-        sprintf(p_errmsg,"\n\nFATAL ERROR:  %s\n\nError occurred in:\n%s (line %d), stream %d\n\n", 
-            p_msg, p_file, line, (int)p_cbdata);
+        sprintf(p_errmsg,"\n\nFATAL ERROR:  %s\n\nError occurred in:\n%s (line %d)\n\n",
+            p_msg, p_file, line);
     }
     else
     {
         /* build warning string */
-        sprintf(p_errmsg,"\nWARNING: %s (stream %d)\n", p_msg, (int)p_cbdata);
+        sprintf(p_errmsg,"\nWARNING: %s\n", p_msg);
     }
 
     enc_printerror(p_errmsg);

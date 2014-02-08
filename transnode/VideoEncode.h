@@ -95,7 +95,9 @@ protected:
 	bool			  m_bMultiPass;
 	char*             m_pPassLogFile;
 
+#ifdef HAVE_VIDEO_ENHANCE
 	CVideoEnhancer*   m_pVideoEnhancer;
+#endif
 };
 
 #endif

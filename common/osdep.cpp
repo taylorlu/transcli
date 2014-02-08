@@ -171,7 +171,7 @@ char *ToLocale (const char *string /*utf8*/)
     size_t outb = inb * 6 + 1;
     char output[outb], *optr = output;
 
-    while (iconv (hd, (char**)&iptr, &inb, &optr, &outb) == (size_t)(-1))
+    while (iconv (hd, &iptr, &inb, &optr, &outb) == (size_t)(-1))
     {
         *optr++ = '?';
         outb--;
@@ -613,82 +613,7 @@ int daemonize(const char * stdoutfile, const char * stderrfile, const char * std
     return 0;
 }
 
-#if defined(__LINUX__)
-int GetModuleFileName( char* sModuleName, char* sFileName, int nSize)
-{
-    char sLine[1024] = { 0 };
-    void* pSymbol = (void*)"";
-    FILE *fp;
-    char *pPath;
-    
-    fp = fopen ("/proc/self/maps", "r");
-    if ( fp != NULL ) {
-        while (!feof (fp)) {
-            unsigned long start, end;
-            char *tmp;
-            size_t len, m_len;
-            
-            if ( !fgets (sLine, sizeof (sLine), fp)) continue;
-            if ( !strstr (sLine, " r-xp ") || !strchr (sLine, '/')) continue;
-            
-            /* Get rid of the newline */
-            tmp = strrchr (sLine, '\n');
-            if (tmp) *tmp = 0;
-
-            if (sModuleName && *sModuleName) {
-                len = strlen(sLine);
-                m_len = strlen(sModuleName);
-#if 0
-                if (m_len > len || strcmp(sLine + len - m_len, sModuleName)) continue;
-#else
-                if (strstr(sLine, sModuleName) == NULL) continue;
-#endif
-            }
-            else {
-                sscanf (sLine, "%lx-%lx ", &start, &end);
-                if (pSymbol < (void *) start || pSymbol >= (void *) end) continue;
-            }
-                
-            /* Extract the filename; it is always an absolute path */
-            pPath = strchr (sLine, '/');
-
-            /* Get rid of "(deleted)" */
-                
-            len = strlen (pPath);
-            if (len > 10 && strcmp (pPath + len - 10, " (deleted)") == 0) {
-                tmp = pPath + len - 10;
-                *tmp = 0;
-            }
-
-            strncpy( sFileName, pPath, nSize );
-            fclose (fp);
-            return strlen(sFileName);
-        }
-
-        fclose (fp);
-    }
-    
-    return 0; /*failed*/
-}
-
-int GetAppDir(char *dir, int size)
-{
-	if (dir == NULL || size <= 0) return 0;
-
-	if (GetModuleFileName(NULL, dir, size) == 0) return 0;
-
-	char* p = strrchr(dir, '/');
-	if (p) *p = 0;
-
-	return strlen(dir);
-}
-
-int GetCpuCoreNum()
-{
-	return sysconf( _SC_NPROCESSORS_ONLN );
-}
-
-#elif defined(__APPLE__)
+#if defined(__APPLE__)
 
 #include <CoreFoundation/CoreFoundation.h>
 int GetAppDir(char *dir, int size)
@@ -739,6 +664,82 @@ int GetCpuCoreNum()
 		 }
 	}
 	return numCPU;
+}
+
+#else
+
+int GetModuleFileName( char* sModuleName, char* sFileName, int nSize)
+{
+    char sLine[1024] = { 0 };
+    void* pSymbol = (void*)"";
+    FILE *fp;
+    char *pPath;
+
+    fp = fopen ("/proc/self/maps", "r");
+    if ( fp != NULL ) {
+        while (!feof (fp)) {
+            unsigned long start, end;
+            char *tmp;
+            size_t len, m_len;
+
+            if ( !fgets (sLine, sizeof (sLine), fp)) continue;
+            if ( !strstr (sLine, " r-xp ") || !strchr (sLine, '/')) continue;
+
+            /* Get rid of the newline */
+            tmp = strrchr (sLine, '\n');
+            if (tmp) *tmp = 0;
+
+            if (sModuleName && *sModuleName) {
+                len = strlen(sLine);
+                m_len = strlen(sModuleName);
+#if 0
+                if (m_len > len || strcmp(sLine + len - m_len, sModuleName)) continue;
+#else
+                if (strstr(sLine, sModuleName) == NULL) continue;
+#endif
+            }
+            else {
+                sscanf (sLine, "%lx-%lx ", &start, &end);
+                if (pSymbol < (void *) start || pSymbol >= (void *) end) continue;
+            }
+
+            /* Extract the filename; it is always an absolute path */
+            pPath = strchr (sLine, '/');
+
+            /* Get rid of "(deleted)" */
+
+            len = strlen (pPath);
+            if (len > 10 && strcmp (pPath + len - 10, " (deleted)") == 0) {
+                tmp = pPath + len - 10;
+                *tmp = 0;
+            }
+
+            strncpy( sFileName, pPath, nSize );
+            fclose (fp);
+            return strlen(sFileName);
+        }
+
+        fclose (fp);
+    }
+
+    return 0; /*failed*/
+}
+
+int GetAppDir(char *dir, int size)
+{
+    if (dir == NULL || size <= 0) return 0;
+
+    if (GetModuleFileName(NULL, dir, size) == 0) return 0;
+
+    char* p = strrchr(dir, '/');
+    if (p) *p = 0;
+
+    return strlen(dir);
+}
+
+int GetCpuCoreNum()
+{
+    return sysconf( _SC_NPROCESSORS_ONLN );
 }
 
 #endif

@@ -1,5 +1,6 @@
 #ifndef WIN32
 #include <errno.h>
+#include <sys/socket.h>
 #endif
 #include "StreamOutput.h"
 
@@ -31,14 +32,14 @@ int CStreamSockOutput::Write( char *p_nal, int i_size )
 	struct timeval timeout;
 
 	FD_ZERO(&fds);
-	FD_SET((SOCKET)m_fd, &fds);
+    FD_SET(m_fd, &fds);
 	/* Set time limit. */
 	timeout.tv_sec = 20;
 	timeout.tv_usec = 0;
 
 	int rc = select(m_fd+1, NULL, &fds, NULL, &timeout);
 	if (rc > 0) {
-		ret = send((SOCKET)m_fd, p_nal, i_size, 0);
+        ret = send(m_fd, p_nal, i_size, 0);
 	} else {
 		printf("select failed rc=%d!\n", rc);
 	}

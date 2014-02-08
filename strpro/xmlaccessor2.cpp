@@ -12,9 +12,9 @@ CXML2::CXML2(const char* filename):cur(0), m_doc(0),hLock(0)
 {
 	//Init();
 #else
-CXML2::CXML2(const char* filename):cur(0),m_doc(0),m_result(0),m_xmlfile(0)
+CXML2::CXML2(const char* filename):cur(0),m_doc(0)
 {
-	Init();
+    //Init();
     pthread_mutex_init(&mMutex, NULL);
 #endif
 	Open(filename);

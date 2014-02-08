@@ -66,12 +66,12 @@ void signal_handler(int dunno)
 {
 	fprintf(stderr, "Handler a signal %d\n", dunno);
 
-	if (g_finished && g_retCode == EC_NO_ERROR) { //FIXME: It's failed in WorkerManager.CleanUp()!
-		exit(RET_SUCCESS);
+    if (g_completed && g_retCode == EC_NO_ERROR) { //FIXME: It's failed in WorkerManager.CleanUp()!
+        exit(EC_NO_ERROR);
 	}
 	else {
 		kill_adapter_core();
-		exit(RET_GENERIC_ERROR);
+        exit(CLI_GENERIC_ERROR);
 	}
 } 
 
@@ -236,7 +236,6 @@ int main( int argc, char **argv )
 	string strOutFileName;
 	
 	int64_t max_livetime = DEFAULT_MAX_LIVETIME; // in second
-	int i_ret = 0;
 
 	int opt = 0, optind = 0;
 	struct option lopts[] = {
@@ -355,12 +354,16 @@ int main( int argc, char **argv )
 	logger_set_verbose(i_verbose);
 
 	if (GetAppDir(curDir, MAX_PATH) > 0) {
+#ifdef WIN32
         SetCurrentDirectoryA(curDir);
+#else
+        chdir(curDir);
+#endif
 	}
 
 	// If not set temp dir, create it in transcli folder
 	if(!(*psz_temp_dir)) {	
-		sprintf(psz_temp_dir, "%s\\temp", curDir);
+        sprintf(psz_temp_dir, "%s%ctemp", curDir, PATH_DELIMITER);
 	}
 	// Make sure temp dir is created
 	MakeDirRecursively(psz_temp_dir);
@@ -412,11 +415,11 @@ int main( int argc, char **argv )
 
 	do {
 		///////////////////////////////////Process prefs//////////////////////////////
-		i_ret = clihelper->GetStdPrefString(psz_infile, psz_outdir, psz_outfile, psz_presetfile, psz_templatefile, 
+        g_retCode = clihelper->GetStdPrefString(psz_infile, psz_outdir, psz_outfile, psz_presetfile, psz_templatefile,
 			strPreset, psz_temp_dir, disableThumbnail);
-		if (i_ret != 0) {
+        if (g_retCode != 0) {
 			logger_err(LOGM_GLOBAL, "Failed to process prefs.\n");
-			i_ret = CLI_GEN_STD_PRESET_ERROR;
+            g_retCode = CLI_GEN_STD_PRESET_ERROR;
 			break;
 		}
 
@@ -425,8 +428,8 @@ int main( int argc, char **argv )
 #endif
 
 		///////////////////////////////Init Manager and Create worker/////////////////////////////
-		i_ret = InitWorkManager();
-		if (i_ret != 0) {
+        g_retCode = InitWorkManager();
+        if (g_retCode != 0) {
 			logger_err(LOGM_GLOBAL, "Failed to init worker manager\n");
 			break;
 		}
@@ -435,16 +438,16 @@ int main( int argc, char **argv )
 
 		if (pWorker == NULL) {
 			logger_err(LOGM_GLOBAL, "Failed to create new worker\n");
-			i_ret = CLI_CREATE_WORKER_ERROR;
+            g_retCode = CLI_CREATE_WORKER_ERROR;
 			break;
 		}
 
 		pWorker->SetFinishCallbackForCli(FinishedCallback);
 		//The worker will start at once
-		i_ret = pMan->CreateWorkerTask(workId, 0/*uuid*/, strPreset.c_str(), psz_outfile); 
-		if (i_ret != 0) {
+        g_retCode = pMan->CreateWorkerTask(workId, 0/*uuid*/, strPreset.c_str(), psz_outfile);
+        if (g_retCode != 0) {
 			logger_err(LOGM_GLOBAL, "Failed to create task.\n");
-			i_ret = pMan->GetErrorCode(workId);
+            g_retCode = pMan->GetErrorCode(workId);
 			break;
 		}
 		
@@ -475,7 +478,7 @@ int main( int argc, char **argv )
 #endif
 
 	// waiting for completing	
-	while(i_ret == 0) {
+    while(g_retCode == 0) {
 		if(g_completed) break;
 		/*clock_t runTime = clock();
 		if (runTime > 0 && runTime/CLOCKS_PER_SEC > max_livetime) {
@@ -483,7 +486,7 @@ int main( int argc, char **argv )
 #ifndef WIN32
 			kill_adapter_core();
 #endif
-			i_ret = CLI_TIMEOUT_ERROR;
+            g_retCode = CLI_TIMEOUT_ERROR;
 			break;
 		}*/
 
@@ -496,9 +499,9 @@ int main( int argc, char **argv )
 #ifndef WIN32
 	kill_dead_encoders();
 #endif
-	if(i_ret == 0) {
-		i_ret = pMan->GetErrorCode(workId);
+    if(g_retCode == 0) {
+        g_retCode = pMan->GetErrorCode(workId);
 	}
-	logger_info(LOGM_GLOBAL, "Completed! Retuen code: %d\n", i_ret);
-	return i_ret;
+    logger_info(LOGM_GLOBAL, "Completed! Retuen code: %d\n", g_retCode);
+    return g_retCode;
 }

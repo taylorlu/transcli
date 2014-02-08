@@ -1,5 +1,5 @@
 #include "MediaTools.h"
-#include <string>
+#include <string.h>
 #include <sstream>
 
 #include "util.h"
@@ -7,6 +7,7 @@
 #include "tsdef.h"
 #include "StrProInc.h"
 #include "processwrapper.h"
+#include "bit_osdep.h"
 
 using namespace std;
 

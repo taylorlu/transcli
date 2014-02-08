@@ -13,6 +13,7 @@
 #include "logger.h"
 #include "bitconfig.h"
 #include "util.h"
+#include "bit_osdep.h"
 
 using namespace StrPro;
 using namespace std;
@@ -609,7 +610,7 @@ bool MEvaluater::initDefaultPresetFromMcCore(CXML2 *mcCorePref, CXML2 &outPrefs)
 						mcCorePref->SetCurrentNode(currentNode);
 					}
 					
-					if(!nodeKey.empty() && nodeKey.back() != '.') {
+                    if(!nodeKey.empty() && *nodeKey.rbegin() != '.') {
 						outPrefs.goRoot();
 						void* cnode = outPrefs.addChild("node");
 						outPrefs.SetCurrentNode(cnode);

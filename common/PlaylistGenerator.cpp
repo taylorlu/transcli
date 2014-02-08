@@ -30,7 +30,7 @@ void CPlaylistGenerator::GenPlaylist()
 
 	const char* listType = m_listType.c_str();
 	std::string listFile = m_filePath;
-	if(listFile.back() != PATH_DELIMITER) listFile.append(1, PATH_DELIMITER);
+    if(*listFile.rbegin() != PATH_DELIMITER) listFile.append(1, PATH_DELIMITER);
 	listFile += m_listName + m_listType;
 	FILE* fp = fopen(listFile.c_str(), "w");
 	if(!fp) return;

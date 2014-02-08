@@ -21,7 +21,9 @@ CVideoEncoder::CVideoEncoder(void):m_pOutStream(NULL),
 #endif
 	memset(&m_vInfo, 0, sizeof(m_vInfo));
 	m_pPassLogFile = NULL;
+#ifdef HAVE_VIDEO_ENHANCE
 	m_pVideoEnhancer = NULL;
+#endif
 }
 
 CVideoEncoder::CVideoEncoder(const char* outFileName):m_pOutStream(NULL),
@@ -37,7 +39,9 @@ CVideoEncoder::CVideoEncoder(const char* outFileName):m_pOutStream(NULL),
 #endif
 	memset(&m_vInfo, 0, sizeof(m_vInfo));
 	m_pPassLogFile = NULL;
-	m_pVideoEnhancer = NULL;
+#ifdef HAVE_VIDEO_ENHANCE
+    m_pVideoEnhancer = NULL;
+#endif
 }
 
 CVideoEncoder::~CVideoEncoder(void)
@@ -96,7 +100,7 @@ bool CVideoEncoder::InitWaterMark()
 		m_yuvFrameSize = m_frameSizeAfterVf;
 	}
 
-
+#ifdef HAVE_VIDEO_ENHANCE
 	// Initialize video enhancer
 	if(m_pXmlPrefs->GetInt("videofilter.eq.mode") == 1) { //Intelligence enhance
 	#ifdef HAVE_ALVA_VIDEO_OPT
@@ -123,7 +127,7 @@ bool CVideoEncoder::InitWaterMark()
 		}
 	#endif
 	}
-
+#endif
 
 	if(m_encodePass == 2 && m_bMultiPass) return true;
 	
@@ -176,7 +180,8 @@ uint8_t* CVideoEncoder::FilterFrame(uint8_t* pOrigBuf, int origBufSize)
 		processedData = pOrigBuf;
 	}
 
-#ifdef HAVE_ALVA_VIDEO_OPT
+#ifdef HAVE_VIDEO_ENHANCE
+    #ifdef HAVE_ALVA_VIDEO_OPT
 	if(vidopt2_isInit()) {
 		if(!pInBuf) {
 			pInBuf = (uint8_t*)malloc(origBufSize);
@@ -205,10 +210,11 @@ uint8_t* CVideoEncoder::FilterFrame(uint8_t* pOrigBuf, int origBufSize)
 		outPlanar.planars[3].stride = inPlanar.planars[3].stride = 0;
 		vidopt2_yv12(&inPlanar, &outPlanar, alvaIHD, alvaICS);
 	}
-#else
+    #else
 	if(m_pVideoEnhancer) {
 		m_pVideoEnhancer->process(processedData);
 	}
+    #endif
 #endif
 
 	if(m_pWaterMarkMan && m_encodePass == 1) {
@@ -257,13 +263,13 @@ bool CVideoEncoder::Stop()
 		destroyStreamOutput(m_pOutStream);
 		m_pOutStream = NULL;
 	}
+#ifdef HAVE_VIDEO_ENHANCE
 	if(m_pVideoEnhancer) {
 		m_pVideoEnhancer->fini();
 		delete m_pVideoEnhancer;
 		m_pVideoEnhancer = NULL;
 	}
-
-#ifdef HAVE_ALVA_VIDEO_OPT
+    #ifdef HAVE_ALVA_VIDEO_OPT
 	if(vidopt2_isInit()) {
 		vidopt2_uint();
 	}
@@ -271,6 +277,7 @@ bool CVideoEncoder::Stop()
 		free(pInBuf);
 		pInBuf = NULL;
 	}
+    #endif
 #endif
 
 	m_bClosed = 1;

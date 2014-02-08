@@ -472,8 +472,8 @@ bool CX264Encode::Initialize()
 				iQp = (int)(pass1Qp[0] + 0.5); pQp = (int)(pass1Qp[1] + 0.5);
 				bQp = (int)(pass1Qp[2] + 0.5); avgQp = (int)(pass1Qp[3] + 0.5);
 
-				int maxQp = max(max(iQp, pQp), bQp);
-				int minQp = min(min(iQp, pQp), bQp);
+                int maxQp = std::max(std::max(iQp, pQp), bQp);
+                int minQp = std::min(std::min(iQp, pQp), bQp);
 
 				int minQp2pass = maxQp;
 				switch(m_pXmlPrefs->GetInt("videoenc.x264.minQPType")) {
@@ -481,7 +481,7 @@ bool CX264Encode::Initialize()
 				case 2: 
 					minQp2pass = avgQp;
 					if(m_vInfo.res_out.width > 960 && m_vInfo.res_out.width < 1440) minQp2pass += 1;
-					minQp2pass = min(minQp2pass, maxQp); 
+                    minQp2pass = std::min(minQp2pass, maxQp);
 					break;
 				case 3: minQp2pass = iQp; break;
 				case 4: minQp2pass = pQp; break;
@@ -623,7 +623,7 @@ bool CX264Encode::applyFastFirstPass(bool bTurbo)
 		m_x264Param.analyse.b_transform_8x8 = 0;
 		m_x264Param.analyse.inter = 0;
 		m_x264Param.analyse.i_me_method = X264_ME_DIA;
-		m_x264Param.analyse.i_subpel_refine = min( 4, m_x264Param.analyse.i_subpel_refine );
+        m_x264Param.analyse.i_subpel_refine = std::min( 4, m_x264Param.analyse.i_subpel_refine );
 		m_x264Param.analyse.i_trellis = 0;
 		m_x264Param.analyse.i_me_range = 16;
 	}

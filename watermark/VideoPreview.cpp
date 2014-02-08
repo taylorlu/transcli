@@ -10,6 +10,7 @@
 
 #define cimg_use_jpeg
 #define cimg_use_png
+#define cimg_display 0
 #include "cimg/CImg.h"
 
 #ifdef min

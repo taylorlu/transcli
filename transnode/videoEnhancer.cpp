@@ -1,24 +1,11 @@
-﻿//#include "stdafx.h"
-
-//#include "../subpic/MemSubPic.h"
-#include "videoEnhancer.h"
+﻿#include "videoEnhancer.h"
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"
 #include "assert.h"
 #include "math.h"
 
-typedef unsigned char uint8_t;
-typedef signed char int8_t;
-
-typedef unsigned short uint16_t;
-typedef short int16_t;
-
-typedef unsigned long uint32_t;
-typedef long int32_t;
-
-//void memcpy_accel(void* dst, const void* src, size_t len);
-
+#ifdef HAVE_VIDEO_ENHANCE
 CVideoEnhancer::CVideoEnhancer()
 {
 	m_bInit = false;
@@ -1362,3 +1349,4 @@ void CVideoEnhancer::process(double aProgress, SubPicDesc &spd)
     filter_color(pIn, width, height);
 }
 */
+#endif

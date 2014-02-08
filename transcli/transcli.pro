@@ -8,7 +8,7 @@ INCLUDEPATH += ./ ../include ../common ../transnode ../strpro
 
 LIBS += -L$$_PRO_FILE_PWD_/../lib
 LIBS += -ltransnode -lfaac -llame -lx264 \
-   -lx265 -lxvidcore -leac3enc -lsamplerate -lwatermark -lcommon -lstrpro -lxml2 -liconv -lzlib1
+   -lx265 -lxvidcore -leac3enc -lsamplerate -lwatermark -lcommon -lstrpro -lxml2 -liconv
 
 DEPENDPATH += $$_PRO_FILE_PWD_/../lib
 
@@ -19,10 +19,10 @@ DESTDIR = $$_PRO_FILE_PWD_/../bin
 
 win32 {
     DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32
-    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32 -lWSock32 -luser32
+    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32 -lWSock32 -luser32 -lzlib1
 }
 
 unix {
     DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32_linux
-    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32_linux
+    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32_linux -lc -lz -lpthread -ldl -lirc
 }

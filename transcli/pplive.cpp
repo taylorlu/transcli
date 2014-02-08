@@ -8,11 +8,19 @@
 #include "util.h"
 #include "MediaTools.h"
 #include "bit_osdep.h"
-#include "strpro/charset.h"
+#include "StrPro/charset.h"
 #include "util.h"
 #include "yuvUtil.h"
 #include "bitconfig.h"
 #include "svnver.h"
+
+#ifndef WIN32
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <ifaddrs.h>
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //<node key=\"audiofilter.resample.downSamplingOnly\">false</node>\n
@@ -489,6 +497,7 @@ static bool ParseRectFloat(const char *strRect, struct float_rect_t *retRect /*O
 static std::string GetLocalIp()
 {
 	std::string localIp;
+#ifdef WIN32
 	WSADATA wsaData;
 	if (WSAStartup(MAKEWORD(2, 1), &wsaData) && 
 		WSAStartup(MAKEWORD(1, 1), &wsaData )) {
@@ -517,6 +526,41 @@ static std::string GetLocalIp()
 	}
 
 	WSACleanup();
+#else
+    struct ifaddrs *ifaddr = 0, *ifa = 0;
+    int s = 0;
+    char host[NI_MAXHOST] = {0};
+
+    if (getifaddrs(&ifaddr) == -1) return "";
+
+    /* Walk through linked list, maintaining head pointer so we
+      can free list later */
+
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+
+        if (ifa->ifa_addr == NULL ||
+            (ifa->ifa_name != NULL && strcmp(ifa->ifa_name, "lo") == 0)) continue;
+
+        /* For an AF_INET interface address, display the address */
+
+        if (ifa->ifa_addr->sa_family == AF_INET) {
+            s = getnameinfo(ifa->ifa_addr,
+                    sizeof(struct sockaddr_in),
+                    host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
+            if (s != 0) {
+                logger_err(LOGM_GLOBAL, "getnameinfo() failed: %s\n", gai_strerror(s));
+                continue;
+            }
+
+            if(*host && strcmp(host, "127.0.0.1")) {
+                localIp = host;
+                break;
+            }
+        }
+    }
+
+    freeifaddrs(ifaddr);
+#endif
 	return localIp;
 }
 

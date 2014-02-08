@@ -60,11 +60,7 @@ char* CCharset::UTF8toANSI(const char* str)
 	char* buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
 	char* out = buffer;
-#ifdef WIN32
-	iconv(tmpCd, (const char**)&str, &insize, &out, &outsize);
-#else
-	iconv(tmpCd, (char**)&str, &insize, &out, &outsize);
-#endif
+    iconv(tmpCd, &str, &insize, &out, &outsize);
 	iconv_close(tmpCd);
 	return buffer;
 }
@@ -83,11 +79,7 @@ char* CCharset::ANSItoUTF8(const char* str)
 	char* buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
 	char* out = buffer;
-#ifdef WIN32
-	iconv(tmpCd, (const char**)&str, &insize, &out, &outsize);
-#else
-	iconv(tmpCd, (char**)&str, &insize, &out, &outsize);
-#endif
+    iconv(tmpCd, &str, &insize, &out, &outsize);
 	//*out = 0;
 	iconv_close(tmpCd);
 	
@@ -103,11 +95,7 @@ char* CCharset::Convert(const char* str, int len)
 	buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
 	char* out = buffer;
-#ifdef WIN32
-	iconv(cd, (const char**)&str, &insize, &out, &outsize);
-#else
-	iconv(cd, (char**)&str, &insize, &out, &outsize);
-#endif
+    iconv(cd, &str, &insize, &out, &outsize);
 	return buffer;
 }
 
