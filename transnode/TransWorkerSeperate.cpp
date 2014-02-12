@@ -1,4 +1,4 @@
-#ifdef WIN32
+﻿#ifdef WIN32
 #include <io.h>
 #endif
 #include <stdio.h>
@@ -135,6 +135,12 @@ bool CTransWorkerSeperate::setAudioPref(CXMLPref* prefs)
 
 	audio_format_t aFormat = (audio_format_t)prefs->GetInt("overall.audio.format");
 	audio_encoder_t encType = (audio_encoder_t)prefs->GetInt("overall.audio.encoder");
+#ifndef WIN32
+	// Under linux there is no NeroAacEnc 64, use ffmpeg(libfdk_aac) encoding AAC_HE
+	if(aFormat == AC_AAC_HE || aFormat == AC_AAC_HEV2) {
+		 encType = AE_FFMPEG;
+	}
+#endif
 	int outSampleRate = prefs->GetInt("audiofilter.resample.samplerate");
 	if(outSampleRate < 0) outSampleRate = 0;
 	

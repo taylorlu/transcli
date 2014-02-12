@@ -15,6 +15,8 @@ const char* GetFFMpegAudioCodecName(int id)
 	switch (id) {
 	case AC_MP3:		return "libmp3lame";
 	case AC_AAC_LC:		return "libfaac";
+	case AC_AAC_HE:
+	case AC_AAC_HEV2:	return "libfdk_aac";
 	case AC_WMA7:		return "wmav1";
 	case AC_WMA8:		return "wmav2";
 	case AC_AC3:		return "ac3";

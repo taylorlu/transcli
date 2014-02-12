@@ -214,7 +214,7 @@ int QuickScreenshot(const char *video_file, const char *out_dir, long start_pos,
 	if (out_dir != NULL && *out_dir != '\0') {
 		char in_file[MAX_PATH], out_file[MAX_PATH];
 
-		_mkdir(out_dir);
+		MakeDirRecursively(out_dir);
 
 		for (int i = 0; i < number; i++) {
 			_snprintf(in_file, MAX_PATH, "shot%04d.png", i+1);

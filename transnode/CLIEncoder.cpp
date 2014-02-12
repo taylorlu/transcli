@@ -866,6 +866,21 @@ std::string CFFmpegAudioEncoder::GetCommandLine()
 		sstr << " -ab " << m_bitrate*1000;
 	}
 	
+	audio_format_t aacFormat = m_aInfo.format;
+	int singleChBitrate = m_bitrate/m_aInfo.out_channels;
+	if(singleChBitrate >= 48) {
+		aacFormat = AC_AAC_LC;
+	}
+	if(singleChBitrate <18) {
+		aacFormat = AC_AAC_HEV2;
+	}
+
+	if(m_aInfo.format == AC_AAC_HE) {
+		sstr << " -profile:a aac_he";
+	} else if(m_aInfo.format == AC_AAC_HEV2){
+		sstr << " -profile:a aac_he_v2";
+	}
+
 	sstr << " \"" << m_strOutFile << "\"";	
 	return sstr.str();
 }

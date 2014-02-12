@@ -76,6 +76,13 @@ int GetAppDir(char *dir, int size)
     return strlen(dir);
 }
 
+int GetCpuCoreNum()
+{
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo( &sysinfo );
+	return sysinfo.dwNumberOfProcessors;
+}
+
 #else
 
 #include <string.h>

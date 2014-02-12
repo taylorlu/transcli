@@ -85,12 +85,21 @@ __int64 atoll(const char *nptr);
 typedef int BOOL;
 typedef int64_t __int64;
 
-//min
-//#define min(a,b) ((a)<(b)?(a):(b))
-#define MIN(a,b) ((a)<(b)?(a):(b))
-//max
-//#define max(a,b) ((a)>(b)?(a):(b))
-#define MAX(a,b) ((a)>(b)?(a):(b))
+#ifndef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
 
 typedef unsigned int DWORD;
 typedef DWORD* LPWORD;
