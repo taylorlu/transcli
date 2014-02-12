@@ -1,4 +1,4 @@
-﻿#include "videoEnhancer.h"
+#include "videoEnhancer.h"
 #include "stdlib.h"
 #include "stdio.h"
 #include "string.h"

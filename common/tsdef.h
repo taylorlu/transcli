@@ -1,4 +1,4 @@
-﻿#ifndef _TS_DEF_H_
+#ifndef _TS_DEF_H_
 #define _TS_DEF_H_
 
 #include <stdint.h> //for uint32_t

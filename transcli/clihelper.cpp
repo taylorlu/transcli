@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 
 #include "clihelper.h"
 #include "logger.h"

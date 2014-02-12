@@ -8,7 +8,7 @@
   <target>
     <mux format="mp4" />
     <audio>
-      <codec format="eac3" bitrate="192k" samplerate="44100" timeshift="0s" />
+      <codec format="eac3" bitrate="192k" samplerate="48000" timeshift="0s" />
 	  <volgain mode="manual"/>
     </audio>
     <video>

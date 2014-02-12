@@ -10,4 +10,4 @@ SUBDIRS += transcli \
     transnode \
     libsamplerate
 
-transcli.depends = common strpro libxml2 watermark faac lame transnode
+transcli.depends = common strpro libxml2 libsamplerate watermark faac lame transnode

@@ -46,20 +46,20 @@
 #define PATH_DELIMITER '/'
 
 // Muxers
-#define MP4BOX "MP4Box"
-#define TSMUXER "./tsMuxeR"
-#define ATOMICPARSLEY "./AtomicParsley"
+#define MP4BOX "./tools/MP4Box"
+#define TSMUXER "./tools/tsMuxeR"
+#define ATOMICPARSLEY "./tools/AtomicParsley"
 #define ASFBIN "wine asfbin.exe"
 #define FFMPEG "./codecs/ffmpeg"
-#define MKVMERGE "./mkvmerge"
-#define ICONV_EXE "./tools/iconv"
-#define JPEG_TRAN "./tools/jpegtran"
+#define MKVMERGE "./tools/mkvmerge"
+#define ICONV_EXE "iconv"
+#define JPEG_TRAN "jpegtran"
 #define YAMDI "./tools/yamdi"
 // Codecs
-#define X264_BIN "./x264"
+#define X264_BIN "./codecs/x264"
 #define CUDAENC_BIN "./codecs/cudaH264Enc"
 #define NEROAAC_BIN "./codecs/neroAacEnc"
-#define FAAC_BIN "./faac"
+#define FAAC_BIN "./codecs/faac"
 #define MINDER_BIN "./mindcoder"
 #define MENCODER  "./mencoder"
 #define MPLAYER   "./mplayer"

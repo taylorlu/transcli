@@ -1,4 +1,4 @@
-﻿#ifndef VIDEO_ENHANCER
+#ifndef VIDEO_ENHANCER
 #define VIDEO_ENHANCER
 
 

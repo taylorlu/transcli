@@ -24,5 +24,5 @@ win32 {
 
 unix {
     DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32_linux
-    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32_linux -lc -lz -lpthread -ldl -lirc
+    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32_linux -lc -lzstatic -lpthread -ldl -lirc
 }

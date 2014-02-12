@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  ReplayGainAnalysis - analyzes input samples and give the recommended dB change
  *  Copyright (C) 2001-2009 David Robinson and Glen Sawyer
  *  Improvements and optimizations added by Frank Klemm, and by Marcel M黮ler 
