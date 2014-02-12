@@ -1337,7 +1337,8 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		{"ac3", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
 		{"eac3", AC_EAC3, "E-AC3", AE_DOLBY, "Dolby Encoder"},
 		{"copy", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
-		{"amr", AC_AMR, "AMR", AE_FFMPEG, "FFmpeg"}, 
+                {"amr", AC_AMR, "AMR", AE_FFMPEG, "FFmpeg"}, 
+                {"disable", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},		
 		{"", 0, 0}
 	};
 
@@ -1351,8 +1352,12 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	if(idx == 0 && conf.target.acodec.bitrate > 96) {
 		idx = 1;	// If bitrate > 96 use faac instead of neroAacEnc
 	}
+        
+        if(strcmp(conf.target.acodec.name, "disable") == 0) {   // disable audio
+             prefs.SetStreamPref("overall.audio.enabled", true, STAUDIO);
+	}
 
-	if(strcmp(conf.target.acodec.name, "copy") == 0) {	// Copy video
+        if(strcmp(conf.target.acodec.name, "copy") == 0) {	// Copy audio
 		prefs.SetStreamPref("overall.audio.copy", true, STAUDIO);
 		prefs.SetStreamPref("overall.video.autoSource", false, STVIDEO);
 	}
@@ -1453,8 +1458,13 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		{"mii", VC_MII, "Mii", VE_MII, "Mii Encoder"},
 		{"copy", VC_RAW, "H.264", VE_X264, "X264"},
 		{"hevc", VC_HEVC, "HEVC", VE_X265, "x265"},
+                {"disable", VC_RAW, "H.264", VE_X264, "X264"},
 		{"", 0, 0}
 	};
+
+        if(strcmp(conf.target.vcodec.name, "disable") == 0) {   // disable video
+             prefs.SetStreamPref("overall.video.enabled", false, STVIDEO);
+        }
 
 	// select video decoder
 	if(conf.source.video_decoder > 0) {
