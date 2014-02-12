@@ -14,6 +14,13 @@ bool FileIsLocked(const char *path);
 bool TerminateProcess(int pid);
 int GetAppDir(char *dir, int size);
 
+#ifndef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
+#ifndef MAX
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#endif
 
 //////////////////////////////////////////////////////////////////
 #if defined(WIN32) //win32
@@ -84,23 +91,6 @@ __int64 atoll(const char *nptr);
 
 typedef int BOOL;
 typedef int64_t __int64;
-
-#ifndef MIN
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#endif
-
-#ifndef MAX
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef max
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-#define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
-
 typedef unsigned int DWORD;
 typedef DWORD* LPWORD;
 typedef void * HMODULE;
