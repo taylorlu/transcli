@@ -128,7 +128,7 @@ bool CEac3Encode::Initialize()
 
 	int err = ddpi_enc_query(&query_op);
 	/* Print all parameters their valid ranges for DD+ and DD */
-    printDDplus_DDparams(query_op);
+    //printDDplus_DDparams(query_op);
 
 	/*Set up static parameter structure */
     for (int i=0; i<DDPI_ENC_MODE_COUNT; i++)

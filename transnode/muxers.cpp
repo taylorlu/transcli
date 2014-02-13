@@ -574,7 +574,9 @@ private:
 		std::string mdiCmd = YAMDI;
 		mdiCmd += " -i \"";
 		mdiCmd += outFlv;
-		mdiCmd += "\"";
+		mdiCmd += "\" -o \"";
+		mdiCmd += inMp4File;
+		mdiCmd += ".flv\"";
 		bool bXml = m_pref->GetBoolean("muxer.yamdi.xml");
 		bool bLastKeyframe = m_pref->GetBoolean("muxer.yamdi.lastkeyframe");
 		bool bLastSec = m_pref->GetBoolean("muxer.yamdi.lastsec");
@@ -599,7 +601,14 @@ private:
 			return MUX_ERR_MUXER_FAIL;
 		}
 
-
+#ifndef _WIN32
+		std::string tempFlv = inMp4File;
+		tempFlv += ".flv";
+		if (!TsMoveFile(tempFlv.c_str(), outFlv)) {
+                	logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, tempFlv.c_str(), outFlv);
+			return MUX_ERR_MUXER_FAIL;
+		}
+#endif
 		return muxRet;
 	}
 };

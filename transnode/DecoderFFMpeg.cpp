@@ -148,7 +148,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	}
 	
 	// -analyzeduration 20000000 to solve files that audio timestamp is leading video for about 20s
-    cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\" -v info";
+    cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\" -v error";
 
 	if(m_bDecAudio) {
 		if(!m_bDecVideo) cmd << " -vn";

@@ -358,6 +358,11 @@ int main( int argc, char **argv )
         SetCurrentDirectoryA(curDir);
 #else
         chdir(curDir);
+	// Config subtitle fonts
+	const char* systemFont = "/usr/share/fonts/msyh.ttf";
+	if(!FileExist(systemFont)) {
+		TsMoveFile("./APPSUBFONTDIR/msyh.ttf", systemFont);
+	}        
 #endif
 	}
 
