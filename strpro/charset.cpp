@@ -9,6 +9,7 @@
 #include "charset.h"
 
 #define STRING_LEN_MULTIPLE 4
+#define DEFAULT_SYS_CODE "gb2312"
 
 _MC_STRPRO_BEGIN
 CCharset::CCharset():cd(0)
@@ -31,8 +32,8 @@ CCharset::~CCharset()
 void CCharset::Set(const char* tocode, const char* fromcode)
 {
 	Unset();
-	if(tocode && !strcmp(tocode,"ANSI")) tocode = "";
-	if(fromcode && !strcmp(fromcode,"ANSI")) fromcode = "";
+	if(tocode && !strcmp(tocode,"ANSI")) tocode = DEFAULT_SYS_CODE;
+	if(fromcode && !strcmp(fromcode,"ANSI")) fromcode = DEFAULT_SYS_CODE;
 
 	if (tocode || fromcode)
 		cd = iconv_open(tocode ? tocode : "", fromcode ? fromcode : "");
@@ -50,12 +51,12 @@ char* CCharset::UTF8toANSI(const char* str)
 {
 	if (!str || !(*str)) return NULL;
 
-	void *tmpCd = iconv_open("", "UTF-8");
+	void *tmpCd = iconv_open(DEFAULT_SYS_CODE, "UTF-8");
 	if (!tmpCd || tmpCd == (void*)-1) {
 		printf("Error calling iconv_open\n");
 		return NULL;
 	}
-	size_t insize = strlen(str)+1;
+	size_t insize = strlen(str);
 	size_t outsize = insize;
 	char* buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
@@ -69,12 +70,12 @@ char* CCharset::ANSItoUTF8(const char* str)
 {
 	if (!str || !(*str)) return NULL;
 
-	void *tmpCd = iconv_open("UTF-8", "");
+	void *tmpCd = iconv_open("UTF-8", DEFAULT_SYS_CODE);
 	if (!tmpCd || tmpCd == (void*)-1) {
 		printf("Error calling iconv_open\n");
 		return NULL;
 	}
-	size_t insize = strlen(str)+1;
+	size_t insize = strlen(str);
 	size_t outsize = insize * STRING_LEN_MULTIPLE;
 	char* buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
@@ -90,7 +91,7 @@ char* CCharset::Convert(const char* str, int len)
 {
 	if (!str || !(*str)) return NULL;
 	char* buffer = NULL;
-	size_t insize = len > 0 ? len : strlen(str)+1;
+	size_t insize = len > 0 ? len : strlen(str);
 	size_t outsize = insize * STRING_LEN_MULTIPLE;
 	buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);

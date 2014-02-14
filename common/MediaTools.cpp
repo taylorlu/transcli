@@ -159,6 +159,15 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	// Normalize language tag(remove messy code in language)
 	normalizeTagValue(strResult, "language");
 
+	// Under linux, ffprobe generate xml contain file name encoding by gb2132, should convert to utf-8
+	#ifndef _WIN32
+	StrPro::CCharset charConvert;
+	char* utf8Xml = charConvert.ANSItoUTF8(strResult.c_str());
+	if(utf8Xml) {
+		strResult = utf8Xml;
+		free(utf8Xml);
+	}	
+	#endif 
 	return strResult;
 }
 

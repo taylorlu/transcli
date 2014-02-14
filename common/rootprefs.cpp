@@ -673,7 +673,7 @@ void CRootPrefs::initFileTitle()
 		}
 		const char* lastDot = strrchr(m_pStrMainUrl, '.');
 		size_t copyLen = strlen(lastSlash);
-		if(lastDot) copyLen = lastDot-lastSlash;
+		if(lastDot && lastDot > lastSlash) copyLen = lastDot-lastSlash;
 
 		char strTitle[256] = {0};
 		strncpy(strTitle, lastSlash, copyLen);
