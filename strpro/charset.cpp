@@ -57,7 +57,7 @@ char* CCharset::UTF8toANSI(const char* str)
 		return NULL;
 	}
 	size_t insize = strlen(str);
-	size_t outsize = insize;
+	size_t outsize = insize + 1;
 	char* buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
 	char* out = buffer;
@@ -76,7 +76,7 @@ char* CCharset::ANSItoUTF8(const char* str)
 		return NULL;
 	}
 	size_t insize = strlen(str);
-	size_t outsize = insize * STRING_LEN_MULTIPLE;
+	size_t outsize = insize * STRING_LEN_MULTIPLE + 1;
 	char* buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
 	char* out = buffer;
@@ -92,7 +92,7 @@ char* CCharset::Convert(const char* str, int len)
 	if (!str || !(*str)) return NULL;
 	char* buffer = NULL;
 	size_t insize = len > 0 ? len : strlen(str);
-	size_t outsize = insize * STRING_LEN_MULTIPLE;
+	size_t outsize = insize * STRING_LEN_MULTIPLE + 1;
 	buffer = (char*)malloc(outsize);
 	memset(buffer, 0, outsize);
 	char* out = buffer;
