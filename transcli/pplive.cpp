@@ -272,6 +272,7 @@ struct video_codec_t {
 	int rcmode;		
 	int keyint;		// If keyint < 10, it's senconds else it's frame num.
 	int reframes;	// reframes num
+	int bframes;	// bframes num
 	int lower_bitrate;
 	int video_enhance;
 	int brdown;		// Only downgrade video bitrate, if settings is bigger than source, use source bitrate
@@ -360,13 +361,13 @@ struct x264_zone_t {
 
 enum {
 	X264_ADDITION_OPTION = 0,
-	MPGA_ADDITION_OPTION,
+	X265_ADDITION_OPTION,
 	MP4BOX_ADDITION_OPTION,
 	ADDITION_OPTION_NUMBER,
 };
 
 struct codec_addition_t {
-	char option[BUF_LEN*2];
+	char option[BUF_LEN*4+1];
 	struct x264_zone_t* x264Zones[X264_ZONE_NUM]; 
 };
 
@@ -599,6 +600,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 	config->target.vcodec.darDen = -1;
 	config->target.vcodec.lower_bitrate = 1;	// Default enable lower bitrate
 	config->target.vcodec.video_enhance	= 1;	// Default enable video enhance
+	config->target.vcodec.bframes = -1;
 	config->target.acodec.autoVolGain = 1;		// Default enable volume auto gain
 	config->target.vcodec.brdown = 1;
 	config->target.acodec.brdown = 1;
@@ -855,7 +857,13 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 				}
 				xmlConfig.goParent();
 			}
-
+			if (xmlConfig.findChildNode("bframes") != NULL) {
+				int bframes = xmlConfig.getNodeValueInt();
+				if(bframes >= 0) {
+					config->target.vcodec.bframes = bframes;
+				}
+				xmlConfig.goParent();
+			}
 			if (xmlConfig.findChildNode("lowerbitrate") != NULL) {
 				config->target.vcodec.lower_bitrate = xmlConfig.getNodeValueInt();
 				xmlConfig.goParent();
@@ -1134,7 +1142,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			if (xmlConfig.findChildNode("x264") != NULL) {
 				const char *optionStr = xmlConfig.getAttribute("option");
 				if (optionStr != NULL) {
-					strncpy(config->target.codecConfig[X264_ADDITION_OPTION].option, optionStr, BUF_LEN*2);
+					strncpy(config->target.codecConfig[X264_ADDITION_OPTION].option, optionStr, BUF_LEN*4);
 				}
 
 				if(xmlConfig.findChildNode("zone")) {	// Parse x264 zone
@@ -1154,7 +1162,15 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			if(xmlConfig.findChildNode("mp4") != NULL) {
 				const char *optionStr = xmlConfig.getAttribute("option");
 				if (optionStr != NULL) {
-					strncpy(config->target.codecConfig[MP4BOX_ADDITION_OPTION].option, optionStr, BUF_LEN*2);
+					strncpy(config->target.codecConfig[MP4BOX_ADDITION_OPTION].option, optionStr, BUF_LEN*4);
+				}
+				xmlConfig.goParent();
+			}
+
+			if(xmlConfig.findChildNode("x265") != NULL) {
+				const char *optionStr = xmlConfig.getAttribute("option");
+				if (optionStr != NULL) {
+					strncpy(config->target.codecConfig[X265_ADDITION_OPTION].option, optionStr, BUF_LEN*4);
 				}
 				xmlConfig.goParent();
 			}
@@ -1525,6 +1541,9 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		case VC_MII:
 			keyintStr = "videoenc.mii.keyint";
 			break;
+		case VC_HEVC:
+			keyintStr = "videoenc.x265.keyint";
+			break;
 		}
 		prefs.SetStreamPref(keyintStr, conf.target.vcodec.keyint, STVIDEO);
 	}
@@ -1539,67 +1558,14 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		prefs.SetStreamPref(refStr, conf.target.vcodec.reframes, STVIDEO);
 	}
 
-	// x264 command options
-	bool baselineProfile = false;
-	if(video_map[idx].fmt == VC_H264) {
-		const char* x264Options = conf.target.codecConfig[X264_ADDITION_OPTION].option;
-		if(x264Options && *x264Options) {
-			const char* pCh = NULL;
-			if(pCh = strstr(x264Options, "-profile")) {	// profile
-				std::string profileStr = GetStringBetweenDelims(pCh, "=", ",");
-				if(!profileStr.empty()) {
-					if(profileStr.compare("Baseline") == 0) {
-						prefs.SetStreamPref("videoenc.x264.profile", H264_BASE_LINE, STVIDEO);
-						baselineProfile = true;
-					} else if (profileStr.compare("Main") == 0) {
-						prefs.SetStreamPref("videoenc.x264.profile", H264_MAIN, STVIDEO);
-					}
-				}
-			}
-			if(pCh = strstr(x264Options, "-ref")) {	// reframe
-				std::string refStr = GetStringBetweenDelims(pCh, "=", ",");
-				if(!refStr.empty()) {
-					int refs = atoi(refStr.c_str());
-					if(refs <= 0) refs = 1;
-					prefs.SetStreamPref("videoenc.x264.frameref", refs, STVIDEO);
-				}
-			}
-			if(pCh = strstr(x264Options, "-bframes")) {	// reframe
-				std::string bFramesStr = GetStringBetweenDelims(pCh, "=", ",");
-				if(!bFramesStr.empty()) {
-					int bframes = atoi(bFramesStr.c_str());
-					if(bframes < 0) bframes = 0;
-					prefs.SetStreamPref("videoenc.x264.bframes", bframes, STVIDEO);
-				}
-			}
+	if(conf.target.vcodec.bframes >= 0) {
+		const char* refStr = "videoenc.x264.bframes";
+		switch(video_map[idx].fmt) {
+		case VC_HEVC:
+			refStr = "videoenc.x265.bframes";
+			break;
 		}
-
-		// x264 zone
-		x264_zone_t* startZone = conf.target.codecConfig[X264_ADDITION_OPTION].x264Zones[0];
-		if(startZone) {
-			float zoneStartTime = startZone->startTime;
-			float zoneEndTime = startZone->endTime;
-			float zoneRf = startZone->ratio;
-			if(zoneStartTime > -0.0001f && zoneEndTime > zoneStartTime) {
-				prefs.SetStreamPref("videoenc.x264.zoneStart1", zoneStartTime, STVIDEO);
-				prefs.SetStreamPref("videoenc.x264.zoneEnd1", zoneEndTime, STVIDEO);
-				prefs.SetStreamPref("videoenc.x264.zoneRf1", zoneRf, STVIDEO);
-			}
-			delete startZone;
-		}
-
-		x264_zone_t* endZone = conf.target.codecConfig[X264_ADDITION_OPTION].x264Zones[1];
-		if(endZone) {
-			float zoneStartTime = endZone->startTime;
-			float zoneEndTime = endZone->endTime;
-			float zoneRf = endZone->ratio;
-			if(zoneStartTime > -0.0001f && zoneEndTime > zoneStartTime) {
-				prefs.SetStreamPref("videoenc.x264.zoneStart2", zoneStartTime, STVIDEO);
-				prefs.SetStreamPref("videoenc.x264.zoneEnd2", zoneEndTime, STVIDEO);
-				prefs.SetStreamPref("videoenc.x264.zoneRf2", zoneRf, STVIDEO);
-			}
-			delete endZone;
-		}
+		prefs.SetStreamPref(refStr, conf.target.vcodec.bframes, STVIDEO);
 	}
 
 	// Adjust x264 and bitrate params according to movie type
@@ -1809,7 +1775,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	}
 
 	// rate control mode
-	if(strcmp(conf.target.vcodec.name, "h264") != 0) {	// Copy video
+	if(strcmp(conf.target.vcodec.name, "h264") != 0) {	
 		conf.target.vcodec.rcmode = 1;
 	}
 	if(conf.target.vcodec.rcmode >= 1) {
@@ -1860,6 +1826,73 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	std::string curLocalIp = GetLocalIp();
 	if(curLocalIp.size() > 4) {
 		prefs.SetStreamPref("videoenc.x264.userData", curLocalIp.c_str(), STVIDEO);
+	}
+
+	// Codec spicified options (x264 and x265)
+	bool baselineProfile = false;
+	if(video_map[idx].fmt == VC_H264) {
+		const char* x264Options = conf.target.codecConfig[X264_ADDITION_OPTION].option;
+		if(x264Options && *x264Options) {
+			const char* pCh = NULL;
+			if(pCh = strstr(x264Options, "-profile")) {	// profile
+				std::string profileStr = GetStringBetweenDelims(pCh, "=", ",");
+				if(!profileStr.empty()) {
+					if(profileStr.compare("Baseline") == 0) {
+						prefs.SetStreamPref("videoenc.x264.profile", H264_BASE_LINE, STVIDEO);
+						baselineProfile = true;
+					} else if (profileStr.compare("Main") == 0) {
+						prefs.SetStreamPref("videoenc.x264.profile", H264_MAIN, STVIDEO);
+					}
+				}
+			}
+		}
+
+		// x264 zone
+		x264_zone_t* startZone = conf.target.codecConfig[X264_ADDITION_OPTION].x264Zones[0];
+		if(startZone) {
+			float zoneStartTime = startZone->startTime;
+			float zoneEndTime = startZone->endTime;
+			float zoneRf = startZone->ratio;
+			if(zoneStartTime > -0.0001f && zoneEndTime > zoneStartTime) {
+				prefs.SetStreamPref("videoenc.x264.zoneStart1", zoneStartTime, STVIDEO);
+				prefs.SetStreamPref("videoenc.x264.zoneEnd1", zoneEndTime, STVIDEO);
+				prefs.SetStreamPref("videoenc.x264.zoneRf1", zoneRf, STVIDEO);
+			}
+			delete startZone;
+		}
+
+		x264_zone_t* endZone = conf.target.codecConfig[X264_ADDITION_OPTION].x264Zones[1];
+		if(endZone) {
+			float zoneStartTime = endZone->startTime;
+			float zoneEndTime = endZone->endTime;
+			float zoneRf = endZone->ratio;
+			if(zoneStartTime > -0.0001f && zoneEndTime > zoneStartTime) {
+				prefs.SetStreamPref("videoenc.x264.zoneStart2", zoneStartTime, STVIDEO);
+				prefs.SetStreamPref("videoenc.x264.zoneEnd2", zoneEndTime, STVIDEO);
+				prefs.SetStreamPref("videoenc.x264.zoneRf2", zoneRf, STVIDEO);
+			}
+			delete endZone;
+		}
+	} else if (video_map[idx].fmt == VC_HEVC) {
+		const char* x265Options = conf.target.codecConfig[X265_ADDITION_OPTION].option;
+		if(x265Options && *x265Options) {
+			const char* x265Extras[] = {"-preset", "-me", "-subme", "-sao", "-amp", "-rect", "-badapt", "-wpp", "-ctu",
+					   "-F", "-rdLevel", "-refreshType", "-loopFilter", "-bpyramid"};
+
+			const char* x265PresetItem[] = {"videoenc.x265.preset", "videoenc.x265.me", "videoenc.x265.subme",
+						"videoenc.x265.sao", "videoenc.x265.amp", "videoenc.x265.rect", "videoenc.x265.badapt",
+						"videoenc.x265.wpp", "videoenc.x265.ctu", "videoenc.x265.frameThreads", "videoenc.x265.rdLevel",
+						"videoenc.x265.refreshType", "videoenc.x265.loopFilter", "videoenc.x265.bpyramid"};
+			for(size_t i=0; i<sizeof(x265Extras)/sizeof(x265Extras[0]); ++i) {
+				const char* pCh = NULL;
+				if(pCh = strstr(x265Options, x265Extras[i])) {
+					std::string presetStr = GetStringBetweenDelims(pCh, "=", ",");
+					if(!presetStr.empty()) {
+						prefs.SetStreamPref(x265PresetItem[i], presetStr.c_str(), STVIDEO);
+					}
+				}
+			}
+		}
 	}
 
 	// TODO: video color and video bright and denoise filter
@@ -1991,7 +2024,6 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 
 	if(conf.source.demuxer == 1) {	// Select demuxer to ts files
 		prefs.SetStreamPref("videosrc.mencoder.lavfdemux", true, STVIDEO);
-		prefs.SetStreamPref("videosrc.mencoder.lavfdemux", true, STAUDIO);
 	}
 
 	// Segment configuration
@@ -2041,15 +2073,11 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	if (*(conf.target.imageTail.imageFolder) || *(conf.target.imageTail.imagePath)) {
 		if (*(conf.target.imageTail.imagePath)) {
 			prefs.SetStreamPref("videofilter.imagetail.imagepath", conf.target.imageTail.imagePath, STVIDEO);
-			prefs.SetStreamPref("videofilter.imagetail.imagepath", conf.target.imageTail.imagePath, STAUDIO);
 			prefs.SetStreamPref("videofilter.imagetail.duration", conf.target.imageTail.duration, STVIDEO);
-			prefs.SetStreamPref("videofilter.imagetail.duration", conf.target.imageTail.duration, STAUDIO);
 		} else {
 			prefs.SetStreamPref("videofilter.imagetail.imagefolder", conf.target.imageTail.imagePath, STVIDEO);
-			prefs.SetStreamPref("videofilter.imagetail.imagefolder", conf.target.imageTail.imagePath, STAUDIO);
 		}
 		prefs.SetStreamPref("videofilter.imagetail.cropmode", conf.target.imageTail.cropMode, STVIDEO);
-		prefs.SetStreamPref("videofilter.imagetail.cropmode", conf.target.imageTail.cropMode, STAUDIO);
 	}
 
 	// Thumbnail

@@ -38,6 +38,7 @@
       <fps>0</fps>
       <dar>0.0</dar>  <!--Float value, Should be parsed to darNum and darDen-->
       <keyint>5</keyint> <!--Key frame interval. If keyint < 10, it's senconds else it's frame num.-->
+	  <bframes>4</bframes> <!--B frames num. Range:[0,16], default is 4.-->
     </video>
     <subtitle id="0" timeshift="0s" /> 
     <logo>
@@ -73,6 +74,7 @@
         <zone start="00:01:20.0" end="00:01:40.0" ratio="0.6"/>    <!--Lower bitrate of the zone-->
       </x264>
       <mp4 option="-brand=3grp/3gp6/3gp4,-version=512,-hint=true,-sbr=0/1/2" /> <!--sbr:0-default, 1-sbr, 2-sbrx-->
+	  <x265 option="-preset=fast,-me=3,-subme=3,-sao=true,-amp=true,-rect=true,-badapt=1,-wpp=true,-ctu=64,-F=5,-rdLevel=1,-refreshType=2,-loopFilter=true,-bpyramid=true," />
     </additon>
   </target>
 </transcode>
