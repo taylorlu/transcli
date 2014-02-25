@@ -1,0 +1,40 @@
+﻿<?xml version="1.0"?>
+<TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <source>
+    <audio stream="0" channel="both" />
+    <video stream="0" rectangle="{-1,-1,-1,-1}" />
+    <clip start="00:00:00.0" end="00:00:00.0"/> 
+  </source>
+  <target>
+    <mux format="mp4" />
+    <audio>
+      <codes format="copy" bitrate="56k" samplerate="44100" timeshift="0s" />
+	  <volgain mode="manual" value="0.0"/>
+    </audio>
+    <video>
+      <codec format="copy" bitrate="256k" rectangle="{0,0,480,0}" position="{-1,-1,-1,-1}" nobigger="true" />
+      <fps num="0" den="0"/>
+      <dar num="0" den="0"/>
+    </video>
+    <subtitle timeshift="0s">
+      <Files />
+    </subtitle>
+    <logo>
+      <graph file="{}" interval="1000ms">
+        <Images />
+      </graph>
+      <show />
+    </logo>
+    <!--delogo /-->
+    <filter>
+      <color red="0%" blue="0%" green="0%" bright="0%" />
+      <noise depth="0" mask="0x0" />
+      <denoise mode="Disable" luma="4" chroma="3" temporal="6"/>  
+      <deinterlace mode="Auto" algorithm="YADIF"/>  
+    </filter>
+    <additon>
+      <x264 option="-level=3.1,-fourcc=H.264" />
+      <mpga option="-level=base" />
+    </additon>
+  </target>
+</TranscodeArgsXml>

@@ -7,7 +7,6 @@
 #include "processwrapper.h"
 #include "util.h"
 #include "videoEnhancer.h"
-#include "bitconfig.h"
 
 CVideoEncoder::CVideoEncoder(void):m_pOutStream(NULL),
 								m_fdRead(-1), m_fdWrite(-1), m_tid(0),
@@ -99,6 +98,7 @@ bool CVideoEncoder::InitWaterMark()
 	} else {
 		m_yuvFrameSize = m_frameSizeAfterVf;
 	}
+	logger_info(LOGM_TS_VE, "Frame size:%dx%d, yuv size:%d.\n", m_vInfo.res_out.width,m_vInfo.res_out.height, m_yuvFrameSize);
 
 #ifdef HAVE_VIDEO_ENHANCE
 	// Initialize video enhancer

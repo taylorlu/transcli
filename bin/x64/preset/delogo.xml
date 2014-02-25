@@ -1,0 +1,38 @@
+﻿<?xml version="1.0"?>
+<TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <source>
+    <audio stream="0" channel="both" />
+    <video stream="0" rectangle="{-1,-1,-1,-1}" />
+    <clip start="00:00:00.0" end="00:00:10.0"/>
+	<clip start="00:02:00.0" end="00:03:10.0"/>
+	<!--clip start="00:06:00.0" end="00:09:10.0"/-->
+	<!--clip start="00:26:00.0" end="00:27:10.0"/-->
+  </source>
+  <target>
+    <mux format="mp4" />
+    <audio>
+      <codes format="aac" bitrate="44k" samplerate="24000" timeshift="0s" />
+	  <volgain mode="manual"/>
+    </audio>
+    <video>
+	  <rcmode>1</rcmode>
+      <codec format="h264" bitrate="500k" rectangle="{0,0,480,-1}" position="{-1,-1,-1,-1}" nobigger="ture" />
+    </video>
+    <subtitle timeshift="0s">
+      <Files />
+    </subtitle>
+    <delogo>
+          <pos position="{460,16,530,76}" start="00:00:20.0" end="00:08:55" />
+          <pos position="{47,330,470,418}" start="00:02:28.0" end="00:02:38" />
+    </delogo>
+    <filter>
+      <color red="0%" blue="0%" green="0%" bright="0%" />
+      <noise depth="0" mask="0x0" />
+    </filter>
+	<errorignore>3</errorignore>
+    <additon>
+      <x264 option="-level=4.1,-fourcc=H.264" />
+      <mpga option="-level=base" />
+    </additon>
+  </target>
+</TranscodeArgsXml>

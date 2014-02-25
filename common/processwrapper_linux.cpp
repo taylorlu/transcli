@@ -175,7 +175,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 			if (!MakePipe(desc_w[0], desc_w[1])) {
 				FAIL_INFO("Create stdin pipe failed.\n");
 			}
-			logger_status(LOGM_PROCWRAP, "%s-Pipe: read:%d, write:%d\n", exe, desc_w[0], desc_w[1]);
+			//logger_status(LOGM_PROCWRAP, "%s-Pipe: read:%d, write:%d\n", exe, desc_w[0], desc_w[1]);
 		}
 
 		if (flags & SF_REDIRECT_STDOUT) {
@@ -225,7 +225,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 			strcpy(cmdLine, commandLine);
 		}
 
-		logger_status(LOGM_PROCWRAP, "[CMD]:%s\n", cmdLine);
+		//logger_status(LOGM_PROCWRAP, "[CMD]:%s\n", cmdLine);
 
 		tokens = Tokenize(cmdLine);
 

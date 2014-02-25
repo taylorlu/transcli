@@ -37,7 +37,7 @@ void CTransnodeUtils::SetUseSingleCore(bool bUseSingleCore)
 		if(bUseSingleCore) {
 			SetProcessAffinityMask(hProcess, 0x00000001);	// Bind to cpu 0
 		} else {
-			DWORD processAffinityMask, sysAffinityMask;
+			ULONG_PTR processAffinityMask, sysAffinityMask;	
 			GetProcessAffinityMask(hProcess, &processAffinityMask, &sysAffinityMask);
 			SetProcessAffinityMask(hProcess, sysAffinityMask);			// Cancel binding to cpu 0(bind to all)
 		}

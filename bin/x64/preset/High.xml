@@ -1,0 +1,39 @@
+﻿<?xml version="1.0"?>
+<TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <source>
+    <audio stream="0" channel="both" />
+    <video stream="0" rectangle="{-1,-1,-1,-1}" />
+    <clip start="00:00:00.0" end="00:10:00.0"/> 
+  </source>
+  <target>
+    <mux format="mp4" />
+    <audio>
+      <codec format="aac" bitrate="64k" samplerate="44100" timeshift="0s" />
+    </audio>
+    <video>
+      <codec format="h264" bitrate="1036k" rectangle="{0,0,1280,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
+    </video>
+    <subtitle timeshift="0s">
+      <Files />
+    </subtitle>
+    <!--logo>
+      <graph file="{E:\mplayer\testlogo.png}" interval="1000ms">
+        <Images />
+      </graph>
+      <show>
+	<pos position="{35,143,23,78}" start="00:00:00" end="23:00:00" />
+      </show>
+    </logo-->
+    <!--delogo>
+      <pos position="{62,33,120,113}" start="00:00:00" end="23:00:00" />
+    </delogo-->
+    <filter>
+      <color red="0%" blue="0%" green="0%" bright="0%" />
+      <noise depth="0" mask="0x0" />
+    </filter>
+    <additon>
+      <x264 option="-level=4.1,-fourcc=H.264" />
+      <mpga option="-level=base" />
+    </additon>
+  </target>
+</TranscodeArgsXml>

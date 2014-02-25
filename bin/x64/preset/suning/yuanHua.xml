@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<TranscodeArgsXml>
+ <source>
+ <audio stream="0" channel="original" />
+ <video stream="1" rectangle="{-1,-1,-1,-1}" />
+ <clip start="00:00:00.0" end="00:04:00.0"/>  
+ </source>
+ <target>
+ <mux format="mp4" />
+ <audio>
+  <codec format="aac" bitrate="288k" samplerate="44100" timeshift="0s" />
+ </audio>
+ <video>
+   <codec format="h264" bitrate="6000k" rectangle="{0,0,1280,-1}"
+  position="{-1,-1,-1,-1}" nobigger="true" />
+   <lowerbitrate>0</lowerbitrate>
+   <videoenhance>0</videoenhance>
+   <rcmode>1</rcmode>
+ </video>
+ <subtitle timeshift="0s">
+  <Files />
+ </subtitle>
+ <filter>
+  <color red="+10%" bright="+50%" /> 
+  <noise depth="12" mask="8x8" />
+  <denoise mode="0" luma="4" chroma="3" temporal="6"/> 
+   <deinterlace mode="0" algorithm="0"/>
+ </filter>
+ <addition>
+  <x264 option="-level=4.1,-fourcc=H.264" />
+  <mpga option="-level=base" />
+ </addition>
+ </target>
+</TranscodeArgsXml>

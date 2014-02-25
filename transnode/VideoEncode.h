@@ -2,7 +2,7 @@
 #define _VIDEO_ENCODE_H_
 
 #include "encoderCommon.h"
-
+#include "bitconfig.h"
 //#define RAW_VIDEO_DUMP
 class CVideoEnhancer;
 

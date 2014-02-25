@@ -417,7 +417,7 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 			forePart << "delogo=" << delogoX << ':' 
 					<< delogoY << ':' << delogoW << ':'
 					<< delogoH << ':' << delogoThick << ":0:"	// 0 is value of 'show'	
-					<< "0:0,";
+					<< "-1:-1,";
 		}
 	}
 

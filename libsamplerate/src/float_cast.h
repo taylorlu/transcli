@@ -121,7 +121,7 @@
 		return retval ;
 	} /* float2int */
 
-#elif (defined (WIN32) || defined (_WIN32))
+#elif ((defined (WIN32) || defined (_WIN32)) && !defined(_WIN64))
 
 	#undef		HAVE_LRINT_REPLACEMENT
 	#define		HAVE_LRINT_REPLACEMENT	1
@@ -239,8 +239,8 @@
 
 #else
 	#ifndef __sgi
-	#warning "Don't have the functions lrint() and lrintf()."
-	#warning "Replacing these functions with a standard C cast."
+	//#warning "Don't have the functions lrint() and lrintf()."
+	//#warning "Replacing these functions with a standard C cast."
 	#endif
 
 	#include	<math.h>

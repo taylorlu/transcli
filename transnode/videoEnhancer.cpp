@@ -4,6 +4,7 @@
 #include "string.h"
 #include "assert.h"
 #include "math.h"
+#include "bitconfig.h"
 
 #ifdef HAVE_VIDEO_ENHANCE
 CVideoEnhancer::CVideoEnhancer()
