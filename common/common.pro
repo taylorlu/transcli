@@ -44,8 +44,9 @@ unix {
     SOURCES += processwrapper_linux.cpp
     target.path = /usr/lib
     INSTALLS += target
+    DESTDIR = $$_PRO_FILE_PWD_/../lib/x64_linux
 }
 win32 {
     SOURCES += processwrapper.cpp
+    DESTDIR = $$_PRO_FILE_PWD_/../lib/win32
 }
-DESTDIR = $$_PRO_FILE_PWD_/../lib

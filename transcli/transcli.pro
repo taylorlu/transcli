@@ -23,6 +23,6 @@ win32 {
 }
 
 unix {
-    DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32_linux
-    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32_linux -lc -lzstatic -lpthread -ldl -lirc
+    DEPENDPATH += $$_PRO_FILE_PWD_/../lib/x64_linux
+    LIBS += -L$$_PRO_FILE_PWD_/../lib/x64_linux -lc -lzstatic -lpthread -ldl -lirc
 }

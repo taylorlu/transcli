@@ -28,6 +28,8 @@ HEADERS += \
 unix {
     target.path = /usr/lib
     INSTALLS += target
+    DESTDIR = $$_PRO_FILE_PWD_/../lib/x64_linux
 }
-
-DESTDIR = $$_PRO_FILE_PWD_/../lib
+win32 {
+    DESTDIR = $$_PRO_FILE_PWD_/../lib/win32
+}

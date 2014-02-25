@@ -54,9 +54,10 @@ SOURCES += libxml2-2.7.8/catalog.c \
 unix {
     target.path = /usr/lib
     INCLUDEPATH += libxml2-2.7.8/include
+    DESTDIR = $$_PRO_FILE_PWD_/../lib/x64_linux
 }
 
 win32 {
     INCLUDEPATH += libxml2-2.7.8/win32
+    DESTDIR = $$_PRO_FILE_PWD_/../lib/win32
 }
-DESTDIR = $$_PRO_FILE_PWD_/../lib
