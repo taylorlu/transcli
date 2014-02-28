@@ -104,7 +104,7 @@ CYuvUtil::FrameRect CYuvUtil::AutoDetectCrop(const char* fileName, int duration,
 			selectInterval = 1;
 		}
 		// Select one frame every 5 seconds
-		sprintf(vfStr, " -vf select=isnan(prev_selected_t)+gte(t-prev_selected_t\\,%d),cropdetect=%d:4", selectInterval, detectThreshold);
+		sprintf(vfStr, " -vf \"select=isnan(prev_selected_t)+gte(t-prev_selected_t\\,%d),cropdetect=%d:4\"", selectInterval, detectThreshold);
 		
 		CProcessWrapper proc;
 		std::string cmdString = FFMPEG;

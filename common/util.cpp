@@ -1098,10 +1098,10 @@ void OptimizeJpeg(const char* jpegFile)
 	if(jpegSize > 10240) {
 		cmdString += "-progressive ";
 	}
-	cmdString += "\"";
-	cmdString += jpegFile;
-	cmdString += "\" \"";
-	cmdString += tmpOutFile + "\"";
+	cmdString += " -outfile \"";
+    cmdString += tmpOutFile + "\" \"";
+    cmdString += jpegFile;
+    cmdString += "\"";
 	int jpegtranRet = proc.Run(cmdString.c_str());
 	if(jpegtranRet == 0) {
 		RemoveFile(jpegFile);

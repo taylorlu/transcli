@@ -334,11 +334,16 @@ void CThumbnailFilter::genStitchingImage(int startSec)
 		}
 
 		int destWidth = m_thumbW*imgCol, destHeight = m_thumbH*imgRow;
-		CImg<uint8_t> destImg(destWidth, destHeight, 1, 3);
+		CImg<uint8_t> destImg(destWidth, destHeight, 1, 3, 0);
+
+		bool shouldBreak = false;
 		for (size_t i=0; i<imgRow; ++i) {
 			for (size_t j=0; j<imgCol; ++j) {
 				size_t imgIdx = imgCol*i + j;
-				if(imgIdx >= imgNum) break;
+				if(imgIdx >= imgNum) {
+					shouldBreak = true;
+					break;
+				}
 				CImg<uint8_t>* curImg = m_imgList[imgIdx];
 
 				// Loop each image buffer
@@ -353,6 +358,9 @@ void CThumbnailFilter::genStitchingImage(int startSec)
 					p = destImg.data(j*m_thumbW, i*m_thumbH+h, 0, 2);
 					memcpy(p, curImg->data(0, h, 0, 2), m_thumbW);
 				}
+			}
+			if(shouldBreak) {
+				break;
 			}
 		}
 		try {

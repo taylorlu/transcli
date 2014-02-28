@@ -1590,7 +1590,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 	}
 
 	if(!pSingleEncoder->StopThumbnail()) {
-		logger_warn(m_logType, "Add image tail failed.\n");
+		logger_warn(m_logType, "Generate thumbnail failed.\n");
 		//ret = -1;
 		//SetErrorCode(EC_GEN_THUMBNAIL_ERROR);
 	}
