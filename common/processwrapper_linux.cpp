@@ -248,7 +248,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 			//parent
 			if (flags & SF_REDIRECT_STDIN) {
 				fdStdinWrite = desc_w[FD_W];
-				logger_info(LOGM_PROCWRAP, "fdStdinWrite = %d\n", fdStdinWrite);
+				//logger_info(LOGM_PROCWRAP, "fdStdinWrite = %d\n", fdStdinWrite);
 				close(desc_w[FD_R]);
 			}
 
@@ -355,7 +355,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 				close(fdVideo[FD_R]);
 			}
 
-			fprintf(stderr, "Child thread return.\n");
+			//fprintf(stderr, "Child thread return.\n");
 			exit(27);
 			//return true;
         }

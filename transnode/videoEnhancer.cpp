@@ -202,7 +202,7 @@ void CVideoEnhancer::getHeight(int& height)
 // ----------                ---------- 
 // |-1| 0| 1|                |-1|-2| 1| 
 // ----------                ---------- 
-
+#if defined(_WIN32) && !defined(_WIN64)
 int CVideoEnhancer::filter_sobel_8x8_SSE2(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride)
 {
 	int width_8x8 = m_parameter->width >> BLOCK_8x8;
@@ -540,200 +540,6 @@ D_loop:
 	}
 }
 
-
-void CVideoEnhancer::filter_unsharp_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride)
-{
-	int width_8x8 = m_parameter->width >> BLOCK_8x8;
-	int height_8x8 = m_parameter->height >> BLOCK_8x8;
-	
-	if ((x==0)||(x==width_8x8-1)||(y==0)||(y==height_8x8-1))
-		return ;
-
-	int ox = x<<3;
-	int oy = y<<3;
-	
-	int width = 8;
-	int height = 8;
-	unsigned char* p1 = pIn + stride*oy + ox;
-	unsigned char* p2 = m_parameter->gaussian_blur_buf1 + stride*oy + ox; // 原始视频经过高斯模糊
-	unsigned char* p3 = m_parameter->gaussian_blur_buf0 + stride*oy + ox; // 经过canny算法的边缘值，再经过高斯模糊
-
-	unsigned char* p4 = pOut + stride*oy +ox;
-	
-	int i,j;
-	int pix;
-	double delta = 1.2;
-	for (j=0; j< height; j++)
-	{
-		for (i=0; i< width; i++)
-		{
-			pix = (int)(*p1 + delta*(*p1-*p2)*(*p3)/255);	
-			
-			if (pix >255)
-				*p4 =255;
-			else if (pix <0)
-				*p4 = 0;
-			else
-				*p4 = pix;
-			p1++;
-			p2++;
-			p3++;
-			p4++;
-		}
-		p1 += (stride-width);
-		p2 += (stride-width);
-		p3 += (stride-width);
-		p4 += (stride-width);
-	}
-}
-
-
-
-
-
-void CVideoEnhancer::filter_unsharp(unsigned char* pIn, const int width, const int height)
-{
-	filter_canny(pIn, width, height);
-	
-	int count_row;
-	unsigned char* p1;
-	int i,j;
-	for(j=0; j<height; j++)
-	{
-		count_row = 0;
-		for (i=0; i<width; i++)
-		{
-			p1 = m_parameter->canny+j*width+i;
-			if (*p1 ==235)
-				count_row++;
-		}
-
-		if (width*0.8 <= count_row)
-		{
-			for(i=0; i<width; i++)	
-			{
-				p1 = m_parameter->canny+j*width+i;
-				*p1 = 16;
-			}
-		}
-	}
-
-	filter_gaussian_blur(m_parameter->canny, m_parameter->width, m_parameter->height, 0);
-	filter_gaussian_blur(pIn, width, height, 1);
-	
-	int width_8x8 = width >> BLOCK_8x8;
-	int height_8x8 =height >> BLOCK_8x8;
-	
-	for(j=1; j<height_8x8-1; j++)
-	{
-		for(i=1; i<width_8x8-1; i++)
-		{
-			//filter_unsharp_8x8(i,j,pIn,pIn,width);
-			filter_unsharp_8x8_SSE2(i,j,pIn,pIn,width);
-			//filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
-			//filter_unsharp_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
-		}
-	}
-}
-
-// Sobel算子计算边缘
-// 
-// ----------                ---------- 
-// |-1| 0| 1|                |1 | 2| 1| 
-// ----------                ---------- 
-// |-2| 0| 2|                | 0| 0| 0| 
-// ----------                ---------- 
-// |-1| 0| 1|                |-1|-2| 1| 
-// ----------                ---------- 
-int CVideoEnhancer::filter_sobel_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride)
-{
-	int width_8x8 = m_parameter->width >> BLOCK_8x8;
-	int height_8x8 = m_parameter->height >> BLOCK_8x8;
-	
-	if ((x==0)||(x==width_8x8-1)||(y==0)||(y==height_8x8-1))
-		return -1;
-
-	int width = 8;
-	int height = 8;
-	
-	int ox = x<<3;
-	int oy = y<<3;
-	
-	unsigned char* p1 = pIn + stride*oy + ox;
-	unsigned char* p2 = pOut + stride*oy +ox;
-	
-	int i,j;
-	int threshold = 30;
-	int abs_Sx, abs_Sy;
-	int Sx,Sy;
-	int pix;
-	for (j = 0; j < height; j++)
-	{
-		for (i = 0; i < width; i++)
-		{
-			Sx = -(*(p1-1))*2+(*(p1+1))*2
-				 -*(p1-stride-1)+*(p1-stride+1)
-				 -*(p1+stride-1)+*(p1+stride+1);
-	
-			Sy = +*(p1-stride-1)+*(p1-stride+1)+(*(p1-stride))*2
-				 -*(p1+stride-1)-*(p1+stride+1)-(*(p1+stride))*2;
-			
-			abs_Sx = abs(Sx);
-			abs_Sy = abs(Sy);
-
-
-			pix = abs_Sx+abs_Sy;
-
-			if (pix>threshold)
-				*p2 = 235;
-			else
-				*p2 = 16;
-
-			p1++; p2++;	
-		}
-		p1 += (stride-width);
-		p2 += (stride-width);
-	}
-	return 0;
-}
-
-
-void CVideoEnhancer::filter_canny(unsigned char* pIn, const int width, const int height)
-{
-	int width_8x8 = width >> BLOCK_8x8;
-	int height_8x8 =height >> BLOCK_8x8;
-	
-	int i,j;
-
-	filter_gaussian_blur(pIn, m_parameter->width, m_parameter->height, 1);
-	
-	for(j=1; j<height_8x8-1; j++)
-	{
-		for(i=1; i<width_8x8-1; i++)
-		{
-			//filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
-			filter_sobel_8x8_SSE2(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
-		}
-	}
-}
-
-
-bool CVideoEnhancer::SSE2Check()
-{
-	unsigned int flag;
-	__asm
-	{
-		mov eax,1
-		cpuid
-		and edx, 004000000h
-		mov flag, edx
-	}
-	if (flag!=0)
-		return true;
-	else 
-		return false;
-}
-
 void CVideoEnhancer::filter_gaussian_blur_8x8_SSE2(const int x, const int y, unsigned char* pIn, unsigned char* pOut,
                                                   const int stride)
 {
@@ -823,6 +629,208 @@ D_loop:
         emms
     }
 }
+#endif
+
+void CVideoEnhancer::filter_unsharp_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride)
+{
+	int width_8x8 = m_parameter->width >> BLOCK_8x8;
+	int height_8x8 = m_parameter->height >> BLOCK_8x8;
+	
+	if ((x==0)||(x==width_8x8-1)||(y==0)||(y==height_8x8-1))
+		return ;
+
+	int ox = x<<3;
+	int oy = y<<3;
+	
+	int width = 8;
+	int height = 8;
+	unsigned char* p1 = pIn + stride*oy + ox;
+	unsigned char* p2 = m_parameter->gaussian_blur_buf1 + stride*oy + ox; // 原始视频经过高斯模糊
+	unsigned char* p3 = m_parameter->gaussian_blur_buf0 + stride*oy + ox; // 经过canny算法的边缘值，再经过高斯模糊
+
+	unsigned char* p4 = pOut + stride*oy +ox;
+	
+	int i,j;
+	int pix;
+	double delta = 1.2;
+	for (j=0; j< height; j++)
+	{
+		for (i=0; i< width; i++)
+		{
+			pix = (int)(*p1 + delta*(*p1-*p2)*(*p3)/255);	
+			
+			if (pix >255)
+				*p4 =255;
+			else if (pix <0)
+				*p4 = 0;
+			else
+				*p4 = pix;
+			p1++;
+			p2++;
+			p3++;
+			p4++;
+		}
+		p1 += (stride-width);
+		p2 += (stride-width);
+		p3 += (stride-width);
+		p4 += (stride-width);
+	}
+}
+
+
+
+
+
+void CVideoEnhancer::filter_unsharp(unsigned char* pIn, const int width, const int height)
+{
+	filter_canny(pIn, width, height);
+	
+	int count_row;
+	unsigned char* p1;
+	int i,j;
+	for(j=0; j<height; j++)
+	{
+		count_row = 0;
+		for (i=0; i<width; i++)
+		{
+			p1 = m_parameter->canny+j*width+i;
+			if (*p1 ==235)
+				count_row++;
+		}
+
+		if (width*0.8 <= count_row)
+		{
+			for(i=0; i<width; i++)	
+			{
+				p1 = m_parameter->canny+j*width+i;
+				*p1 = 16;
+			}
+		}
+	}
+
+	filter_gaussian_blur(m_parameter->canny, m_parameter->width, m_parameter->height, 0);
+	filter_gaussian_blur(pIn, width, height, 1);
+	
+	int width_8x8 = width >> BLOCK_8x8;
+	int height_8x8 =height >> BLOCK_8x8;
+	
+	for(j=1; j<height_8x8-1; j++)
+	{
+		for(i=1; i<width_8x8-1; i++)
+		{
+			//filter_unsharp_8x8(i,j,pIn,pIn,width);
+#if defined(_WIN32) && !defined(_WIN64)
+			filter_unsharp_8x8_SSE2(i,j,pIn,pIn,width);
+#endif
+			//filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+			//filter_unsharp_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+		}
+	}
+}
+
+// Sobel算子计算边缘
+// 
+// ----------                ---------- 
+// |-1| 0| 1|                |1 | 2| 1| 
+// ----------                ---------- 
+// |-2| 0| 2|                | 0| 0| 0| 
+// ----------                ---------- 
+// |-1| 0| 1|                |-1|-2| 1| 
+// ----------                ---------- 
+int CVideoEnhancer::filter_sobel_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride)
+{
+	int width_8x8 = m_parameter->width >> BLOCK_8x8;
+	int height_8x8 = m_parameter->height >> BLOCK_8x8;
+	
+	if ((x==0)||(x==width_8x8-1)||(y==0)||(y==height_8x8-1))
+		return -1;
+
+	int width = 8;
+	int height = 8;
+	
+	int ox = x<<3;
+	int oy = y<<3;
+	
+	unsigned char* p1 = pIn + stride*oy + ox;
+	unsigned char* p2 = pOut + stride*oy +ox;
+	
+	int i,j;
+	int threshold = 30;
+	int abs_Sx, abs_Sy;
+	int Sx,Sy;
+	int pix;
+	for (j = 0; j < height; j++)
+	{
+		for (i = 0; i < width; i++)
+		{
+			Sx = -(*(p1-1))*2+(*(p1+1))*2
+				 -*(p1-stride-1)+*(p1-stride+1)
+				 -*(p1+stride-1)+*(p1+stride+1);
+	
+			Sy = +*(p1-stride-1)+*(p1-stride+1)+(*(p1-stride))*2
+				 -*(p1+stride-1)-*(p1+stride+1)-(*(p1+stride))*2;
+			
+			abs_Sx = abs(Sx);
+			abs_Sy = abs(Sy);
+
+
+			pix = abs_Sx+abs_Sy;
+
+			if (pix>threshold)
+				*p2 = 235;
+			else
+				*p2 = 16;
+
+			p1++; p2++;	
+		}
+		p1 += (stride-width);
+		p2 += (stride-width);
+	}
+	return 0;
+}
+
+
+void CVideoEnhancer::filter_canny(unsigned char* pIn, const int width, const int height)
+{
+	int width_8x8 = width >> BLOCK_8x8;
+	int height_8x8 =height >> BLOCK_8x8;
+	
+	int i,j;
+
+	filter_gaussian_blur(pIn, m_parameter->width, m_parameter->height, 1);
+	
+	for(j=1; j<height_8x8-1; j++)
+	{
+		for(i=1; i<width_8x8-1; i++)
+		{
+			//filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+#if defined(_WIN32) && !defined(_WIN64)
+			filter_sobel_8x8_SSE2(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+#endif
+		}
+	}
+}
+
+
+bool CVideoEnhancer::SSE2Check()
+{
+#if defined(_WIN32) && !defined(_WIN64)
+	unsigned int flag;
+	__asm
+	{
+		mov eax,1
+		cpuid
+		and edx, 004000000h
+		mov flag, edx
+	}
+	if (flag!=0)
+		return true;
+	else 
+#endif
+		return false;
+}
+
+
 
 // 高斯模糊
 // 
@@ -892,7 +900,9 @@ void CVideoEnhancer::filter_gaussian_blur(unsigned char* pIn, const int width, c
 	{
 		for(i=1; i<width_8x8-1; i++)
 		{
+			#if defined(_WIN32) && !defined(_WIN64)
 			filter_gaussian_blur_8x8_SSE2(i,j,pIn, pOut, width);	
+			#endif
 		}
 	}
 	
@@ -1316,10 +1326,12 @@ void CVideoEnhancer::process(unsigned char* pIn)
 	 
 	//filter_contrast_stretch(pIn, width, height);
     filter_contrast_test(pIn, width, height);
+	#if defined(_WIN32) && !defined(_WIN64)
     if (m_bSSE2)
     {
         filter_unsharp(pIn, width, height);
     }
+	#endif
     filter_color(pIn, width, height);
 }
 

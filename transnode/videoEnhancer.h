@@ -97,14 +97,15 @@ private:
 	
 	void filter_gaussian_blur(unsigned char* pIn, const int width, const int height, int mem_ID);
 	void filter_gaussian_blur_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
-	void filter_gaussian_blur_8x8_SSE2(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
-
 	int filter_sobel_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
-	int filter_sobel_8x8_SSE2(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
-
 	void filter_unsharp_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
+
+#if defined(_WIN32) && !defined(_WIN64)
+	void filter_gaussian_blur_8x8_SSE2(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
+	int filter_sobel_8x8_SSE2(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
 	void filter_unsharp_8x8_SSE2(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride);
-	
+#endif
+
 	void filter_color(unsigned char *pIn, const int width, const int height);
 	
 	bool SSE2Check(); 
