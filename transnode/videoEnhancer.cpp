@@ -1,6 +1,9 @@
 #include "videoEnhancer.h"
-#include "stdlib.h"
-#include "stdio.h"
+#include <stdlib.h>
+#include <stdio.h>
+#ifndef _WIN32
+#include <malloc.h>
+#endif
 #include "string.h"
 #include "assert.h"
 #include "math.h"
@@ -35,13 +38,21 @@ void CVideoEnhancer::align_free(void *p)
 {
     if (p)
     {
+#ifdef _WIN32
         _aligned_free(p);
+#else
+        free(p);
+#endif
     }
 }
 
 void * CVideoEnhancer::align_malloc( int i_size )
 {
+#ifdef _WIN32
     return _aligned_malloc(i_size, 16);
+#else
+    return memalign(16, i_size);
+#endif
 }
 
 bool CVideoEnhancer::init(int width, int height,int stride, int colorSpace)
@@ -993,7 +1004,7 @@ void CVideoEnhancer::filter_contrast(unsigned char *pIn, const int width, const 
 	int levelMin1, levelMax1;
 	levelMin1 = 0;
 	levelMax1 =255;
-	int percent1 = int((__int64)width*height*5/1000);
+	int percent1 = int(width*height*5/1000);
 	int count_min = 0;
 	for (int i = 0; i <= 255; ++i)
 	{
@@ -1119,8 +1130,8 @@ void CVideoEnhancer::filter_contrast_stretch(unsigned char *pIn, const int width
 	int levelMin2 = 0;    // 百分之五最亮的点
 	int levelMax2 = LEVEL_SCALE-1;  // 百分之五最暗的点
 
-	long percent1 = long((__int64)width*height*1/1000);
-	long percent2 = long((__int64)width*height*50/1000);
+	long percent1 = long(width*height*1/1000);
+	long percent2 = long(width*height*50/1000);
 	
 	// 计算 最暗的和最亮的点
 	int aHistogram[LEVEL_SCALE] = {0};
@@ -1169,7 +1180,7 @@ void CVideoEnhancer::filter_contrast_stretch(unsigned char *pIn, const int width
 
 
 	// 计算 平均亮度
-	__int64 brightness = 0;
+	int64_t brightness = 0;
 	for (int i = 0; i <= min; ++i)
 	{
 		brightness += aHistogram[i]*min;
