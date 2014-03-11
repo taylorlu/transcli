@@ -975,6 +975,10 @@ std::string CNeroAudioEncoder::GetCommandLine()
 	} else if(bitrateEachChannel >= 12 || m_aInfo.out_channels == 1) {
 		profileStr = " -he";
 	} else {
+		// If bitrate of each channel is less than 5, maybe fail to encoding frame.
+		if(bitrateEachChannel <= 4) {
+			m_bitrate = 5*m_aInfo.out_channels;		
+		}
 		profileStr = " -hev2";
 	}
 	sstr << profileStr;

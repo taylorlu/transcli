@@ -64,14 +64,16 @@ bool CX265Encode::Initialize()
 	x265Cmd << " --input-res " << m_x265Param.sourceWidth << 'x' << m_x265Param.sourceHeight; 
 	x265Cmd << " --input-depth 8";
 	m_x265Param.internalCsp = X265_CSP_I420;
-	m_x265Param.inputBitDepth = 8;
+	m_x265Param.internalBitDepth = 8;
 
 	if(m_vInfo.fps_in.den > 0) {
-		m_x265Param.frameRate = (int)(m_vInfo.fps_in.num/(float)m_vInfo.fps_in.den + 0.5f);
+		m_x265Param.fpsNum = m_vInfo.fps_in.num;
+		m_x265Param.fpsDenom = m_vInfo.fps_in.den;
 	} else {
-		m_x265Param.frameRate = 25;
+		m_x265Param.fpsNum = 25;
+		m_x265Param.fpsDenom = 1;
 	}
-	x265Cmd << " --fps " << m_x265Param.frameRate;
+	x265Cmd << " --fps " << (float)m_vInfo.fps_in.num/m_vInfo.fps_in.den;
 
 	// Rate control
 	m_vInfo.bitrate = m_pXmlPrefs->GetInt("overall.video.bitrate");
@@ -97,287 +99,392 @@ bool CX265Encode::Initialize()
 			break;
 	}
 	
-	int threadNum = m_pXmlPrefs->GetInt("videoenc.x265.threads");
-	if(threadNum > 0) m_x265Param.poolNumThreads = threadNum;
-
-	int frameThreads = m_pXmlPrefs->GetInt("videoenc.x265.frameThreads");
-	if(frameThreads > 1) {
-		m_x265Param.frameNumThreads = frameThreads;
-		x265Cmd << " -F " << frameThreads;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.threads")) {
+		int threadNum = m_pXmlPrefs->GetInt("videoenc.x265.threads");
+		if(threadNum > 0) m_x265Param.poolNumThreads = threadNum;
 	}
 
-	bool bEnableWpp = m_pXmlPrefs->GetBoolean("videoenc.x265.wpp");
-	if(bEnableWpp) {
-		m_x265Param.bEnableWavefront = 1;
-		x265Cmd << " --wpp";
-	} else {
-		m_x265Param.bEnableWavefront = 0;
-		x265Cmd << " --no-wpp";
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.frameThreads")) {
+		int frameThreads = m_pXmlPrefs->GetInt("videoenc.x265.frameThreads");
+		if(frameThreads > 1) {
+			m_x265Param.frameNumThreads = frameThreads;
+			x265Cmd << " -F " << frameThreads;
+		}
 	}
 
-	int ctuNum = m_pXmlPrefs->GetInt("videoenc.x265.ctu");
-	if(ctuNum > 0) {
-		m_x265Param.maxCUSize = (uint32_t)ctuNum;
-		x265Cmd << " --ctu " << ctuNum;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.wpp")) {
+		bool bEnableWpp = m_pXmlPrefs->GetBoolean("videoenc.x265.wpp");
+		if(bEnableWpp) {
+			m_x265Param.bEnableWavefront = 1;
+			x265Cmd << " --wpp";
+		} else {
+			m_x265Param.bEnableWavefront = 0;
+			x265Cmd << " --no-wpp";
+		}
 	}
 
-	int ctuIntra = m_pXmlPrefs->GetInt("videoenc.x265.ctuIntra");
-	if(ctuIntra > 0) {
-		m_x265Param.tuQTMaxIntraDepth = (uint32_t)ctuIntra;
-		x265Cmd << " --tu-intra-depth " << ctuNum;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.ctu")) {
+		int ctuNum = m_pXmlPrefs->GetInt("videoenc.x265.ctu");
+		if(ctuNum > 0) {
+			m_x265Param.maxCUSize = (uint32_t)ctuNum;
+			x265Cmd << " --ctu " << ctuNum;
+		}
 	}
 
-	int ctuInter = m_pXmlPrefs->GetInt("videoenc.x265.ctuInter");
-	if(ctuInter > 0) {
-		m_x265Param.tuQTMaxInterDepth = (uint32_t)ctuInter;
-		x265Cmd << " --tu-inter-depth " << ctuNum;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.ctuIntra")) {
+		int ctuIntra = m_pXmlPrefs->GetInt("videoenc.x265.ctuIntra");
+		if(ctuIntra > 0) {
+			m_x265Param.tuQTMaxIntraDepth = (uint32_t)ctuIntra;
+			x265Cmd << " --tu-intra-depth " << ctuIntra;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.ctuInter")) {
+		int ctuInter = m_pXmlPrefs->GetInt("videoenc.x265.ctuInter");
+		if(ctuInter > 0) {
+			m_x265Param.tuQTMaxInterDepth = (uint32_t)ctuInter;
+			x265Cmd << " --tu-inter-depth " << ctuInter;
+		}
 	}
 
 	//ME search method (DIA, HEX, UMH, STAR, FULL)
-	int me = m_pXmlPrefs->GetInt("videoenc.x265.me");
-	if(me > 0) {
-		m_x265Param.searchMethod = me;
-		x265Cmd << " --me " << me;
-	}
-
-	int subme = m_pXmlPrefs->GetInt("videoenc.x265.subme");
-	if(subme >= 0 && subme <= X265_MAX_SUBPEL_LEVEL) {
-		m_x265Param.subpelRefine = subme;
-		x265Cmd << " --subme " << subme;
-	}
-
-	int merange = m_pXmlPrefs->GetInt("videoenc.x265.merange");
-	if(merange > 0) {
-		m_x265Param.searchRange = merange;
-		x265Cmd << " --merange " << merange;
-	}
-
-	bool bEnableRect = m_pXmlPrefs->GetBoolean("videoenc.x265.rect");
-	if(bEnableRect) {
-		m_x265Param.bEnableRectInter = 1;
-		x265Cmd << " --rect";
-	} else {
-		m_x265Param.bEnableRectInter = 0;
-		x265Cmd << " --no-rect";
-	}
-
-	bool bEnableAmp = m_pXmlPrefs->GetBoolean("videoenc.x265.amp");
-	if(bEnableAmp) {
-		m_x265Param.bEnableAMP = 1;
-		x265Cmd << " --amp";
-	} else {
-		m_x265Param.bEnableAMP = 0;
-		x265Cmd << " --no-amp";
-	}
-
-	int maxMerge = m_pXmlPrefs->GetInt("videoenc.x265.maxMerge");
-	if(maxMerge > 0 && maxMerge <= 5) {
-		m_x265Param.maxNumMergeCand = (uint32_t)maxMerge;
-		x265Cmd << " --max-merge " << maxMerge;
-	}
-
-	bool bEnableEarlySkip = m_pXmlPrefs->GetBoolean("videoenc.x265.earlySkip");
-	if(bEnableEarlySkip) {
-		m_x265Param.bEnableEarlySkip = 1;
-		x265Cmd << " --early-skip";
-	} else {
-		m_x265Param.bEnableEarlySkip = 0;
-		x265Cmd << " --no-early-skip";
-	}
-
-	bool bEnableFastCbf = m_pXmlPrefs->GetBoolean("videoenc.x265.fastCbf");
-	if(bEnableFastCbf) {
-		m_x265Param.bEnableCbfFastMode = 1;
-		x265Cmd << " --fast-cbf";
-	} else {
-		m_x265Param.bEnableCbfFastMode = 0;
-		x265Cmd << " --no-fast-cbf";
-	}
-
-	int rdPenalty = m_pXmlPrefs->GetInt("videoenc.x265.rdPenalty");
-	if(rdPenalty >= 0 && rdPenalty <= 2) {
-		m_x265Param.rdPenalty = rdPenalty;
-		x265Cmd << " rdpenalty " << rdPenalty;
-	}
-
-	bool bEnableTransformSkip = m_pXmlPrefs->GetBoolean("videoenc.x265.tskip");
-	if(bEnableTransformSkip) {
-		m_x265Param.bEnableTransformSkip = 1;
-		x265Cmd << " --tskip";
-	} else {
-		m_x265Param.bEnableTransformSkip = 0;
-		x265Cmd << " --no-tskip";
-	}
-
-	bool bEnableTransformSkipFast = m_pXmlPrefs->GetBoolean("videoenc.x265.tskipFast");
-	if(bEnableTransformSkipFast) {
-		m_x265Param.bEnableTSkipFast = 1;
-		x265Cmd << " --tskip-fast";
-	} else {
-		m_x265Param.bEnableTSkipFast = 0;
-		x265Cmd << " --no-tskip-fast";
-	}
-
-	bool bEnableOpenGOP = m_pXmlPrefs->GetBoolean("videoenc.x265.openGop");
-	if(bEnableOpenGOP) {
-		m_x265Param.bOpenGOP = 1;
-	} else {
-		m_x265Param.bOpenGOP = 0;
-	}
-	// strong-intra-smoothing
-	// constrained-intra
-	
-	int refreshType = m_pXmlPrefs->GetInt("videoenc.x265.refreshType");
-	if(refreshType > 0) {
-		m_x265Param.decodingRefreshType = refreshType;
-		x265Cmd << " --refresh " << refreshType;
-	}
-
-	int keyint = m_pXmlPrefs->GetInt("videoenc.x265.keyint");
-	if(keyint > 0) {
-		if(keyint < 10) {
-			m_x265Param.keyframeMax = keyint*m_x265Param.frameRate;
-		} else {
-			m_x265Param.keyframeMax = keyint;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.me")) {
+		int me = m_pXmlPrefs->GetInt("videoenc.x265.me");
+		if(me > 0) {
+			m_x265Param.searchMethod = me;
+			x265Cmd << " --me " << me;
 		}
-		x265Cmd << " --keyint " << keyint;
 	}
 
-	int lookahead = m_pXmlPrefs->GetInt("videoenc.x265.lookahead");
-	if(lookahead > 0) {
-		m_x265Param.lookaheadDepth = lookahead;
-		x265Cmd << " --rc-lookahead " << lookahead;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.subme")) {
+		int subme = m_pXmlPrefs->GetInt("videoenc.x265.subme");
+		if(subme >= 0 && subme <= X265_MAX_SUBPEL_LEVEL) {
+			m_x265Param.subpelRefine = subme;
+			x265Cmd << " --subme " << subme;
+		}
 	}
 
-	int bframes = m_pXmlPrefs->GetInt("videoenc.x265.bframes");
-	if(bframes >= 0) {
-		m_x265Param.bframes = bframes;
-		x265Cmd << " --bframes " << bframes;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.merange")) {
+		int merange = m_pXmlPrefs->GetInt("videoenc.x265.merange");
+		if(merange > 0) {
+			m_x265Param.searchRange = merange;
+			x265Cmd << " --merange " << merange;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.rect")) {
+		bool bEnableRect = m_pXmlPrefs->GetBoolean("videoenc.x265.rect");
+		if(bEnableRect) {
+			m_x265Param.bEnableRectInter = 1;
+			x265Cmd << " --rect";
+		} else {
+			m_x265Param.bEnableRectInter = 0;
+			x265Cmd << " --no-rect";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.amp")) {
+		bool bEnableAmp = m_pXmlPrefs->GetBoolean("videoenc.x265.amp");
+		if(bEnableAmp) {
+			m_x265Param.bEnableAMP = 1;
+			x265Cmd << " --amp";
+		} else {
+			m_x265Param.bEnableAMP = 0;
+			x265Cmd << " --no-amp";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.maxMerge")) {
+		int maxMerge = m_pXmlPrefs->GetInt("videoenc.x265.maxMerge");
+		if(maxMerge > 0 && maxMerge <= 5) {
+			m_x265Param.maxNumMergeCand = (uint32_t)maxMerge;
+			x265Cmd << " --max-merge " << maxMerge;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.earlySkip")) {
+		bool bEnableEarlySkip = m_pXmlPrefs->GetBoolean("videoenc.x265.earlySkip");
+		if(bEnableEarlySkip) {
+			m_x265Param.bEnableEarlySkip = 1;
+			x265Cmd << " --early-skip";
+		} else {
+			m_x265Param.bEnableEarlySkip = 0;
+			x265Cmd << " --no-early-skip";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.fastCbf")) {
+		bool bEnableFastCbf = m_pXmlPrefs->GetBoolean("videoenc.x265.fastCbf");
+		if(bEnableFastCbf) {
+			m_x265Param.bEnableCbfFastMode = 1;
+			x265Cmd << " --fast-cbf";
+		} else {
+			m_x265Param.bEnableCbfFastMode = 0;
+			x265Cmd << " --no-fast-cbf";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.rdPenalty")) {
+		int rdPenalty = m_pXmlPrefs->GetInt("videoenc.x265.rdPenalty");
+		if(rdPenalty >= 0 && rdPenalty <= 2) {
+			m_x265Param.rdPenalty = rdPenalty;
+			x265Cmd << " rdpenalty " << rdPenalty;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.tskip")) {
+		bool bEnableTransformSkip = m_pXmlPrefs->GetBoolean("videoenc.x265.tskip");
+		if(bEnableTransformSkip) {
+			m_x265Param.bEnableTransformSkip = 1;
+			x265Cmd << " --tskip";
+		} else {
+			m_x265Param.bEnableTransformSkip = 0;
+			x265Cmd << " --no-tskip";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.tskipFast")) {
+		bool bEnableTransformSkipFast = m_pXmlPrefs->GetBoolean("videoenc.x265.tskipFast");
+		if(bEnableTransformSkipFast) {
+			m_x265Param.bEnableTSkipFast = 1;
+			x265Cmd << " --tskip-fast";
+		} else {
+			m_x265Param.bEnableTSkipFast = 0;
+			x265Cmd << " --no-tskip-fast";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.openGop")) {
+		bool bEnableOpenGOP = m_pXmlPrefs->GetBoolean("videoenc.x265.openGop");
+		if(bEnableOpenGOP) {
+			m_x265Param.bOpenGOP = 1;
+		} else {
+			m_x265Param.bOpenGOP = 0;
+		}
 	}
 	
-	//bframe-bias
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.keyint")) {
+		int keyint = m_pXmlPrefs->GetInt("videoenc.x265.keyint");
+		if(keyint > 0) {
+			if(keyint < 10) {
+				m_x265Param.keyframeMax = keyint*m_x265Param.fpsNum/m_x265Param.fpsDenom;
+			} else {
+				m_x265Param.keyframeMax = keyint;
+			}
+			x265Cmd << " --keyint " << keyint;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.lookahead")) {
+		int lookahead = m_pXmlPrefs->GetInt("videoenc.x265.lookahead");
+		if(lookahead > 0) {
+			m_x265Param.lookaheadDepth = lookahead;
+			x265Cmd << " --rc-lookahead " << lookahead;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.bframes")) {
+		int bframes = m_pXmlPrefs->GetInt("videoenc.x265.bframes");
+		if(bframes >= 0) {
+			m_x265Param.bframes = bframes;
+			x265Cmd << " --bframes " << bframes;
+		}
+	}
 
 	//0 - none, 1 - fast, 2 - full (trellis)
-	int badapt = m_pXmlPrefs->GetInt("videoenc.x265.badapt");
-	if(badapt >= 0 && badapt <= 2) {
-		m_x265Param.bFrameAdaptive = badapt;
-		x265Cmd << " --b-adapt " << badapt;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.badapt")) {
+		int badapt = m_pXmlPrefs->GetInt("videoenc.x265.badapt");
+		if(badapt >= 0 && badapt <= 2) {
+			m_x265Param.bFrameAdaptive = badapt;
+			x265Cmd << " --b-adapt " << badapt;
+		}
 	}
 
-	int reframes = m_pXmlPrefs->GetInt("videoenc.x265.reframes");
-	if(reframes > 0) {
-		m_x265Param.maxNumReferences = reframes;
-		x265Cmd << " --ref " << reframes;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.reframes")) {
+		int reframes = m_pXmlPrefs->GetInt("videoenc.x265.reframes");
+		if(reframes > 0) {
+			m_x265Param.maxNumReferences = reframes;
+			x265Cmd << " --ref " << reframes;
+		}
 	}
 
-	int qcomp = m_pXmlPrefs->GetInt("videoenc.x265.qcomp");
-	if(qcomp >= 0 && qcomp <= 100) {
-		float fqcomp = qcomp / 100.f;
-		m_x265Param.rc.qCompress = fqcomp;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.qcomp")) {
+		int qcomp = m_pXmlPrefs->GetInt("videoenc.x265.qcomp");
+		if(qcomp >= 0 && qcomp <= 100) {
+			float fqcomp = qcomp / 100.f;
+			m_x265Param.rc.qCompress = fqcomp;
+		}
 	}
 
-	bool bEnableWeightp = m_pXmlPrefs->GetBoolean("videoenc.x265.weightp");
-	if(bEnableWeightp) {
-		m_x265Param.bEnableWeightedPred = 1;
-		x265Cmd << " --weightp";
-	} else {
-		m_x265Param.bEnableWeightedPred = 0;
-		x265Cmd << " --no-weightp";
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.weightp")) {
+		bool bEnableWeightp = m_pXmlPrefs->GetBoolean("videoenc.x265.weightp");
+		if(bEnableWeightp) {
+			m_x265Param.bEnableWeightedPred = 1;
+			x265Cmd << " --weightp";
+		} else {
+			m_x265Param.bEnableWeightedPred = 0;
+			x265Cmd << " --no-weightp";
+		}
 	}
 
-	bool bEnableWeightb = m_pXmlPrefs->GetBoolean("videoenc.x265.weightb");
-	if(bEnableWeightb) {
-		m_x265Param.bEnableWeightedBiPred = 1;
-	} else {
-		m_x265Param.bEnableWeightedBiPred = 0;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.weightb")) {
+		bool bEnableWeightb = m_pXmlPrefs->GetBoolean("videoenc.x265.weightb");
+		if(bEnableWeightb) {
+			m_x265Param.bEnableWeightedBiPred = 1;
+		} else {
+			m_x265Param.bEnableWeightedBiPred = 0;
+		}
 	}
 	
-	bool bEnableBpyramid = m_pXmlPrefs->GetBoolean("videoenc.x265.bpyramid");
-	if(bEnableBpyramid) {
-		m_x265Param.bBPyramid = 1;
-	} else {
-		m_x265Param.bBPyramid = 0;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.bpyramid")) {
+		bool bEnableBpyramid = m_pXmlPrefs->GetBoolean("videoenc.x265.bpyramid");
+		if(bEnableBpyramid) {
+			m_x265Param.bBPyramid = 1;
+		} else {
+			m_x265Param.bBPyramid = 0;
+		}
 	}
 
-	int cbqpoffs = m_pXmlPrefs->GetInt("videoenc.x265.cbqpoffs");
-	if(cbqpoffs > 0) m_x265Param.cbQpOffset = cbqpoffs;
-
-	int crqpoffs = m_pXmlPrefs->GetInt("videoenc.x265.crqpoffs");
-	if(crqpoffs > 0) m_x265Param.crQpOffset = crqpoffs;
-
-	int rdLevel = m_pXmlPrefs->GetInt("videoenc.x265.rdLevel");
-	if(rdLevel > 0) {
-		m_x265Param.rdLevel = rdLevel;
-		x265Cmd << " --rd " << rdLevel;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.cbqpoffs")) {
+		int cbqpoffs = m_pXmlPrefs->GetInt("videoenc.x265.cbqpoffs");
+		if(cbqpoffs > 0) m_x265Param.cbQpOffset = cbqpoffs;
 	}
 
-	bool bEnableSignHide = m_pXmlPrefs->GetBoolean("videoenc.x265.signHide");
-	if(bEnableSignHide) {
-		m_x265Param.bEnableSignHiding = 1;
-	} else {
-		m_x265Param.bEnableSignHiding = 0;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.crqpoffs")) {
+		int crqpoffs = m_pXmlPrefs->GetInt("videoenc.x265.crqpoffs");
+		if(crqpoffs > 0) m_x265Param.crQpOffset = crqpoffs;
 	}
 
-	bool bEnableLoopFilter = m_pXmlPrefs->GetBoolean("videoenc.x265.loopFilter");
-	if(bEnableLoopFilter) {
-		m_x265Param.bEnableLoopFilter = 1;
-	} else {
-		m_x265Param.bEnableLoopFilter = 0;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.rdLevel")) {
+		int rdLevel = m_pXmlPrefs->GetInt("videoenc.x265.rdLevel");
+		if(rdLevel > 0) {
+			m_x265Param.rdLevel = rdLevel;
+			x265Cmd << " --rd " << rdLevel;
+		}
 	}
 
-	bool bEnableSao = m_pXmlPrefs->GetBoolean("videoenc.x265.sao");
-	if(bEnableSao) {
-		m_x265Param.bEnableSAO = 1;
-		x265Cmd << " --sao";
-	} else {
-		m_x265Param.bEnableSAO = 0;
-		x265Cmd << " --no-sao";
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.signHide")) {
+		bool bEnableSignHide = m_pXmlPrefs->GetBoolean("videoenc.x265.signHide");
+		if(bEnableSignHide) {
+			m_x265Param.bEnableSignHiding = 1;
+		} else {
+			m_x265Param.bEnableSignHiding = 0;
+		}
 	}
 
-	int saoLcuBounds = m_pXmlPrefs->GetInt("videoenc.x265.saoLcuBounds");
-	if(saoLcuBounds > 0) {
-		m_x265Param.saoLcuBoundary = saoLcuBounds;
-		x265Cmd << " --sao-lcu-bounds " << saoLcuBounds;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.loopFilter")) {
+		bool bEnableLoopFilter = m_pXmlPrefs->GetBoolean("videoenc.x265.loopFilter");
+		if(bEnableLoopFilter) {
+			m_x265Param.bEnableLoopFilter = 1;
+		} else {
+			m_x265Param.bEnableLoopFilter = 0;
+		}
 	}
 
-	int saoLcuOpt = m_pXmlPrefs->GetInt("videoenc.x265.saoLcuOpt");
-	if(saoLcuOpt > 0) {
-		m_x265Param.saoLcuBasedOptimization = saoLcuOpt;
-		x265Cmd << " --sao-lcu-opt " << saoLcuOpt;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.sao")) {
+		bool bEnableSao = m_pXmlPrefs->GetBoolean("videoenc.x265.sao");
+		if(bEnableSao) {
+			m_x265Param.bEnableSAO = 1;
+			x265Cmd << " --sao";
+		} else {
+			m_x265Param.bEnableSAO = 0;
+			x265Cmd << " --no-sao";
+		}
 	}
 
-	int aqMode = m_pXmlPrefs->GetInt("videoenc.x265.aqMode");
-	if(aqMode >= 0 && aqMode <= 2) {
-		m_x265Param.rc.aqMode = aqMode;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.saoLcuBounds")) {
+		int saoLcuBounds = m_pXmlPrefs->GetInt("videoenc.x265.saoLcuBounds");
+		if(saoLcuBounds > 0) {
+			m_x265Param.saoLcuBoundary = saoLcuBounds;
+			x265Cmd << " --sao-lcu-bounds " << saoLcuBounds;
+		}
 	}
 
-	float aqStrength = m_pXmlPrefs->GetInt("videoenc.x265.aqStrength");
-	if(aqStrength > 0 && aqStrength < 3) {
-		m_x265Param.rc.aqStrength = aqStrength;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.saoLcuOpt")) {
+		int saoLcuOpt = m_pXmlPrefs->GetInt("videoenc.x265.saoLcuOpt");
+		if(saoLcuOpt > 0) {
+			m_x265Param.saoLcuBasedOptimization = saoLcuOpt;
+			x265Cmd << " --sao-lcu-opt " << saoLcuOpt;
+		}
 	}
 
-	bool bEnableSsim = m_pXmlPrefs->GetBoolean("videoenc.x265.ssim");
-	if(bEnableSsim) {
-		m_x265Param.bEnableSsim = 1;
-		x265Cmd << " --ssim";
-	} else {
-		m_x265Param.bEnableSsim = 0;
-		x265Cmd << " --no-ssim";
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.aqMode")) {
+		int aqMode = m_pXmlPrefs->GetInt("videoenc.x265.aqMode");
+		if(aqMode >= 0 && aqMode <= 2) {
+			m_x265Param.rc.aqMode = aqMode;
+		}
 	}
 
-	bool bEnablePsnr = m_pXmlPrefs->GetBoolean("videoenc.x265.psnr");
-	if(bEnablePsnr) {
-		m_x265Param.bEnablePsnr = 1;
-		x265Cmd << " --psnr";
-	} else {
-		m_x265Param.bEnablePsnr = 0;
-		x265Cmd << " --no-psnr";
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.aqStrength")) {
+		float aqStrength = m_pXmlPrefs->GetFloat("videoenc.x265.aqStrength");
+		if(aqStrength > 0 && aqStrength < 3) {
+			m_x265Param.rc.aqStrength = aqStrength;
+		}
 	}
 
-	int hash = m_pXmlPrefs->GetInt("videoenc.x265.hash");
-	if(hash > 0) {
-		m_x265Param.decodedPictureHashSEI = hash;
-		x265Cmd << " --hash " << hash;
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.ssim")) {
+		bool bEnableSsim = m_pXmlPrefs->GetBoolean("videoenc.x265.ssim");
+		if(bEnableSsim) {
+			m_x265Param.bEnableSsim = 1;
+			x265Cmd << " --ssim";
+		} else {
+			m_x265Param.bEnableSsim = 0;
+			x265Cmd << " --no-ssim";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.psnr")) {
+		bool bEnablePsnr = m_pXmlPrefs->GetBoolean("videoenc.x265.psnr");
+		if(bEnablePsnr) {
+			m_x265Param.bEnablePsnr = 1;
+			x265Cmd << " --psnr";
+		} else {
+			m_x265Param.bEnablePsnr = 0;
+			x265Cmd << " --no-psnr";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.hash")) {
+		int hash = m_pXmlPrefs->GetInt("videoenc.x265.hash");
+		if(hash > 0) {
+			m_x265Param.decodedPictureHashSEI = hash;
+			x265Cmd << " --hash " << hash;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.vbvMaxrate")) {
+		int maxrate = m_pXmlPrefs->GetInt("videoenc.x265.vbvMaxrate");
+		if(maxrate > 0) {
+			m_x265Param.rc.vbvMaxBitrate = maxrate;
+			x265Cmd << " --vbv-maxrate " << maxrate;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.vbvBufferSize")) {
+		int vbvBufSize = m_pXmlPrefs->GetInt("videoenc.x265.vbvBufferSize");
+		if(vbvBufSize > 0) {
+			m_x265Param.rc.vbvBufferSize = vbvBufSize;
+			x265Cmd << " --vbv-bufsize " << vbvBufSize;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.vbvBufferInit")) {
+		int vbvBufInit = m_pXmlPrefs->GetInt("videoenc.x265.vbvBufferInit");
+		if(vbvBufInit > 0) {
+			m_x265Param.rc.vbvBufferInit = vbvBufInit;
+			x265Cmd << " --vbv-init " << vbvBufInit;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.cuTree")) {
+		bool bEnableCUTree = m_pXmlPrefs->GetBoolean("videoenc.x265.cuTree");
+		if(bEnableCUTree) {
+			m_x265Param.rc.cuTree = 1;
+			x265Cmd << " --cutree";
+		} else {
+			m_x265Param.rc.cuTree = 0;
+			x265Cmd << " --no-cutree";
+		}
 	}
 
 	x265_setup_primitives(&m_x265Param, -1);

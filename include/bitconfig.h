@@ -1,9 +1,13 @@
 #ifndef __BIT_CONFIG_H__
 #define __BIT_CONFIG_H__
 
-#define TS_MAJOR_VERSION "2.3"
+#define TS_MAJOR_VERSION "2.4"
 #define TS_MINOR_VERSION "0"
 /* =========Version Change Records==============
+  ------Version 2.4.0.63200 change log------------:
+  1. Port to Linux
+  2. Port to Win64
+
   ------Version 2.3.0.62000 change log------------:
   1. Add x265 encoder, support HEVC encoding.
   2. Fix timeout issue.

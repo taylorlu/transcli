@@ -378,7 +378,7 @@ int CXML2::getAttributeInt(const char* propname, int def, void* node)
 			return attr->children && attr->children->content ? atoi((char*)attr->children->content) : def;
 		}
 	}
-	return 0;
+	return def;
 }
 
 float CXML2::getAttributeFloat(const char* propname, float def, void* node)
@@ -388,7 +388,7 @@ float CXML2::getAttributeFloat(const char* propname, float def, void* node)
 			return attr->children && attr->children->content ? (float)atof((char*)attr->children->content) : def;
 		}
 	}
-	return 0;
+	return def;
 }
 
 char* CXML2::getNodeName()

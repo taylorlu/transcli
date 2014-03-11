@@ -30,6 +30,26 @@
 //		<node key=\"videofilter.denoise.luma\">2</node>\n\
 //		<node key=\"videofilter.denoise.chroma\">2</node>\n\
 //		<node key=\"videofilter.denoise.strength\">4</node>\n
+//<node key=\"videoenc.x265.keyint\">250</node>\n\
+//		<node key=\"videoenc.x265.sao\">true</node>\n\
+//		<node key=\"videoenc.x265.amp\">true</node>\n\
+//<node key=\"videoenc.x265.reframes\">2</node>\n\
+//		<node key=\"videoenc.x265.bframes\">4</node>\n\
+//<node key=\"videoenc.x265.merange\">48</node>\n\
+//	    <node key=\"videoenc.x265.subme\">3</node>\n\
+//<node key=\"videoenc.x265.tskip\">true</node>\n\
+//		<node key=\"videoenc.x265.tskipFast\">false</node>\n\
+//		<node key=\"videoenc.x265.signHide\">true</node>\n\
+//		<node key=\"videoenc.x265.badapt\">1</node>\n\
+//		<node key=\"videoenc.x265.weightp\">false</node>\n\
+//		<node key=\"videoenc.x265.weightb\">false</node>\n\
+//		<node key=\"videoenc.x265.wpp\">true</node>\n\
+//		<node key=\"videoenc.x265.ctu\">64</node>\n\
+//<node key=\"videoenc.x265.frameThreads\">5</node>\n\
+//		<node key=\"videoenc.x265.psnr\">false</node>\n\
+//		<node key=\"videoenc.x265.loopFilter\">true</node>\n\
+//<node key=\"videoenc.x265.preset\">fast</node>\n\
+//		<node key=\"videoenc.x265.bpyramid\">true</node>\n\
 
 const char *prefsTemplate = 
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
@@ -97,32 +117,16 @@ const char *prefsTemplate =
 	    <node key=\"videoenc.x264.qpmin\">0</node>\n\
 		<node key=\"videoenc.x264.keyint\">0</node>\n\
 		<node key=\"videoenc.x264.keyint_min\">0</node>\n\
-		<node key=\"videoenc.x265.reframes\">2</node>\n\
-		<node key=\"videoenc.x265.bframes\">4</node>\n\
 	    <node key=\"videoenc.x265.me\">3</node>\n\
-	    <node key=\"videoenc.x265.merange\">48</node>\n\
-	    <node key=\"videoenc.x265.subme\">3</node>\n\
-	    <node key=\"videoenc.x265.keyint\">250</node>\n\
-		<node key=\"videoenc.x265.sao\">true</node>\n\
-		<node key=\"videoenc.x265.amp\">true</node>\n\
-		<node key=\"videoenc.x265.rect\">true</node>\n\
-		<node key=\"videoenc.x265.tskip\">true</node>\n\
-		<node key=\"videoenc.x265.tskipFast\">false</node>\n\
-		<node key=\"videoenc.x265.signHide\">true</node>\n\
-		<node key=\"videoenc.x265.badapt\">1</node>\n\
-		<node key=\"videoenc.x265.weightp\">false</node>\n\
-		<node key=\"videoenc.x265.weightb\">false</node>\n\
-		<node key=\"videoenc.x265.wpp\">true</node>\n\
-		<node key=\"videoenc.x265.ctu\">64</node>\n\
-		<node key=\"videoenc.x265.rdLevel\">1</node>\n\
-		<node key=\"videoenc.x265.frameThreads\">5</node>\n\
-		<node key=\"videoenc.x265.refreshType\">2</node>\n\
-		<node key=\"videoenc.x265.psnr\">false</node>\n\
-		<node key=\"videoenc.x265.loopFilter\">true</node>\n\
+		<node key=\"videoenc.x265.rect\">false</node>\n\
+		<node key=\"videoenc.x265.rdLevel\">4</node>\n\
 		<node key=\"videoenc.x265.openGop\">false</node>\n\
-		<node key=\"videoenc.x265.lookahead\">25</node>\n\
-		<node key=\"videoenc.x265.preset\">fast</node>\n\
-		<node key=\"videoenc.x265.bpyramid\">true</node>\n\
+		<node key=\"videoenc.x265.lookahead\">60</node>\n\
+		<node key=\"videoenc.x265.maxMerge\">5</node>\n\
+		<node key=\"videoenc.x265.weightp\">false</node>\n\
+		<node key=\"videoenc.x265.cuTree\">0</node>\n\
+		<node key=\"videoenc.x265.aqMode\">0</node>\n\
+		<node key=\"videoenc.x265.preset\">medium</node>\n\
 		  <node key=\"overall.dolby.sixchOnly\">true</node>\n\
 		  <node key=\"overall.container.format\">3GP</node>\n\
 		  <node key=\"overall.container.muxer\">MP4Box</node>\n\
@@ -881,7 +885,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 		if (xmlConfig.findChildNode("subtitle") != NULL) {
 			//timeshift (unit: sec)
 			config->target.subtitle_timeshift = xmlConfig.getAttributeFloat("timeshift");
-			config->target.sub_id = xmlConfig.getAttributeInt("id");
+			config->target.sub_id = xmlConfig.getAttributeInt("id", -1);
 			xmlConfig.goParent();
 		}
 
@@ -1877,12 +1881,16 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		const char* x265Options = conf.target.codecConfig[X265_ADDITION_OPTION].option;
 		if(x265Options && *x265Options) {
 			const char* x265Extras[] = {"-preset", "-me", "-subme", "-sao", "-amp", "-rect", "-badapt", "-wpp", "-ctu",
-					   "-F", "-rdLevel", "-refreshType", "-loopFilter", "-bpyramid"};
+					   "-F", "-rdLevel", "-refreshType", "-loopFilter", "-bpyramid", "-cuTree", "-aqMode", "-weightp", "-openGop",
+			           "-vbvBuf", "-maxrate", "-vbvInit", "-psnr", "-ssim", "-maxMerge", "-lookahead"};
 
 			const char* x265PresetItem[] = {"videoenc.x265.preset", "videoenc.x265.me", "videoenc.x265.subme",
 						"videoenc.x265.sao", "videoenc.x265.amp", "videoenc.x265.rect", "videoenc.x265.badapt",
 						"videoenc.x265.wpp", "videoenc.x265.ctu", "videoenc.x265.frameThreads", "videoenc.x265.rdLevel",
-						"videoenc.x265.refreshType", "videoenc.x265.loopFilter", "videoenc.x265.bpyramid"};
+						"videoenc.x265.refreshType", "videoenc.x265.loopFilter", "videoenc.x265.bpyramid", "videoenc.x265.cuTree",
+						"videoenc.x265.aqMode", "videoenc.x265.weightp", "videoenc.x265.openGop", "videoenc.x265.vbvBufferSize",
+						"videoenc.x265.vbvMaxrate", "videoenc.x265.vbvBufferInit", "videoenc.x265.psnr", "videoenc.x265.ssim",
+			            "videoenc.x265.maxMerge", "videoenc.x265.lookahead"};
 			for(size_t i=0; i<sizeof(x265Extras)/sizeof(x265Extras[0]); ++i) {
 				const char* pCh = NULL;
 				if(pCh = strstr(x265Options, x265Extras[i])) {

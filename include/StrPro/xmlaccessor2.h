@@ -74,7 +74,7 @@ public:
 	void setChildNodeValue(const char* name, float nodeVal, const char* attrname = 0, const char* attrvalue = 0);
 	const char* getAttribute(const char* propname, const char* defaultValue = 0, void* node = 0);
 	int getAttributeInt(const char* propname, int def = 0, void* node = 0);
-	float getAttributeFloat(const char* propname, float def = 0, void* node = 0);
+	float getAttributeFloat(const char* propname, float def = 0.f, void* node = 0);
 	// unlink and free current node, cur become it's parent, return cur
 	void* removeNode();		
 	// unlink but not free current node, cur become it's parent, return unlinked node

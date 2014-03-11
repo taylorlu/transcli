@@ -1,6 +1,7 @@
 #include "videoEnhancer.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #ifndef _WIN32
 #include <malloc.h>
 #endif

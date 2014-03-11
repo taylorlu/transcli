@@ -218,7 +218,16 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 				subOption = 1;
 			} else {
 				int subIndex = m_pVideoPref->GetInt("overall.subtitle.sid");
-				if(subIndex >= 0) subOption = 2;
+				if(subIndex >= 0) {
+					const char* embedSubType = m_pVideoPref->GetString("overall.subtitle.embedType");
+					if(embedSubType && !_stricmp(embedSubType, "Image")) {
+						subOption = 2;
+					} else {
+						// Extract embed text subtitle to external subtitle
+						ExtractTextSub(mediaFile, subIndex, externSub);
+						subOption = 1;
+					}
+				}
 			}
 		}
 
@@ -634,6 +643,24 @@ std::string CDecoderFFMpeg::GenTextSubOptions(const char* mediaFile, std::string
 	}
 
 	return "";
+}
+
+void CDecoderFFMpeg::ExtractTextSub(const char* mediaFile, int subId, std::string& subFile)
+{
+	subFile = GetMd5(mediaFile) + ".ass";
+	if(FileExist(subFile.c_str())) {
+		return;
+	}
+	std::string srtExtractCmd = FFMPEG" -i \"";
+	srtExtractCmd += mediaFile;
+	srtExtractCmd += "\" -v error -vn -an -map 0:s:";
+	char strId[6] = {0};
+	sprintf(strId, "%d", subId);
+	srtExtractCmd += strId;
+	srtExtractCmd += " -y ";
+	srtExtractCmd += subFile;
+	CProcessWrapper::Run(srtExtractCmd.c_str());
+	tmpPathVct.push_back(subFile);
 }
 
 //int fileDur = 0;

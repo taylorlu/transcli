@@ -91,6 +91,8 @@ public:
 	bool SetFloat(const char* key, float value, const char* nodeName = NULL);
 	bool SetString(const char* key, const char* value, bool cdata = true, const char* nodeName = NULL);
 	bool SetBoolean(const char* key, bool value, const char* nodeName = NULL);
+
+	bool ExistKey(const char* key);
 	//for default int
 	~CXMLPref();
 private:

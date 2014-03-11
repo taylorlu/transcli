@@ -2827,23 +2827,83 @@ void CTransWorkerSeperate::uninitVideoFilter(CVideoEncoder* pVideoEncode)
 bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLPref* pVideoPref)
 {
 	mediaInfo->goRoot();
-	bool findSuitableBmpSub = false;
+	bool findSuitableSub = false;
 	void* subNode = mediaInfo->findChildNode("subtitle");
-	int subIndex = pVideoPref->GetInt("overall.subtitle.sid");
-	while(subNode) {
-		int aIndex = mediaInfo->getChildNodeValueInt("index");
-		if(subIndex == aIndex) {
-			const char* pSubType = mediaInfo->getChildNodeValue("codec");
-			if(pSubType && (!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub"))) {
-				findSuitableBmpSub = true;
-			} 
-			break;
-		}
-		//mediaInfo->getChildNodeValue("lang");
-		subNode = mediaInfo->findNextNode("subtitle");
-    }
+	// Check if sid is set by user
+	int subIndex = -1;
+	if(pVideoPref->ExistKey("overall.subtitle.sid")) {
+		subIndex = pVideoPref->GetInt("overall.subtitle.sid");
+	}
 
-	if(!findSuitableBmpSub) {	// Disable embed subtitle
+	if(subIndex >= 0) {		// User selected subtitle
+		while(subNode) {
+			int aIndex = mediaInfo->getChildNodeValueInt("index");
+			if(subIndex == aIndex) {
+				const char* pSubType = mediaInfo->getChildNodeValue("codec");
+				if(pSubType && (!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub") ||
+					!_stricmp(pSubType, "subrip") || !_stricmp(pSubType, "ssa"))) {
+					findSuitableSub = true;
+					const char* curEmbedType = NULL;
+					if(!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub")) {
+						curEmbedType = "Image";
+					} else {
+						curEmbedType = "Text";
+					}
+					pVideoPref->SetString("overall.subtitle.embedType", curEmbedType);
+				} 
+				break;
+			}
+			subNode = mediaInfo->findNextNode("subtitle");
+		}
+	} else {		// Auto select Chinese subtitle or first subtitle
+		int firstValidIdx = -1;
+		int selectedIdx = -1;
+
+		const char* curEmbedType = NULL;
+		const char* firstEmbedType = NULL;
+		const char* selectedEmbedType = NULL;	// Embed subtitle type(Text or Image)
+		while(subNode) {
+			int aIndex = mediaInfo->getChildNodeValueInt("index");
+
+			//Find valid subtitle
+			bool validSub = false;
+			
+			const char* pSubType = mediaInfo->getChildNodeValue("codec");
+			if(pSubType && (!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub") ||
+					!_stricmp(pSubType, "subrip") || !_stricmp(pSubType, "ssa"))) {
+				validSub = true;
+				findSuitableSub = true;
+				if(!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub")) {
+					curEmbedType = "Image";
+				} else {
+					curEmbedType = "Text";
+				}
+
+				if(firstValidIdx == -1) {
+					firstValidIdx = aIndex;
+					firstEmbedType = curEmbedType;
+				}
+			} 
+
+			const char* langCode = mediaInfo->getChildNodeValue("lang");
+			if(validSub && langCode && *langCode && !_stricmp(langCode, "cht")) {		// No language field, use first valid subtitle
+				selectedIdx = aIndex;
+				selectedEmbedType = curEmbedType;
+			}
+			subNode = mediaInfo->findNextNode("subtitle");
+		}
+
+		if(selectedIdx == -1) {
+			selectedIdx = firstValidIdx;
+			selectedEmbedType = firstEmbedType;
+		}
+		pVideoPref->SetInt("overall.subtitle.sid", selectedIdx);
+		if(selectedEmbedType) {
+			pVideoPref->SetString("overall.subtitle.embedType", selectedEmbedType);
+		}
+	}
+
+	if(!findSuitableSub) {	// Disable embed subtitle
 		pVideoPref->SetInt("overall.subtitle.sid", -1);
 	}
 	return true;

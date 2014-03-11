@@ -1651,7 +1651,7 @@
       </node>
       <node key="tune" type="enum" text="Tune">
         <enum>psnr</enum>
-        <enum>ssim</enum>
+        <enum sel="1">ssim</enum>
         <enum>zero-latency</enum>
       </node>
       <node key="wpp" type="bool" text="Wavefront parallel processing">
@@ -1722,11 +1722,6 @@
       <node key="openGop" type="bool" text="Open Gop">
         <desc>Enable or disable Open Gop</desc>
         <value>false</value>
-      </node>
-      <node key="refreshType" type="enum" text="Intra refresh type">
-        <enum>None</enum>
-        <enum sel="1">CDR</enum>
-        <enum>IDR</enum>
       </node>
       <node key="badapt" type="enum" text="Adaptive B-frame decision method">
         <desc>Automatically decides when to use B-frames and how many, up to the maximum specified above. If this option is disabled, then the maximum number of B-frames is used.</desc>
@@ -1802,6 +1797,20 @@
       </node>
       <node key="threads" type="int" text="Threads (0 for auto)">
         <desc>Split each frame into slices and encode them in parallel. Also allows multithreaded decoding if the decoder supports it (lavc does not). This has a slight penalty to compression.</desc>
+      </node>
+      <node key="vbvMaxrate" type="int" text="Maximum rate the VBV buffer">
+        <desc>Sets the maximum rate the VBV buffer should be assumed to refill at(default is 0).</desc>
+      </node>
+      <node key="vbvBufferSize" type="int" text="Size of the VBV buffer">
+        <desc>Sets the size of the VBV buffer in kilobits. Default is zero.</desc>
+      </node>
+      <node key="vbvBufferInit" type="float" text="VBV buffer initial portion">
+        <desc>Sets how full the VBV buffer must be before playback starts. If it is less than 1, then the initial fill is vbv-init * vbvBufferSize. Otherwise, it is interpreted as the initial fill in kbits. Default is 0.9
+        </desc>
+        <value>0.9</value>
+      </node>
+      <node key="cuTree" type="bool" text=" Enable CUTree ratecontrol">
+        <desc>Enable CUTree ratecontrol. This keeps track of the CUs that propagate temporally across frames and assigns more bits to these CUs. Improves encode efficiency. Default: OFF (false) .</desc>
       </node>
       <node key="psnr" type="bool" text="Output PSNR value"/>
       <node key="ssim" type="bool" text="Output SSIM value"/>

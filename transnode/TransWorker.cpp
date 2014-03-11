@@ -455,6 +455,10 @@ bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 			if(brSetting < 256 && pAInfo->out_channels > 2) pAInfo->out_channels = 2;
 		}
 
+		if(pAInfo->out_channels <= 0) {
+			logger_err(m_logType, "Audio output channels is 0, maybe input audio is invalid.\n");
+			return false;
+		}
 		// If bitrate of single channel is too high, then it will fail.
 		if(brSetting / pAInfo->out_channels > 96) {
 			brSetting = pAInfo->out_channels * 96;

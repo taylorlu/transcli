@@ -52,7 +52,7 @@ int CXMLPref::GetInt(const char* key, const char* nodeName /*= NULL*/)
 		res =  m_pXml->getNodeValue();
 		if(res) return atoi(res);
 	} else if(m_pXml->goRoot() && m_pXml->findChildNode(nodeName? nodeName : "node", "key", key)) {
-		const char* res = m_pXml->getNodeValue();
+		res = m_pXml->getNodeValue();
 		if (res) return atoi(res);		
 	}		
 
@@ -135,7 +135,7 @@ float CXMLPref::GetFloat(const char* key, const char* nodeName /*= NULL*/)
 		res =  m_pXml->getNodeValue();
 		if(res) return (float)atof(res);
 	} else if(m_pXml->goRoot() && m_pXml->findChildNode(nodeName? nodeName :"node", "key", key)) {
-		const char* res = m_pXml->getNodeValue();
+		res = m_pXml->getNodeValue();
 		if (res) return (float)atof(res);		
 	}		
 
@@ -216,8 +216,8 @@ bool CXMLPref::SetBoolean(const char* key, bool value, const char* nodeName /* =
 		m_pXml->setAttribute("flag", 1);
 		return true;
 	}
-	else 
-		return false;
+	
+	return false;
 }
 
 bool  CXMLPref::SetInt(const char* key, int value, const char* nodeName /*= NULL*/)
@@ -240,8 +240,8 @@ bool  CXMLPref::SetInt(const char* key, int value, const char* nodeName /*= NULL
 		m_pXml->setAttribute("flag", 1);
 		return true;
 	}
-	else 
-		return false;
+	
+	return false;
 }
 
 bool  CXMLPref::SetFloat(const char* key, float value, const char* nodeName /*= NULL*/)
@@ -264,8 +264,8 @@ bool  CXMLPref::SetFloat(const char* key, float value, const char* nodeName /*= 
 		m_pXml->setAttribute("flag", 1);
 		return true;
 	}
-	else 
-		return false;
+	
+	return false;
 }
 
 bool  CXMLPref::SetString(const char* key, const char* value, bool cdata, const char* nodeName /*= NULL*/)
@@ -289,8 +289,8 @@ bool  CXMLPref::SetString(const char* key, const char* value, bool cdata, const 
 		m_pXml->setAttribute("flag", 1);
 		return true;
 	}
-	else 
-		return false;
+	
+	return false;
 }
 
 bool CXMLPref::isCurrentKeyValueDefault(const char* key)
@@ -302,3 +302,10 @@ bool CXMLPref::isCurrentKeyValueDefault(const char* key)
 	return false;
 }
 
+bool CXMLPref::ExistKey(const char* key)
+{
+	if (m_pXml->goRoot() && m_pXml->findChildNode("node", "key", key)) {
+		return true;
+	}
+	return false;
+}

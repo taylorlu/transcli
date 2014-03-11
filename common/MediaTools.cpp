@@ -121,7 +121,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	}
 
 	std::string strResult;
-	std::string cmdStr = FFPROBE" -i \"";
+	std::string cmdStr = FFPROBE" -analyzeduration 20000000 -i \"";
 	cmdStr += mediaPath;
 	cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
 	
@@ -388,7 +388,7 @@ static void parseSubtitleInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int 
 		mediaInfo->addChild("codec", codecName);
 	}
 	
-	// Parse audio language
+	// Parse subtitle language
 	if(xml.findChildNode("tag", "key", "language")) {
 		const char* langStr = xml.getAttribute("value");
 		if(langStr && *langStr) {
