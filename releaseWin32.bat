@@ -20,4 +20,4 @@ xcopy /y /d ..\bin\win32\tools\*.exe .\transcli\tools\
 xcopy /y /d ..\bin\win32\tools\*.dll .\transcli\tools\
 
 Rem package int 7-zip
-..\bin\7z.exe a -t7z release_win32_%date:~0,4%-%date:~5,2%-%date:~8,2%.7z -r -y -x!*.svn .\transcli
+..\bin\7z.exe a -t7z Transcli_win32_%date:~0,4%-%date:~5,2%-%date:~8,2%.7z -r -y -x!*.svn .\transcli

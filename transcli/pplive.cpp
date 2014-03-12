@@ -908,6 +908,12 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 						continue;
 				}
 
+				if(delogoPos.rect.left < 0 || delogoPos.rect.right < 0 || 
+					delogoPos.rect.top < 0 || delogoPos.rect.bottom < 0) {
+					logger_err(LOGM_GLOBAL, "Delogo parameter is invalid, invalid XML config.\n");
+					return false;
+				}
+
 				delogoPos.startTime = (int)(ParsingFloatTimeString(xmlConfig.getAttribute("start"))*1000);
 				delogoPos.endTime = (int)(ParsingFloatTimeString(xmlConfig.getAttribute("end"))*1000);
 				delogoIdx++;

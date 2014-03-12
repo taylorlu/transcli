@@ -523,9 +523,14 @@ bool CX265Encode::Stop()
 	if(m_pX265Ctx) {
 		uint32_t i_nal = 0;
 		x265_nal* pNal = NULL;
-		x265_encoder_encode(m_pX265Ctx, &pNal, &i_nal, NULL, NULL);
-		if(i_nal) {
-			write_nals(pNal, i_nal);
+		int encodeNum = 0;
+		while(true) {
+			encodeNum = x265_encoder_encode(m_pX265Ctx, &pNal, &i_nal, NULL, NULL);
+			if(i_nal) {
+				write_nals(pNal, i_nal);
+			}
+			if(!encodeNum) break;
+			m_frameCount += encodeNum;
 		}
 		x265_encoder_close(m_pX265Ctx);
 		m_pX265Ctx = NULL;

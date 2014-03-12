@@ -146,7 +146,7 @@
       </Command>
     </PreLinkEvent>
     <PreBuildEvent>
-      <Command>subwcrev.exe $(SolutionDir) $(SolutionDir)\include\vertemplate.txt $(SolutionDir)\include\svnver.h</Command>
+      <Command>rem subwcrev.exe $(SolutionDir) $(SolutionDir)\include\vertemplate.txt $(SolutionDir)\include\svnver.h</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
