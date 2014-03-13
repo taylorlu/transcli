@@ -148,14 +148,25 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	}
 	
 	// -analyzeduration 20000000 to solve files that audio timestamp is leading video for about 20s
-    cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\" -v error";
+    cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\"";
+	// If there is no audio, insert blank audio track
+	if(pPref->GetBoolean("overall.audio.insertBlank")) {	
+		cmd << " -f lavfi -i aevalsrc=0 -shortest";
+	}
+	cmd << " -v info";
 
 	if(m_bDecAudio) {
 		if(!m_bDecVideo) cmd << " -vn";
 		std::string audioFilterStr = GenAudioFilterOptions();
 		if(startpos > 0) cmd << " -ss " << startpos/1000.f;
 		if(duration > 0) cmd << " -t " << duration/1000.f;
-		cmd << " -map 0:a:" << m_pAInfo->index << " -c:a pcm_s16le -f s16le";
+		if(pPref->GetBoolean("overall.audio.insertBlank")) {
+			cmd << " -map 1:a";
+		} else {
+			cmd << " -map 0:a:" << m_pAInfo->index;
+		}
+		cmd << " -c:a pcm_s16le -f s16le";
+
 		if((audioFilterStr.empty() || audioFilterStr.find("pan=") == std::string::npos)
 			&& m_pAInfo->out_channels) {
 			cmd << " -ac " << m_pAInfo->out_channels;

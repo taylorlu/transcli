@@ -65,6 +65,7 @@ const char *prefsTemplate =
 		<node key=\"overall.audio.format\">LC-AAC</node>\n\
 		<node key=\"overall.audio.encoder\">FAAC</node>\n\
 		<node key=\"overall.audio.channels\">3</node>\n\
+		<node key=\"overall.audio.insertBlank\">true</node>\n\
 		<node key=\"audiofilter.resample.samplerate\">44100</node>\n\
 		<node key=\"audiofilter.extra.brdown\">true</node>\n\
 		<node key=\"audiofilter.resample.downSamplingOnly\">false</node>\n\

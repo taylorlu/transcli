@@ -11074,6 +11074,7 @@ bool CWaterMarkFilter::RenderWaterMark(uint8_t* pYuvBuf)
 		int curY = y + curPosTop;
 		// Logo picture can be cut (when curX/curY < 0)
 		if(curX < 0 || curY < 0) continue;
+		if(curX >= m_yuvWidth || curY >= m_yuvHeight) continue;
 
 		float curAlpha = m_alpha;
 		int r = (*pWatermarkImg)(x, y, 0, 0);

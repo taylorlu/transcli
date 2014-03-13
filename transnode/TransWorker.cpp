@@ -467,6 +467,8 @@ bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 		audioPref->SetInt(brField, brSetting);
 	}
 
+	// Source audio attrib exist, so disable insert blank audio track
+	audioPref->SetBoolean("overall.audio.insertBlank", false);
 	return true;
 	// Parse source audio format
 	//if(pAudioAttrib->codec && *(pAudioAttrib->codec)) {	// && pAudioAttrib->channels == 6

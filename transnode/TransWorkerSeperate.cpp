@@ -318,6 +318,19 @@ bool CTransWorkerSeperate::setSourceAVInfo(StrPro::CXML2* mediaInfo)
 		return false;
 	}
 
+	// There is no audio track in souce file, and generate one empty track
+	if(m_srcAudioAttribs.empty() && !m_audioEncs.empty()) {
+		CAudioEncoder* pFirstAudio = m_audioEncs[0];
+		CXMLPref* pFirstPref = pFirstAudio->GetAudioPref();
+		if(pFirstPref->GetBoolean("overall.audio.insertBlank")) {
+			audio_info_t* pFirstAudioInfo = pFirstAudio->GetAudioInfo();
+			pFirstAudioInfo->in_channels = pFirstAudioInfo->out_channels = 1;
+			pFirstAudioInfo->in_srate = pFirstAudioInfo->out_srate = 44100;
+			m_bAutoVolumeGain = false;
+			return true;
+		}
+	}
+
 	bool invalidAudio = false;
 	bool invalidVideo = false;
 	attr_audio_t* audioAttrib = NULL;
