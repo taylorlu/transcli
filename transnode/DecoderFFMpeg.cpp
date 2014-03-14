@@ -153,7 +153,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	if(pPref->GetBoolean("overall.audio.insertBlank")) {	
 		cmd << " -f lavfi -i aevalsrc=0 -shortest";
 	}
-	cmd << " -v info";
+	cmd << " -v error";
 
 	if(m_bDecAudio) {
 		if(!m_bDecVideo) cmd << " -vn";
