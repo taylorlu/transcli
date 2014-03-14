@@ -16,7 +16,7 @@ private:
 	std::string GenVideoFilterOptions(int subType);
 	std::string GenTextSubOptions(const char* mediaFile, std::string& subFile);
 	std::vector<std::string> tmpPathVct;
-	void ExtractTextSub(const char* mediaFile, int subId, std::string& subFile);
+	void ExtractTextSub(const char* mediaFile, int subId, std::string& subFile, const char* subType);
 };
 
 #endif

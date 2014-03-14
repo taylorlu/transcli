@@ -16,9 +16,11 @@
 #define FFMPEG "./codecs/ffmpeg.exe"
 #define FFMPEG_MUXER "./codecs/ffmpeg.exe"
 #define MKVMERGE "./tools/mkvmerge.exe"
+#define MKVEXTRACT "./tools/mkvextract.exe"
 #define FLVMID "./tools/flvmdi.exe"
 #define YAMDI "./tools/yamdi.exe"
 #define ICONV_EXE ".\\tools\\iconv.exe"
+#define ENCA ".\\tools\\enca.exe"
 #define JPEG_TRAN "./tools/jpegtran.exe"
 
 // Codecs
@@ -52,6 +54,8 @@
 #define ASFBIN "wine asfbin.exe"
 #define FFMPEG "./codecs/ffmpeg"
 #define MKVMERGE "./tools/mkvmerge"
+#define MKVEXTRACT "./tools/mkvextract"
+#define ENCA "./tools/enca"
 #define ICONV_EXE "iconv"
 #define JPEG_TRAN "jpegtran"
 #define YAMDI "./tools/yamdi"

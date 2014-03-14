@@ -388,6 +388,10 @@ static void parseSubtitleInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int 
 		mediaInfo->addChild("codec", codecName);
 	}
 	
+	const char* streamIdx = xml.getAttribute("index");
+	if(streamIdx && *streamIdx) {
+		mediaInfo->addChild("streamid", streamIdx);
+	}
 	// Parse subtitle language
 	if(xml.findChildNode("tag", "key", "language")) {
 		const char* langStr = xml.getAttribute("value");

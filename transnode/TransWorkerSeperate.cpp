@@ -2853,16 +2853,14 @@ bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLP
 			int aIndex = mediaInfo->getChildNodeValueInt("index");
 			if(subIndex == aIndex) {
 				const char* pSubType = mediaInfo->getChildNodeValue("codec");
+				const char* streamIdStr = mediaInfo->getChildNodeValue("streamid");
 				if(pSubType && (!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub") ||
 					!_stricmp(pSubType, "subrip") || !_stricmp(pSubType, "ssa"))) {
 					findSuitableSub = true;
-					const char* curEmbedType = NULL;
-					if(!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub")) {
-						curEmbedType = "Image";
-					} else {
-						curEmbedType = "Text";
+					pVideoPref->SetString("overall.subtitle.embedType", pSubType);
+					if(streamIdStr) {
+						pVideoPref->SetString("overall.subtitle.streamId", streamIdStr);
 					}
-					pVideoPref->SetString("overall.subtitle.embedType", curEmbedType);
 				} 
 				break;
 			}
@@ -2871,8 +2869,9 @@ bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLP
 	} else {		// Auto select Chinese subtitle or first subtitle
 		int firstValidIdx = -1;
 		int selectedIdx = -1;
+		const char* firstSubStreamId = NULL;
+		const char* selSubStreamId = NULL;
 
-		const char* curEmbedType = NULL;
 		const char* firstEmbedType = NULL;
 		const char* selectedEmbedType = NULL;	// Embed subtitle type(Text or Image)
 		while(subNode) {
@@ -2882,26 +2881,24 @@ bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLP
 			bool validSub = false;
 			
 			const char* pSubType = mediaInfo->getChildNodeValue("codec");
+			const char* subStreamIdStr = mediaInfo->getChildNodeValue("streamid");
 			if(pSubType && (!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub") ||
 					!_stricmp(pSubType, "subrip") || !_stricmp(pSubType, "ssa"))) {
 				validSub = true;
 				findSuitableSub = true;
-				if(!_stricmp(pSubType, "pgssub") || !_stricmp(pSubType, "dvdsub")) {
-					curEmbedType = "Image";
-				} else {
-					curEmbedType = "Text";
-				}
 
 				if(firstValidIdx == -1) {
 					firstValidIdx = aIndex;
-					firstEmbedType = curEmbedType;
+					firstEmbedType = pSubType;
+					firstSubStreamId = subStreamIdStr;
 				}
 			} 
 
 			const char* langCode = mediaInfo->getChildNodeValue("lang");
 			if(validSub && langCode && *langCode && !_stricmp(langCode, "cht")) {		// No language field, use first valid subtitle
 				selectedIdx = aIndex;
-				selectedEmbedType = curEmbedType;
+				selectedEmbedType = pSubType;
+				selSubStreamId = subStreamIdStr;
 			}
 			subNode = mediaInfo->findNextNode("subtitle");
 		}
@@ -2909,10 +2906,14 @@ bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLP
 		if(selectedIdx == -1) {
 			selectedIdx = firstValidIdx;
 			selectedEmbedType = firstEmbedType;
+			selSubStreamId = firstSubStreamId;
 		}
 		pVideoPref->SetInt("overall.subtitle.sid", selectedIdx);
 		if(selectedEmbedType) {
 			pVideoPref->SetString("overall.subtitle.embedType", selectedEmbedType);
+		}
+		if(selSubStreamId) {
+			pVideoPref->SetString("overall.subtitle.streamId", selSubStreamId);
 		}
 	}
 

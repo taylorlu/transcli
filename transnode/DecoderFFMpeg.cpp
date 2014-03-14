@@ -229,13 +229,13 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 				subOption = 1;
 			} else {
 				int subIndex = m_pVideoPref->GetInt("overall.subtitle.sid");
-				if(subIndex >= 0) {
-					const char* embedSubType = m_pVideoPref->GetString("overall.subtitle.embedType");
-					if(embedSubType && !_stricmp(embedSubType, "Image")) {
+				const char* embedSubType = m_pVideoPref->GetString("overall.subtitle.embedType");
+				if(subIndex >= 0 && embedSubType) {
+					if(!_stricmp(embedSubType, "pgssub") || !_stricmp(embedSubType, "dvdsub")) {
 						subOption = 2;
-					} else {
+					} else if(!_stricmp(embedSubType, "subrip") || !_stricmp(embedSubType, "ssa")) {
 						// Extract embed text subtitle to external subtitle
-						ExtractTextSub(mediaFile, subIndex, externSub);
+						ExtractTextSub(mediaFile, subIndex, externSub, embedSubType);
 						subOption = 1;
 					}
 				}
@@ -613,7 +613,7 @@ std::string CDecoderFFMpeg::GenTextSubOptions(const char* mediaFile, std::string
 		std::string tmpSub = subName + subExt;
 		if(!FileExist(dstAssSub.c_str())) {
 			// Detect srcfile encoding
-			const char* dstCode = "UTF-8";
+			/*const char* dstCode = "UTF-8";
 			const char* srcCode = StrPro::CCharset::DetectCharset(subFile.c_str());
 			// If src encoding equal to dst encoding, just copy file
 			if(srcCode && dstCode && !strcmp(srcCode, dstCode)) {	
@@ -630,7 +630,12 @@ std::string CDecoderFFMpeg::GenTextSubOptions(const char* mediaFile, std::string
 				charConvertCmd += subFile + "\" > ";
 				charConvertCmd += tmpSub;
 				system(charConvertCmd.c_str());
-			}
+			}*/
+			// Convert to utf-8 file(Using enca)
+			std::string charConvertCmd = ENCA" -L none -x UTF-8 < \"";
+			charConvertCmd += subFile + "\" > ";
+			charConvertCmd += tmpSub;
+			system(charConvertCmd.c_str());
 
 			if(!_stricmp(subExt.c_str(), ".srt")) {
 				std::string srtConvertCmd = FFMPEG" -i ";
@@ -656,8 +661,30 @@ std::string CDecoderFFMpeg::GenTextSubOptions(const char* mediaFile, std::string
 	return "";
 }
 
-void CDecoderFFMpeg::ExtractTextSub(const char* mediaFile, int subId, std::string& subFile)
+void CDecoderFFMpeg::ExtractTextSub(const char* mediaFile, int subId, std::string& subFile, const char* subType)
 {
+	/*if(m_pVInfo->src_container == CF_MKV) {
+		if(!_stricmp(subType, "subrip")) {
+			subFile = GetMd5(mediaFile) + ".srt";
+		} else {
+			subFile = GetMd5(mediaFile) + ".ass";
+		}
+		if(FileExist(subFile.c_str())) {
+			return;
+		}
+		std::string srtExtractCmd = MKVEXTRACT" tracks \"";
+		srtExtractCmd += mediaFile;
+		srtExtractCmd += "\" ";
+		
+		// Get stream id of selected sub(stream order, first stream id is 0) 
+		const char* subStreamId = m_pVideoPref->GetString("overall.subtitle.streamId");
+		srtExtractCmd += subStreamId;
+		srtExtractCmd += ":\"";
+		srtExtractCmd += subFile;
+		srtExtractCmd += "\"";
+		CProcessWrapper::Run(srtExtractCmd.c_str());
+	} else { */
+	// Use ffmpeg to extract text subtitle
 	subFile = GetMd5(mediaFile) + ".ass";
 	if(FileExist(subFile.c_str())) {
 		return;
@@ -671,6 +698,7 @@ void CDecoderFFMpeg::ExtractTextSub(const char* mediaFile, int subId, std::strin
 	srtExtractCmd += " -y ";
 	srtExtractCmd += subFile;
 	CProcessWrapper::Run(srtExtractCmd.c_str());
+	
 	tmpPathVct.push_back(subFile);
 }
 
