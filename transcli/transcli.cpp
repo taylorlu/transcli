@@ -359,10 +359,10 @@ int main( int argc, char **argv )
 #else
         chdir(curDir);
 	// Config subtitle fonts
-		const char* systemFont = "/usr/share/fonts/msyh.ttf";
-		if(!FileExist(systemFont)) {
-			TsCopyFile("./APPSUBFONTDIR/msyh.ttf", systemFont);
-		}
+		//const char* systemFont = "/usr/share/fonts/msyh.ttf";
+		//if(!FileExist(systemFont)) {
+		//	TsCopyFile("./APPSUBFONTDIR/msyh.ttf", systemFont);
+		//}
 #endif
 	}
 

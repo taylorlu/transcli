@@ -613,7 +613,7 @@ std::string CDecoderFFMpeg::GenTextSubOptions(const char* mediaFile, std::string
 		std::string tmpSub = subName + subExt;
 		if(!FileExist(dstAssSub.c_str())) {
 			// Detect srcfile encoding
-			/*const char* dstCode = "UTF-8";
+			const char* dstCode = "UTF-8";
 			const char* srcCode = StrPro::CCharset::DetectCharset(subFile.c_str());
 			// If src encoding equal to dst encoding, just copy file
 			if(srcCode && dstCode && !strcmp(srcCode, dstCode)) {	
@@ -630,12 +630,12 @@ std::string CDecoderFFMpeg::GenTextSubOptions(const char* mediaFile, std::string
 				charConvertCmd += subFile + "\" > ";
 				charConvertCmd += tmpSub;
 				system(charConvertCmd.c_str());
-			}*/
+			}
 			// Convert to utf-8 file(Using enca)
-			std::string charConvertCmd = ENCA" -L none -x UTF-8 < \"";
-			charConvertCmd += subFile + "\" > ";
-			charConvertCmd += tmpSub;
-			system(charConvertCmd.c_str());
+			//std::string charConvertCmd = ENCA" -L none -x UTF-8 < \"";
+			//charConvertCmd += subFile + "\" > ";
+			//charConvertCmd += tmpSub;
+			//system(charConvertCmd.c_str());
 
 			if(!_stricmp(subExt.c_str(), ".srt")) {
 				std::string srtConvertCmd = FFMPEG" -i ";

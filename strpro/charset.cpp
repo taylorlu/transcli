@@ -100,6 +100,51 @@ char* CCharset::Convert(const char* str, int len)
 	return buffer;
 }
 
+bool isUtf8WithoutBom(unsigned char* buf, long len)
+{
+	int rv = 1;
+	int ASCII7only = 1;
+	unsigned char *sx        = buf;
+	unsigned char *endx      = sx + len;
+ 
+	while (sx < endx) {
+		if (!*sx) {                                                                                        // For detection, we'll say that NUL means not UTF8
+			ASCII7only = 0;
+			rv = 0;
+			break;
+		} else if (*sx < 0x80) {            // 0nnnnnnn If the byte's first hex code begins with 0-7, it is an ASCII character.
+		    sx++;
+		} else if (*sx < (0x80 + 0x40)) {   // 10nnnnnn 8 through B cannot be first hex codes
+			ASCII7only=0;
+			rv=0;
+			break;
+		} else if (*sx < (0x80 + 0x40 + 0x20)) {  // 110xxxvv 10nnnnnn  If it begins with C or D, it is an 11 bit character
+			ASCII7only=0;
+			if (sx >= endx-1)
+				break;
+			if (!(*sx & 0x1F) || (sx[1]&(0x80+0x40)) != 0x80) {
+				rv=0; break;
+			}
+			sx+=2;
+		} else if (*sx < (0x80 + 0x40 + 0x20 + 0x10)) {  // 1110qqqq 10xxxxvv 10nnnnnn If it begins with E, it is 16 bit
+			ASCII7only=0;
+			if (sx>=endx-2)
+				break;
+			if (!(*sx & 0xF) || (sx[1]&(0x80+0x40)) != 0x80 || (sx[2]&(0x80+0x40)) != 0x80) {
+				rv=0; break;
+			}
+			sx+=3;
+		} else {         // more than 16 bits are not allowed here
+			ASCII7only=0;
+			rv=0;
+			break;
+		}
+	}
+	
+	if (rv)	// Utf8 without bom
+		return true;
+	return false;
+}
 const char* CCharset::DetectCharset(const char* txtFileName)
 {
 	const char* defualtCharset = "ANSI";
@@ -121,51 +166,15 @@ const char* CCharset::DetectCharset(const char* txtFileName)
 			detectBuf[2] == strtoul("bf", NULL, 16)) {
 			defualtCharset = "UTF-8";
 		} else {	// No bom text
-			//1.===== If a string doesn't contain nulls, its UTF-8
-			// :
-			//else
-			// :
-			//2:===== If a string doesn't contain double nulls, it's UTF-16
-			// :--.
-			// : 3:== If the nulls are on odd numbered indices, it's UTF-16LE
-			// :  :
-			// : else
-			// :  :
-			// : 4'== The string defaults to UTF-16BE
-			// :
-			//else
-			// :
-			//5:===== If the index modulo 4 is 0 and the character is greater than
-			// :      0x7F, the string is UTF-32LE. This is because the range of
-			// :      UTF-32 only goes up to 0x7FFFFFFF, meaning approximately 22%
-			// :      of the characters that can be represented will validate that
-			// :      the string is not big endian; including a BOM.
-			// :
-			//else
-			// :
-			//6'===== The string defaults to UTF-32BE
-			// Result: 0  = UTF-8, 1  = UTF-16BE, 2  = UTF-16LE, 3  = UTF-32BE, 4  = UTF-32LE
-
 			// the first rule is that we must terminate all strings with a quadruple null, regardless of encoding
 			fseek(fp, 0L, SEEK_END);
 			long bufLen = ftell(fp);
 			fseek(fp, 0L, SEEK_SET);
-			char* buf = (char*)malloc(bufLen+3);
-			memset(buf, 0, bufLen+3);
+			unsigned char* buf = (unsigned char*)malloc(bufLen+1);
+			memset(buf, 0, bufLen+1);
 			fread(buf, 1, bufLen, fp);
-
-			unsigned c, i = 0, flags = 0;
-			while (buf[i] | buf[i + 1] | buf[i + 2] | buf[i + 3])
-			  flags = (c = buf[i++]) ? flags | ((!(flags % 4) && 
-			  c > 0x7F) << 3) : flags | 1 | (!(i & 1) << 1) 
-			  | ((buf[i] == 0) << 2);
-			int dectectRet = (flags & 1) + ((flags & 2) != 0) + ((flags & 4) != 0) + ((flags & 8) != 0);
-			switch(dectectRet) {
-			case 0: defualtCharset = "UTF-8"; break;
-			case 1: defualtCharset = "UTF-16BE"; break;
-			case 2: defualtCharset = "UTF-16LE"; break;
-			case 3: defualtCharset = "UTF-32BE"; break;
-			case 4: defualtCharset = "UTF-32LE"; break;
+			if(isUtf8WithoutBom(buf, bufLen)) {
+				defualtCharset = "UTF-8";
 			}
 		    free(buf);
 		}
