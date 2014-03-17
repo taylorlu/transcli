@@ -431,7 +431,7 @@ bool  TsMoveFile(const char* srcFile, const char* destFile)
 
 bool  TsCopyFile(const char* srcFile, const char* destFile)
 {
-	if(!destFile || !destFile) {
+	if(!destFile || !*destFile) {
 		return false;
 	}
 
@@ -445,6 +445,7 @@ bool  TsCopyFile(const char* srcFile, const char* destFile)
     copyRet = CopyFileA(srcFile, destFile, FALSE);
 	return (copyRet != 0);
 #else
+	/*
 	int input, output;
     if( (input = open(srcFile, O_RDONLY)) == -1)
         return false;
@@ -461,6 +462,15 @@ bool  TsCopyFile(const char* srcFile, const char* destFile)
     close(input);
     close(output);
 	return (copyRet != -1);
+	*/
+	struct stat st;
+	char psz_cmd[MAX_PATH*2];
+
+    //if (ts_stat(psz_dst, &st) == 0) return false;
+
+	snprintf(psz_cmd, sizeof(psz_cmd), "cp -f \"%s\" \"%s\"", srcFile, destFile);
+
+	return (system(psz_cmd) == 0)? true:false;
 #endif
 }
 
