@@ -137,8 +137,10 @@ bool CTransWorker::parseDurationInfo(CXMLPref* pTaskPref, StrPro::CXML2* pMediaP
 		totalDur = pMediaPref->getChildNodeValueInt("duration");
 	}
 
-	if(totalDur > 0 && totalDur <= decodeStart) {
-		logger_err(m_logType, "Wrong fragment param, start time is bigger than media file duration.\n");
+	if(totalDur > 0 && totalDur <= decodeStart ||
+		(!m_clipStartSet.empty() && totalDur <= m_clipStartSet.front()) ) {
+		SetErrorCode(EC_INVALID_CLIP_PARAM);
+		logger_err(m_logType, "Wrong clip param, start time is bigger than media file duration.\n");
 		return false;
 	}
 

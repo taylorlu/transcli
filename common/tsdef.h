@@ -502,6 +502,7 @@ typedef enum {
 	EC_NOT_ENOUGH_DISK_SPACE = 35,		// Disk space is not enough.
 	EC_BAD_AV_DATA = 36,				// Outpu mp4 audio/video data corrupt(No frame/audio element 0.0)
 	EC_GEN_THUMBNAIL_ERROR = 37,		// Generate ipk file failed.
+	EC_INVALID_CLIP_PARAM = 38,			// Clip param is invalid
 } error_code_t;
 
 typedef enum {

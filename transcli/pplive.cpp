@@ -1330,6 +1330,13 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			presetLevel = 4;
 		}
 	}
+
+	if(!_stricmp(conf.target.container_format, "mp4") && 
+		!_stricmp(conf.target.acodec.name, "aac") &&
+		!_stricmp(conf.target.vcodec.name, "h264") &&
+		conf.target.vcodec.bitrate >= 5000) {	// Suning encoding level
+		presetLevel = 5;
+	}
 	prefs.SetStreamPref("overall.task.ppLevel", presetLevel, STAUDIO);
 
 	// Ajust audio bitrate according to preset level and source type

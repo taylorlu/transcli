@@ -144,7 +144,9 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		//if(m_pVInfo->src_container == CF_MPEG2TS || m_pVInfo->src_container == CF_ASF) {
 			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input
 		//} 
-		audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
+		if(!pPref->GetBoolean("overall.audio.insertBlank")) {
+			audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
+		}
 	}
 	
 	// -analyzeduration 20000000 to solve files that audio timestamp is leading video for about 20s
@@ -268,6 +270,9 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 			coreNum = 1;
 		}
 		cmd << " -threads:v " << coreNum;*/
+		if(pPref->GetBoolean("overall.audio.insertBlank")) {
+			cmd << " -shortest";
+		}
 		cmd << " pipe:$(fdVideoWrite)";
 	} 
 	std::string ffmpegCmd = cmd.str();
