@@ -202,33 +202,48 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 			}
 		}
 
-		char cmdLine[2048] = {0};
+		std::string finalCmdStr = commandLine;
 		if(flags & SF_USE_AUDIO_PIPE && flags & SF_USE_VIDEO_PIPE) {
+			int fda = 0, fdv = 0;
 			if(flags & SF_INHERIT_WRITE) {
-				sprintf(cmdLine, commandLine, fdAudio[FD_W], fdVideo[FD_W]);
+				fda = fdAudio[FD_W];
+				fdv = fdVideo[FD_W];
 			} else {
-				sprintf(cmdLine, commandLine, fdAudio[FD_R], fdVideo[FD_R]);
+				fda = fdAudio[FD_R];
+				fdv = fdVideo[FD_R];
 			}
+			char fdStr[6] = {0};
+			sprintf(fdStr, "%d", fda);
+			ReplaceSubString(finalCmdStr, "$(fdAudioWrite)", fdStr);
+			memset(fdStr, 0, 6);
+			sprintf(fdStr, "%d", fdv);
+			ReplaceSubString(finalCmdStr, "$(fdVideoWrite)", fdStr);
 		} else if(flags & SF_USE_AUDIO_PIPE) {
+			int fda = 0;
 			if(flags & SF_INHERIT_WRITE) {
-				sprintf(cmdLine, commandLine, fdAudio[FD_W]);
+				fda = fdAudio[FD_W];
 			} else {
-				sprintf(cmdLine, commandLine, fdAudio[FD_R]);
+				fda =fdAudio[FD_R];
 			}
+			char fdStr[6] = {0};
+			sprintf(fdStr, "%d", fda);
+			ReplaceSubString(finalCmdStr, "$(fdAudioWrite)", fdStr);
 		} else if(flags & SF_USE_VIDEO_PIPE) {
+			int fdv = 0;
 			if(flags & SF_INHERIT_WRITE) {
-				sprintf(cmdLine, commandLine, fdVideo[FD_W]);
+				fdv = fdAudio[FD_W];
 			} else {
-				sprintf(cmdLine, commandLine, fdVideo[FD_R]);
+				fdv =fdAudio[FD_R];
 			}
-		} else {
-			strcpy(cmdLine, commandLine);
+			char fdStr[6] = {0};
+			sprintf(fdStr, "%d", fdv);
+			ReplaceSubString(finalCmdStr, "$(fdVideoWrite)", fdStr);
 		}
 
-		//logger_status(LOGM_PROCWRAP, "[CMD]:%s\n", cmdLine);
-
-		tokens = Tokenize(cmdLine);
-
+		char* tmpstr = strdup(finalCmdStr.c_str());
+		logger_status(LOGM_PROCWRAP, "[CMD]:%s\n", tmpstr);
+		tokens = Tokenize(tmpstr);
+		free(tmpstr);
 		if (hasGui)  {
 			//to do WHAT?
 		}
@@ -311,7 +326,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 				}
 			}
 
-			if(flags & SF_USE_AUDIO_PIPE && flags & SF_USE_VIDEO_PIPE) {
+			/*if(flags & SF_USE_AUDIO_PIPE && flags & SF_USE_VIDEO_PIPE) {
 				if(flags & SF_INHERIT_WRITE) {
 					close(fdAudio[FD_R]);
 					close(fdVideo[FD_R]);
@@ -332,7 +347,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 				} else {
 					close(fdVideo[FD_W]);
 				}
-			} 
+			} */
 
 			if(flags & SF_LOWER_PRIORITY) {
 //				SetPriority(BELOW_NORMAL_PRIORITY_CLASS);
@@ -356,7 +371,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 			}
 
 			//fprintf(stderr, "Child thread return.\n");
-			exit(27);
+			//exit(27);
 			//return true;
         }
 	} while (false);

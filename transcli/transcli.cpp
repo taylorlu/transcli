@@ -67,11 +67,13 @@ void signal_handler(int dunno)
 	fprintf(stderr, "Handler a signal %d\n", dunno);
 
     if (g_completed && g_retCode == EC_NO_ERROR) { //FIXME: It's failed in WorkerManager.CleanUp()!
-        exit(EC_NO_ERROR);
+        //exit(EC_NO_ERROR);
 	}
 	else {
-		kill_adapter_core();
-        exit(CLI_GENERIC_ERROR);
+		//kill_adapter_core();
+		g_completed = true;	
+		Sleep(2000);
+        //exit(CLI_GENERIC_ERROR);
 	}
 } 
 
@@ -82,7 +84,7 @@ void dump_handler(int signo)
     char cmd[1024];
     FILE *fd;
 
-    snprintf(buf, sizeof(buf), "/proc/%d/cmdline", getpid());
+    snprintf(buf, sizeof(buf), "/proc/%d/trancli", getpid());
 
     fd = fopen(buf, "r");
     if (fd == NULL) exit(0);
@@ -96,7 +98,7 @@ void dump_handler(int signo)
 
     system(cmd);
 
-    exit(0);
+    //exit(0);
 }
 #endif //DEBUG
 
@@ -328,9 +330,10 @@ int main( int argc, char **argv )
 	//set dir
 #ifndef _WIN32
 #ifdef _DEBUG
+	logger_info(LOGM_GLOBAL, "============This is debug mode.===========\n", verStr);
 	signal(SIGSEGV, dump_handler);
 #else
-	signal(SIGSEGV, signal_handler);
+	//signal(SIGSEGV, signal_handler);
 #endif
 	char *dirname = getenv("TRANSCODER_BINDIR");
 	if (dirname != NULL) {
@@ -495,15 +498,13 @@ int main( int argc, char **argv )
 			break;
 		}*/
 
-		Sleep(10000);
+		Sleep(2000);
 	}
 
 	// Clean up
 	if (clihelper != NULL) delete clihelper;
  	logger_uninit();
-#ifndef WIN32
-	kill_dead_encoders();
-#endif
+
     if(g_retCode == 0) {
         g_retCode = pMan->GetErrorCode(workId);
 	}

@@ -529,7 +529,7 @@ bool CX265Encode::Stop()
 			if(i_nal) {
 				write_nals(pNal, i_nal);
 			}
-			if(!encodeNum) break;
+			if(encodeNum <= 0) break;
 			m_frameCount += encodeNum;
 		}
 		x265_encoder_close(m_pX265Ctx);

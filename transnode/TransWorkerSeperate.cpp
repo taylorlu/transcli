@@ -266,6 +266,11 @@ bool CTransWorkerSeperate::setMuxerPref(CXMLPref* prefs)
 	//if(prefs->GetInt("overall.video.format") == VC_H263 && muxerType == MUX_MP4) {
 	//	muxerType = MUX_FFMPEG;
 	//}
+	#ifndef _WIN32
+	if(muxerType == MUX_TSMUXER) {
+		muxerType = MUX_FFMPEG;
+	}
+	#endif
 	CMuxer* pMuxer = CMuxerFactory::CreateInstance(muxerType);
 	if(!pMuxer) {
 		logger_err(m_logType, "Create Muxer failed.\n");
@@ -323,6 +328,11 @@ bool CTransWorkerSeperate::setSourceAVInfo(StrPro::CXML2* mediaInfo)
 		CAudioEncoder* pFirstAudio = m_audioEncs[0];
 		CXMLPref* pFirstPref = pFirstAudio->GetAudioPref();
 		if(pFirstPref->GetBoolean("overall.audio.insertBlank")) {
+			// If insert blank audio, then lower audio bitrate, mono channel
+			pFirstPref->SetInt("audioenc.ffmpeg.bitrate", 16);
+		    	pFirstPref->SetInt("audioenc.faac.bitrate", 16);
+			pFirstPref->SetInt("audioenc.nero.bitrate", 16);
+			pFirstPref->SetInt("audioenc.lame.bitrate", 16);
 			audio_info_t* pFirstAudioInfo = pFirstAudio->GetAudioInfo();
 			pFirstAudioInfo->in_channels = pFirstAudioInfo->out_channels = 1;
 			pFirstAudioInfo->in_srate = pFirstAudioInfo->out_srate = 44100;
@@ -1615,7 +1625,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 	if(ret < 0) {
 		SetErrorCode(EC_VIDEO_ENCODER_ERROR);
 		logger_err(m_logType, "Transcode video failed.\n");
-		m_pVideoDec->Cleanup();
+		//m_pVideoDec->Cleanup();
 	} else {
 		printf("Processed Frames: %d\n", m_encodedFrames);
 		logger_status(m_logType, "Video stream transcode have completed.\n");
@@ -1705,7 +1715,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeMbrVideo()
 
 	if(ret < 0) {
 		SetErrorCode(EC_VIDEO_ENCODER_ERROR);
-		m_pVideoDec->Cleanup();
+		//m_pVideoDec->Cleanup();
 		logger_err(m_logType, "Transcode video failed.\n");
 	} else {
 		logger_status(m_logType, "All video streams transcode have completed.\n");
@@ -1842,7 +1852,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideoComplex()
 	if(ret < 0) {
 		SetErrorCode(EC_VIDEO_ENCODER_ERROR);
 		logger_err(m_logType, "Transcode video failed.\n");
-		m_pVideoDec->Cleanup();
+		//m_pVideoDec->Cleanup();
 	} else {
 		logger_status(m_logType, "Video stream transcode have completed.\n");
 	}
@@ -2257,7 +2267,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudio()
 
 	if(ret < 0) {
 		SetErrorCode(EC_AUDIO_ENCODER_ERROR);
-		m_pAudioDec->Cleanup();
+		//m_pAudioDec->Cleanup();
 		logger_err(m_logType, "TranscodeAudio failed.\n");
 	} else {
 		logger_status(m_logType, "Audio transcode have completed.\n");
@@ -2372,7 +2382,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudioComplex()
 
 	if(ret < 0) {
 		SetErrorCode(EC_AUDIO_ENCODER_ERROR);
-		m_pAudioDec->Cleanup();
+		//m_pAudioDec->Cleanup();
 		logger_err(m_logType, "TranscodeAudio failed.\n");
 	} else {
 		logger_status(m_logType, "Audio transcode have completed.\n");

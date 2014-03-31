@@ -16,6 +16,10 @@ SOURCES += clihelper.cpp pplive.cpp transcli.cpp
 
 HEADERS += clihelper.h
 
+CONFIG(debug, debug|release) {
+   QMAKE_CXXFLAGS += -D_DEBUG=1
+}
+
 win32 {
     DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32
     LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32 -lWSock32 -luser32 -lzlib1
