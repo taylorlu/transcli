@@ -326,7 +326,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 				}
 			}
 
-			/*if(flags & SF_USE_AUDIO_PIPE && flags & SF_USE_VIDEO_PIPE) {
+			if(flags & SF_USE_AUDIO_PIPE && flags & SF_USE_VIDEO_PIPE) {
 				if(flags & SF_INHERIT_WRITE) {
 					close(fdAudio[FD_R]);
 					close(fdVideo[FD_R]);
@@ -347,7 +347,7 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 				} else {
 					close(fdVideo[FD_W]);
 				}
-			} */
+			}
 
 			if(flags & SF_LOWER_PRIORITY) {
 //				SetPriority(BELOW_NORMAL_PRIORITY_CLASS);

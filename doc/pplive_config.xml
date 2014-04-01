@@ -56,13 +56,15 @@
       <denoise mode="0" luma="4" chroma="3" temporal="6"/>
       <deinterlace mode="0" algorithm="0"/> <!--mode:0(auto), 1(enable), 2(disable)-->
     </filter>
-    <mux format="flv" />  <!--Muxer format:flv/mp4/ts-->
+    <mux format="flv" />  <!--Muxer format:flv/mp4/ts/hls-->
     <!--type:average/none, size:segment size(sec), postfix:index/time/.mp4.%d, lastsegpercent:20%, threshold:duration>=1800 segment-->
     <segment type="average" unit="time" size="40" postfix="index" threshold="1800" lastsegpercent="20"/>
     <!--Static image:image and druation. Dynamic image tail:folder-->
     <imagetail image="" folder="" duration="2" cropmode="0"/>
     <!--type:.m3u8/.m3u/.pls/.wpl/.csv, name:playlist name(when empty use source file name), postfix:name postfix, live:if live stream-->
     <playlist type=".m3u8" name="" postfix=".mp4" live="false"/>
+	<!--Apple HLS format. dur:segment duration(s), listsize:how many segments one list contain,startindex:segment file start number -->
+	<hls dur="5" listsize="100000" postfix=".mp4" startindex="1"/>
     <!--start:start time, end:end time, interval:frequency, row:tile row, col:tile column, type:1(png)/2(jpg)/3(bmp)/4(gif), count:thumbnail count, quality:Jpeg quality(max:100), stitch:tile thumbnail to big image, pack:pack images to ipk file-->
     <thumbnail start="5" end="0" interval="6" row="10" col="10" width="180" height="0" type="2" count="0" quality="85" stitch="true" pack="true"/>
     <!--ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)-->

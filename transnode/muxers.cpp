@@ -413,6 +413,9 @@ public:
 			if(m_pref->GetInt("overall.container.format") == CF_FLV) {	// Flv mux
 				muxRet = muxFlv(muxfile.c_str(), destFile);
 				RemoveFile(muxfile.c_str());
+			} else if(m_pref->GetInt("overall.container.format") == CF_HLS) {	// HLS mux
+				muxRet = muxHls(muxfile.c_str(), destFile);
+				RemoveFile(muxfile.c_str());
 			} else {
 				if (!TsMoveFile(muxfile.c_str(), destFile)) {
 					logger_err(LOGM_TS_MUX, MOVE_ERROR_FORMAT, muxfile.c_str(), destFile);
@@ -447,6 +450,8 @@ public:
 			return "3g2";
 		case CF_F4V:
 			return "f4v";
+		case CF_HLS:
+			return "mp4";
 		default:
 			return fAudioOnly ? "m4a" : "mp4";
 		}
@@ -523,11 +528,70 @@ private:
 			cmd += sstr.str();
 
 #ifdef DEBUG_EXTERNAL_CMD
-			logger_warn(LOGM_TS_MUX, "%s\n", cmd.c_str());
+			logger_info(LOGM_TS_MUX, "%s\n", cmd.c_str());
 #endif
 
 			return CProcessWrapper::Run(cmd.c_str());
 		}
+	}
+
+	int muxHls(const char* inMp4File, const char* outMp4) 
+	{
+		if(!inMp4File || !*inMp4File || !outMp4 || !*outMp4) {
+			logger_err(LOGM_TS_MUX, "Invalid path for muxing flv.\n");
+			return MUX_ERR_INVALID_FILE_PATH;
+		}
+		int muxRet = MUX_ERR_MUXER_FAIL;
+	
+		const char* segDur = m_pref->GetString("muxer.hls.dur");
+		const char* listSize = m_pref->GetString("muxer.hls.listsize");
+		const char* postfix = m_pref->GetString("muxer.hls.postfix");
+		const char* startIdx = m_pref->GetString("muxer.hls.startIndex");
+		// Get dest file name and list file
+		std::string destFile = outMp4;
+		std::string finalM3u8File;
+		size_t extPos = destFile.find(".mp4");
+		if(extPos != std::string::npos) {
+			destFile = destFile.substr(0, extPos);
+			if(postfix && *postfix) {
+				destFile += postfix;
+			}
+			// To insert '.' before %d of segment number, dest file for ffmpeg should add one more '.'
+			finalM3u8File = destFile + ".m3u8";
+			destFile += "..m3u8";
+		}
+		
+		// Generate hls command line
+		std::string hlsCmd = FFMPEG" -i \"";
+		hlsCmd += inMp4File;
+		hlsCmd += "\" -v error -map 0 -vcodec copy -acodec copy -vbsf h264_mp4toannexb -f hls ";
+		if(segDur && *segDur) {
+			hlsCmd += " -hls_time ";
+			hlsCmd += segDur;
+		}
+		if(listSize && *listSize) {
+			hlsCmd += " -hls_list_size ";
+			hlsCmd += listSize;
+		}
+		if(startIdx && *startIdx) {
+			hlsCmd += " -start_number ";
+			hlsCmd += startIdx;
+		}
+		
+		hlsCmd += " -y \"";
+		hlsCmd += destFile + "\"";
+#ifdef DEBUG_EXTERNAL_CMD
+		logger_info(LOGM_TS_MUX, "%s\n", hlsCmd.c_str());
+#endif
+		muxRet = CProcessWrapper::Run(hlsCmd.c_str());
+		if(muxRet != 0) {
+			logger_err(LOGM_TS_MUX, "Failed to use ffmpeg to generate hls file.\n");
+			return MUX_ERR_MUXER_FAIL;
+		}
+
+		//Correct m3u8 file, remove redundant '.' before ".m3u8"
+		TsMoveFile(destFile.c_str(), finalM3u8File.c_str());
+		return muxRet;
 	}
 
 	int muxFlv(const char* inMp4File, const char* outFlv) 
@@ -536,7 +600,7 @@ private:
 			logger_err(LOGM_TS_MUX, "Invalid path for muxing flv.\n");
 			return MUX_ERR_INVALID_FILE_PATH;
 		}
-		int muxRet = MUX_ERR_INVALID_FILE_PATH;
+		int muxRet = MUX_ERR_MUXER_FAIL;
         std::string ffmpegCmd = FFMPEG;
 		ffmpegCmd += " -i \"";
 		ffmpegCmd += inMp4File;
@@ -612,6 +676,7 @@ private:
 		return muxRet;
 	}
 };
+
 
 static int SaveTextFile(const char* filename, const char* text)
 {

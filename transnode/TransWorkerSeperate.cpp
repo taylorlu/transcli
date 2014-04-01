@@ -262,10 +262,7 @@ bool CTransWorkerSeperate::setMuxerPref(CXMLPref* prefs)
 {
 	int muxerType = prefs->GetInt("overall.container.muxer");
 	if (muxerType == PREF_ERR_NO_INTNODE) muxerType = 0;
-	//If video is h263 and container is 3gp, use ffmpeg to mux
-	//if(prefs->GetInt("overall.video.format") == VC_H263 && muxerType == MUX_MP4) {
-	//	muxerType = MUX_FFMPEG;
-	//}
+	
 	#ifndef _WIN32
 	if(muxerType == MUX_TSMUXER) {
 		muxerType = MUX_FFMPEG;

@@ -211,6 +211,7 @@ typedef enum {
 	CF_PMP,
 	CF_RTP,
 	CF_UDP,
+	CF_HLS,
 	CF_COUNT,
 } container_format_t;
 

@@ -392,6 +392,13 @@ struct playlist_t {
 	bool bLive;
 };
 
+struct hls_t {
+	int dur;	//duration
+	int listSize;	// item count in list
+	int startIndex;	// segment start index(start file number), default is 0
+	char postfix[MAX_PATH];
+};
+
 struct image_src_t {
 	char imagePath[MAX_PATH];
 	char imageFolder[MAX_PATH];
@@ -428,6 +435,7 @@ struct target_config_t {
 	struct playlist_t playlistConfig;
 	struct image_src_t imageTail;
 	struct thumbnail_t thumbnail;
+	struct hls_t hlsConfig;
 	int ignoreErrIdx;	// ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)
 };
 
@@ -609,6 +617,8 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 	config->target.acodec.autoVolGain = 1;		// Default enable volume auto gain
 	config->target.vcodec.brdown = 1;
 	config->target.acodec.brdown = 1;
+	config->target.hlsConfig.dur = 5;
+	strcpy(config->target.hlsConfig.postfix, ".mp4");
 	do {
 		if (xmlConfig.goRoot() == NULL) break;
 
@@ -1102,6 +1112,18 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 				}
 				int cropMode = xmlConfig.getAttributeInt("cropmode");
 				config->target.imageTail.cropMode = cropMode;
+			}
+			xmlConfig.goParent();
+		}
+
+		// Apple hls
+		if (xmlConfig.findChildNode("hls") != NULL) {
+			config->target.hlsConfig.dur = xmlConfig.getAttributeInt("dur");
+			config->target.hlsConfig.listSize = xmlConfig.getAttributeInt("listsize");
+			config->target.hlsConfig.startIndex = xmlConfig.getAttributeInt("startindex");
+			const char* postfixStr = xmlConfig.getAttribute("postfix");
+			if(postfixStr && *postfixStr) {
+				strncpy(config->target.hlsConfig.postfix, postfixStr, strlen(postfixStr));
 			}
 			xmlConfig.goParent();
 		}
@@ -1936,6 +1958,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		{"f4v", CF_F4V, "F4V", MUX_MP4, "MP4Box"},
 		{"mkv", CF_MKV, "Matroska", MUX_MKV, "MKVMerge"},
 		{"ts", CF_MPEG2TS, "MPEG TS", MUX_TSMUXER, "TSMuxer"},
+		{"hls", CF_HLS, "HLS", MUX_MP4, "MP4Box"},
 		{"", 0, 0}
 	};
 
@@ -1944,6 +1967,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			break;
 		}
 	}
+
 	prefs.SetStreamPref("overall.container.format", container_map[idx].psz_fmt, STMUXER);
 	prefs.SetStreamPref("overall.container.muxer", container_map[idx].psz_muxer, STMUXER);
 
@@ -2100,6 +2124,21 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			prefs.SetStreamPref("videofilter.imagetail.imagefolder", conf.target.imageTail.imagePath, STVIDEO);
 		}
 		prefs.SetStreamPref("videofilter.imagetail.cropmode", conf.target.imageTail.cropMode, STVIDEO);
+	}
+
+	// Apple hls configuration
+	hls_t& hlsConfig = conf.target.hlsConfig;
+	if(hlsConfig.dur > 0) {
+		prefs.SetStreamPref("muxer.hls.dur", hlsConfig.dur, STMUXER);
+	}
+	if(hlsConfig.listSize >= 0) {
+		prefs.SetStreamPref("muxer.hls.listsize", hlsConfig.listSize, STMUXER);
+	}
+	if(hlsConfig.startIndex > 0) {
+		prefs.SetStreamPref("muxer.hls.startIndex", hlsConfig.startIndex, STMUXER);
+	}
+	if(*hlsConfig.postfix) {
+		prefs.SetStreamPref("muxer.hls.postfix", hlsConfig.postfix, STMUXER);
 	}
 
 	// Thumbnail

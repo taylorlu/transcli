@@ -45,6 +45,7 @@ unix {
     target.path = /usr/lib
     INSTALLS += target
     DESTDIR = $$_PRO_FILE_PWD_/../lib/x64_linux
+	QMAKE_POST_LINK = cp -rf ./mcnt.xml $$_PRO_FILE_PWD_/../bin/x64_linux/mcnt.xml
 }
 win32 {
     SOURCES += processwrapper.cpp

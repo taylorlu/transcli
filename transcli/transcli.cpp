@@ -483,6 +483,7 @@ int main( int argc, char **argv )
 	signal(SIGHUP, signal_handler);
 	signal(SIGINT, signal_handler);
 	signal(SIGQUIT, signal_handler); 	
+	signal(SIGPIPE, signal_handler); 
 #endif
 
 	// waiting for completing	
