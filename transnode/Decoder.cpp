@@ -220,21 +220,21 @@ bool CDecoder::Start(const char* sourceFile)
 	m_bDecodeEnd = false;
 
 	if(m_bDecAudio) {		// Read PCM data and create audio encoders
-#ifdef WIN32
+//#ifdef WIN32
 		CProcessWrapper::MakePipe(m_fdReadAudio, fdAWrite, AUDIO_PIPE_BUFFER, false, true);
-#else
-        m_proc.flags |= SF_USE_AUDIO_PIPE;
-        m_proc.flags |= SF_INHERIT_WRITE;
-#endif
+//#else
+        //m_proc.flags |= SF_USE_AUDIO_PIPE;
+        //m_proc.flags |= SF_INHERIT_WRITE;
+//#endif
 	}
 		
 	if(m_bDecVideo) {		// Read YUV data and create video encoders
-#ifdef WIN32
+//#ifdef WIN32
 		CProcessWrapper::MakePipe(m_fdReadVideo, fdVWrite, VIDEO_PIPE_BUFFER, false, true);
-#else
-		m_proc.flags |= SF_USE_VIDEO_PIPE;
-		m_proc.flags |= SF_INHERIT_WRITE;
-#endif
+//#else
+//		m_proc.flags |= SF_USE_VIDEO_PIPE;
+//		m_proc.flags |= SF_INHERIT_WRITE;
+//#endif
 	}
  
 	if(m_cmdString.empty()) {
@@ -243,14 +243,12 @@ bool CDecoder::Start(const char* sourceFile)
 
 	// Replace pipe fd holder with real pipe handle
 	std::string finalCmdStr = m_cmdString;
-#ifdef WIN32
 	char fdStr[6] = {0};
 	sprintf(fdStr, "%d", fdAWrite);
 	ReplaceSubString(finalCmdStr, "$(fdAudioWrite)", fdStr);
 	memset(fdStr, 0, 6);
 	sprintf(fdStr, "%d", fdVWrite);
 	ReplaceSubString(finalCmdStr, "$(fdVideoWrite)", fdStr);
-#endif
 	
 #ifdef DEBUG_EXTERNAL_CMD
 	logger_info(LOGM_TS_VD, "Cmd: %s.\n", finalCmdStr.c_str());
@@ -282,21 +280,12 @@ bool CDecoder::Start(const char* sourceFile)
 		}
 	}
 
-#ifdef WIN32
 	if(fdAWrite != -1) {
 		_close(fdAWrite);
 	}
 	if(fdVWrite != -1) {
 		_close(fdVWrite);
 	}
-#else
-	if(m_bDecVideo) {
-		m_fdReadVideo = m_proc.fdReadVideo;
-	}
-	if(m_bDecAudio) {
-		m_fdReadAudio = m_proc.fdReadAudio;
-	}
-#endif
 
 	return success;
 }

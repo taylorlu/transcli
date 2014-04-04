@@ -550,7 +550,7 @@ private:
 		// Get dest file name and list file
 		std::string destFile = outMp4;
 		std::string finalM3u8File;
-		size_t extPos = destFile.find(".mp4");
+		size_t extPos = destFile.rfind(".mp4");
 		if(extPos != std::string::npos) {
 			destFile = destFile.substr(0, extPos);
 			if(postfix && *postfix) {

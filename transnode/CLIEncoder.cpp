@@ -186,7 +186,7 @@ bool CCLIAudioEncoder::IsRunning()
 int64_t CCLIAudioEncoder::EncodeBuffer(uint8_t* pAudioBuf, int bufLen)
 {
 	int offset = 0;
-	while (offset < bufLen && m_proc.IsProcessRunning()) {
+	while (offset < bufLen) {
 #ifndef COMMUNICATION_USE_FIFO
 		int bytes = m_proc.Write(pAudioBuf + offset, bufLen - offset);
 #else

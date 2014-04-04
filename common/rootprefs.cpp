@@ -665,7 +665,12 @@ void CRootPrefs::initFileTitle()
 		m_pFileTitle = _strdup(vcdTitle.c_str());
 	} else {
 		// Get file title from main url
-		const char* lastSlash = strrchr(m_pStrMainUrl, PATH_DELIMITER);
+		const char* lastSlash = strrchr(m_pStrMainUrl, '/');
+		const char* lastBackSlash = strrchr(m_pStrMainUrl, '\\');
+		if(lastSlash < lastBackSlash) {
+			lastSlash = lastBackSlash;
+		}
+
 		if(lastSlash) {
 			lastSlash += 1;
 		} else {
