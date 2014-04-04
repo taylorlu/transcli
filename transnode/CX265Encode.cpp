@@ -73,6 +73,15 @@ bool CX265Encode::Initialize()
 		m_x265Param.fpsNum = 25;
 		m_x265Param.fpsDenom = 1;
 	}
+
+	/*
+	if(m_vInfo.dest_par.den > 0) {
+		m_x265Param.vui.bEnableAspectRatioIdc = 1;
+		m_x265Param.vui.aspectRatioIdc = X265_EXTENDED_SAR;
+		m_x265Param.vui.sarWidth = m_vInfo.dest_par.num;
+		m_x265Param.vui.sarHeight = m_vInfo.dest_par.den;
+	}*/
+
 	x265Cmd << " --fps " << (float)m_vInfo.fps_in.num/m_vInfo.fps_in.den;
 
 	// Rate control
@@ -497,8 +506,11 @@ bool CX265Encode::Initialize()
 
 	uint32_t nal = 0;
 	x265_nal* pNal = NULL;
-	if(!x265_encoder_headers(m_pX265Ctx, &pNal, &nal)) {
-		if(nal) write_nals(pNal, nal);
+	if(x265_encoder_headers(m_pX265Ctx, &pNal, &nal) < 0) {
+		logger_err( LOGM_TS_VE_H265, "x265_encoder_headers failed.\n");
+		return false;
+	} else {
+		write_nals(pNal, nal);
 	}
 
 	x265_picture_init(&m_x265Param, &m_x265Pic);
