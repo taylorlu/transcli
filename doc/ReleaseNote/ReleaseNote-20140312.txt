@@ -1,0 +1,5 @@
+﻿更新(版本号 PPTV-2.4.0.63200)：
+1. Fix flushing frames issue of hevc encoding.
+2. Add delogo params checking.
+
+

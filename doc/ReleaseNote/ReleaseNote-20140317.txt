@@ -1,0 +1,7 @@
+﻿更新(版本号 PPTV-2.4.0.63300)：
+1.	解决因增加对内置字幕的支持导致外挂字幕失效的问题。
+2.	解决Linux下字幕字体匹配错误的问题。
+
+-i "F:\video\problem\dragfail\noAudio.mp4" -f lavfi -i aevalsrc=0 -shortest -v error -map 1:a -c:a pcm_s16le -f s16le -ar 44100 -filter:a pan=1:c0=c0 e:\test.pcm -map 0:v:0 -c:v rawvideo -f rawvideo -pix_fmt yuv420p -sws_flags bilinear -filter:v scale=480:360 e:\test.yuv
+
+

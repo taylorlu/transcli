@@ -1,0 +1,5 @@
+﻿更新(版本号 PPTV-2.4.0.63200)：
+1. Add embed subtitle support.
+2. Update libx265 to 0.8 stable, change default params parsing method.
+3. Fix crash caused by invalid audio params(audio channels is 0).
+
