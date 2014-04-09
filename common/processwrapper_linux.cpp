@@ -576,8 +576,11 @@ bool CProcessWrapper::Terminate()
 
 bool CProcessWrapper::IsProcessRunning(int* pexitcode)
 {
-    //TODO
-    return m_pid > 0;
+    int status = -1;
+	if(waitpid(m_pid, &status, WNOHANG) == 0) {
+		return true;
+	}
+    return false;
 }
 
 bool CProcessWrapper::Suspend(bool resume)
