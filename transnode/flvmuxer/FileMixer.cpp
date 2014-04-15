@@ -6,7 +6,6 @@ FileMixer::FileMixer(void)
 {
 	mFileVersion = "1.0.0.0";
 	mOutputFile = NULL;
-	mPfv = false;
 }
 
 FileMixer::~FileMixer(void)
@@ -111,9 +110,8 @@ bool FileMixer::WriteOutPutFile( char* file,int outputtype )
 	return ret;
 }
 
-bool FileMixer::WriteFileFlv( bool ispfv /*= false*/ )
+bool FileMixer::WriteFileFlv()
 {
-	mPfv = ispfv;
 	//flv head
 	//Trace("[Info][FileMixer]:Write Flv Head\n");
 	WriteFlvHead();

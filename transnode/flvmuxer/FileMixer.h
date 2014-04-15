@@ -8,7 +8,6 @@
 
 #if 0
 enum OUTPUT_TYPE{
-	OUTPUT_TYPE_PFV,
 	OUTPUT_TYPE_MKV,
 	OUTPUT_TYPE_MP4,
 	OUTPUT_TYPE_FLV
@@ -48,8 +47,6 @@ private:
 	double mLastKeyFrameLocation;
 	vector<vector<double>> mKeyFrames;
 
-	bool mPfv;
-
 	unsigned long long mVideoStcoPos;
 	unsigned long long mAudioStcoPos;
 
@@ -66,8 +63,8 @@ public:
 	double GetVideoPtsByFilePos(unsigned long long pos);
 
 private:
-	//pfv flv
-	bool WriteFileFlv(bool ispfv = false);
+	//flv
+	bool WriteFileFlv();
 	void WriteFlvHead();
 	void WriteFlvMeta();
 	void WriteFlvData();
