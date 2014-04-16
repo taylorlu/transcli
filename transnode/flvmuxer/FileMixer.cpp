@@ -185,8 +185,7 @@ void FileMixer::WriteFlvMeta()
 	keyframesubtitle.push_back("filepositions");
 	keyframesubtitle.push_back("times");
 
-	metaunits.push_back(GetMetaString("metadatacreater","PPLive"));
-	metaunits.push_back(GetMetaString("fileversion",mFileVersion));
+	metaunits.push_back(GetMetaString("MetaCreator","PPLive"));
 	metaunits.push_back(GetMetaDouble("duration",mDuration));
 	metaunits.push_back(GetMetaDouble("width",mVParser.mWidth));
 	metaunits.push_back(GetMetaDouble("height",mVParser.mHeight));
