@@ -12,8 +12,8 @@ public:
 	~H264Parse(void);
 
 public:
-	bool Init(char* tempfile);
-	bool Parse264File(char *file);
+	bool Init(const char* tempfile);
+	bool Parse264File(const char *file);
 	bool FinishParsing();
 	void Clear();
 	char* GetConfig();

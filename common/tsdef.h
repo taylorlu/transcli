@@ -142,6 +142,7 @@ typedef enum {
 	MUX_PMP,
 	MUX_MP4CREATOR,
 	MUX_MGP,
+	MUX_FLV,
 	MUX_VCD,
 	MUX_DUMMY,
 	MUX_WM

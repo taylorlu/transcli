@@ -26,7 +26,7 @@ public:
 	~FileWriter(void);
 
 public:
-	bool Open(char *pFile);
+	bool Open(const char *pFile);
 	void Close();
 	void Seek(unsigned long long llPos, unsigned int uiMode);
 	unsigned long long Tell();

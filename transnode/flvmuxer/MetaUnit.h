@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _META_UNIT_H_
+#define _META_UNIT_H_
+
 #include <string>
 #include <vector>
 #include <fstream>
@@ -27,3 +29,5 @@ private:
 	string DoubletoString(double temp);
 	string LentoString(unsigned int len,unsigned int maxnum = 2);
 };
+
+#endif

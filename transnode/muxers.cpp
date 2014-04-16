@@ -11,6 +11,8 @@
 #include "logger.h"
 #include "bitconfig.h"
 
+#include "./flvmuxer/FileMixer.h"
+
 #ifdef HAVE_WMENCODER
 #include "WMMuxer.h"
 #endif
@@ -1292,6 +1294,65 @@ public:
 };
 #endif
 
+class CFlvMuxer : public CMuxer
+{
+public:
+	CFlvMuxer() {m_muxInfoSizeRatio = 0.02f;}
+
+	const char* GetOutExt(bool fAudioOnly) 
+	{
+		return "flv";
+	}
+	
+	int Mux()
+	{
+		if(!m_pFileQueue) {
+			logger_err(LOGM_TS_MUX, "FileQueue hasn't been set.\n");
+			return MUX_ERR_INVALID_FILE_QUEUE;
+		}
+
+		int ret = MUX_ERR_INVALID_FILE;
+		do {
+			CFileQueue::queue_item_t* audioItem = m_pFileQueue->GetFirst(ST_AUDIO);
+			CFileQueue::queue_item_t* videoItem = m_pFileQueue->GetFirst(ST_VIDEO); 			
+
+			if(audioItem && videoItem) {
+				FileMixer mixer;
+				if(!mixer.Parse264File(videoItem->fileName.c_str())) {
+					logger_err(LOGM_TS_MUX, "Parse 264 file failed.\n");
+					break;
+				}
+
+#ifdef _WIN32
+				if(audioItem->ainfo->format == AC_AAC_HE || 
+					audioItem->ainfo->format == AC_AAC_HEV2) {
+					if(!mixer.ParseAACFile(audioItem->fileName.c_str())) {
+						logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
+						break;
+					}
+				} else
+#endif
+				{
+					if(!mixer.ParseADTS(audioItem->fileName.c_str())) {
+						logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
+						break;
+					}
+				}
+
+				const char* destFile = m_pFileQueue->GetCurDestFile();
+				if(!mixer.WriteOutPutFile(destFile)) {
+					logger_err(LOGM_TS_MUX, "Write flv file failed.\n");
+					break;
+				}
+
+				ret = MUX_ERR_SUCCESS;
+			}
+		} while(false);
+
+		return ret;
+	}
+};
+
 CMuxer* CMuxerFactory::CreateInstance(int type)
 {
 	CMuxer* muxer;
@@ -1306,6 +1367,7 @@ CMuxer* CMuxerFactory::CreateInstance(int type)
 	case MUX_FFMPEG:	muxer = new CFFmpegMuxer();	break;
 	case MUX_DUMMY:     muxer = new CDummyMuxer(); break;
 	case MUX_MKV:		muxer = new CMatroska(); break;
+	case MUX_FLV:		muxer = new CFlvMuxer(); break;
 #ifdef HAVE_WMENCODER
 	case MUX_WM:		muxer = new CWMMuxer(); break;
 #endif

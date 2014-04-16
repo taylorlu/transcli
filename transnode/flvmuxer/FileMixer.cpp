@@ -5,14 +5,14 @@
 FileMixer::FileMixer(void)
 {
 	mFileVersion = "1.0.0.0";
-	mOutputFile = NULL;
+	//mOutputFile = NULL;
 }
 
 FileMixer::~FileMixer(void)
 {
 }
 
-bool FileMixer::ParseAACFile( char* file )
+bool FileMixer::ParseAACFile(const char* file )
 {
 	bool ret = mAParser.ParseAACFile(file);
 	if (!ret)
@@ -22,7 +22,7 @@ bool FileMixer::ParseAACFile( char* file )
 	return ret;
 }
 
-bool FileMixer::ParseADTS(char* file)
+bool FileMixer::ParseADTS(const char* file)
 {
 	bool ret = mAParser.ParseADTS(file);
 	if (!ret)
@@ -32,14 +32,14 @@ bool FileMixer::ParseADTS(char* file)
 	return ret;
 }
 
-bool FileMixer::Parse264File( char* file )
+bool FileMixer::Parse264File(const char* file )
 {
 	bool ret = mVParser.Parse264File(file);
 	mVParser.FinishParsing();
 	return ret;
 }
 
-bool FileMixer::WriteOutPutFile( char* file,int outputtype )
+bool FileMixer::WriteOutPutFile(const char* file,int outputtype )
 {
 	//Trace("[Info][FileMixer]:Start Write Output File\n");
 	unsigned long long t = time(0);
@@ -56,7 +56,7 @@ bool FileMixer::WriteOutPutFile( char* file,int outputtype )
 		//Trace("[Error][FileMixer]:Unable To Open %s\n",file);
 		return false;
 	}
-	mOutputFile = file;
+	//mOutputFile = file;
 
 	//Trace("[Info][FileMixer]:Analyze Video Info\n");
 	mVParser.FinishParsing();
@@ -425,7 +425,7 @@ void FileMixer::WriteFlvData()
 	}
 }
 
-bool FileMixer::InitTempFile( char* tempfile )
+bool FileMixer::InitTempFile(const char* tempfile )
 {
 	return mVParser.Init(tempfile);
 }

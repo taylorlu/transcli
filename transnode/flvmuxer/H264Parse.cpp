@@ -70,7 +70,7 @@ void H264Parse::Clear()
 	mKeyFrameIndex.clear();
 }
 
-bool H264Parse::Init(char* tempfile)
+bool H264Parse::Init(const char* tempfile)
 {
 	Clear();
 
@@ -82,7 +82,7 @@ bool H264Parse::Init(char* tempfile)
 	return true;
 }
 
-bool H264Parse::Parse264File( char *file )
+bool H264Parse::Parse264File(const char *file )
 {
 	Clear();
 

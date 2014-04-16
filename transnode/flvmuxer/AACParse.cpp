@@ -15,7 +15,7 @@ AACParse::~AACParse(void)
 	Clear();
 }
 
-bool AACParse::ParseAACFile( char* filepath )
+bool AACParse::ParseAACFile(const char* filepath )
 {
 	//unsigned long long t = time(0);
 	Clear();
@@ -93,7 +93,7 @@ int AACParse::Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigne
 #define BUFFER_MAX_LEN 1024*1024
 #define FRAME_MAX_LEN 1024*1024
 
-bool AACParse::ParseADTS(char* filepath)
+bool AACParse::ParseADTS(const char* filepath)
 {
 	if (!filepath)
 	{

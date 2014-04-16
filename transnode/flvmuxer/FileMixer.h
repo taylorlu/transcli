@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _FILE_MIXER_H_
+#define _FILE_MIXER_H_
+
 #include "AACParse.h"
 #include "H264Parse.h"
 #include "MetaUnit.h"
@@ -50,15 +52,15 @@ private:
 	unsigned long long mVideoStcoPos;
 	unsigned long long mAudioStcoPos;
 
-	char *mOutputFile;
+	//char *mOutputFile;
 
 public:
-	bool ParseAACFile(char* file);
+	bool ParseAACFile(const char* file);
 	bool ParseAACFiles(vector<char*> files);//,vector<double> videopts);
-	bool ParseADTS(char* file);
-	bool Parse264File(char* file);
-	bool WriteOutPutFile(char* file,int outputtype = 1);
-	bool InitTempFile(char* tempfile);
+	bool ParseADTS(const char* file);
+	bool Parse264File(const char* file);
+	bool WriteOutPutFile(const char* file,int outputtype = 1);
+	bool InitTempFile(const char* tempfile);
 
 	double GetVideoPtsByFilePos(unsigned long long pos);
 
@@ -79,3 +81,5 @@ private:
 	unsigned int descrLength(unsigned int len);
 	void putDescr(int tag,unsigned int size);
 };
+
+#endif

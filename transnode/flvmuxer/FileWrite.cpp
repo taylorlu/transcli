@@ -19,7 +19,7 @@ FileWriter::~FileWriter(void)
 	}
 }
 
-bool FileWriter::Open(char *pFile)
+bool FileWriter::Open(const char *pFile)
 {
 	Close();
 	m_pFile = fopen(pFile, "wb+");

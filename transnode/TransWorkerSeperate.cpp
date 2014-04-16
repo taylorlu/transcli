@@ -3610,6 +3610,12 @@ bool CTransWorkerSeperate::parseClipConfig(CXMLPref* prefs)
 		sprintf(clipKey, "overall.clips.end%d", i+1);
 		int endMs = prefs->GetInt(clipKey);		
 		//endMs -= (endMs%200);		// 200ms tolerance
+		
+		// Transcoding time limit
+		/*if(endMs > 5*60*1000) {
+			endMs = 5*60*1000;
+			i = clipsCount + 1;
+		}*/
 		m_clipStartSet.push_back(startMs);
 		m_clipEndSet.push_back(endMs);
 	}
@@ -3621,6 +3627,10 @@ bool CTransWorkerSeperate::parseClipConfig(CXMLPref* prefs)
 			clipFile += "_clip.txt";
 			ReadExtraClipConfig(clipFile.c_str(), m_clipStartSet, m_clipEndSet);
 		}
+
+		// Transcoding time limit
+		//m_clipStartSet.push_back(0);
+		//m_clipEndSet.push_back(5*60*1000);
 	}
 	return true;
 }

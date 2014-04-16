@@ -448,6 +448,7 @@
         <enum>PMPMuxer</enum>
         <enum>MP4Creator</enum>
         <enum>MGPMuxer</enum>
+        <enum>FLVMuxer</enum>
       </node>
       <node key="trackOrder" type="enum" text="Track order">
     		<desc>Currently only effective for MP4Box and MKVMerge</desc>

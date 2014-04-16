@@ -383,7 +383,7 @@ int CProcessWrapper::Run(const char* commandLine, const char* curDir, bool hidde
 	int i_ret;
 
 	if (Create(commandLine, curDir, NULL, false) == false) {
-		logger_err(LOGM_PROCWRAP, "Create failed\n");
+		logger_err(LOGM_PROCWRAP, "Create process failed.\n");
 		return -1;
 	}
 

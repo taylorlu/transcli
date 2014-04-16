@@ -24,9 +24,9 @@ private:
 	char* mTempfile;
 
 public:
-	bool ParseAACFile(char* filepath);
+	bool ParseAACFile(const  char* filepath);
 	int Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigned char* data ,size_t* data_size);
-	bool ParseADTS(char* filepath);
+	bool ParseADTS(const  char* filepath);
 	char* GetConfig();
 	unsigned int GetConfigLength();
 	unsigned int Size();
