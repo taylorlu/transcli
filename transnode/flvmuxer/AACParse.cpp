@@ -1,6 +1,9 @@
 #include "AACParse.h"
 #include "Box.h"
 #include <time.h>
+
+static int frequencies[] = { 96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350};
+
 AACParse::AACParse(void)
 {
 	mFile = NULL;
@@ -128,6 +131,7 @@ bool AACParse::ParseADTS(const char* filepath)
 	unsigned int profile;
 	unsigned int sampling_frequency_index;
 	unsigned int channel_configuration;
+	unsigned int number_of_raw_data_blocks_in_frame;
 	mConfigSize = 2;
 	if (mConfig)
 	{
@@ -160,9 +164,10 @@ bool AACParse::ParseADTS(const char* filepath)
 				bGot = true;
 				profile = ((frame[2] & 0xC0) >> 6) + 1;
 				sampling_frequency_index = (frame[2] & 0x3C) >> 2;
-				channel_configuration = ((frame[2] & 0x01) << 2) | ((data[3] & 0xC0) >> 6);
+				channel_configuration = ((frame[2] & 0x01) << 2) | ((frame[3] & 0xC0) >> 6);
 				mConfig[0] = (profile << 3) | ((sampling_frequency_index & 0xe) >> 1);
 				mConfig[1] = ((sampling_frequency_index & 0x1) << 7) | (channel_configuration << 3);
+				number_of_raw_data_blocks_in_frame = ((frame[6] & 0x03) + 1) * 1024;
 			}
 			input_data += size;
 			if (data_size < size)
@@ -179,7 +184,7 @@ bool AACParse::ParseADTS(const char* filepath)
 	} 
 	for (int i = 1; i < mAudios.size(); i++)
 	{
-		mAudios[i].mTimeStamp = i * 1024 * 1000.0 / 44100;
+		mAudios[i].mTimeStamp = i * number_of_raw_data_blocks_in_frame * 1000.0 / frequencies[sampling_frequency_index];
 	}
 	
 	/*mConfig[0] = 0x12;
