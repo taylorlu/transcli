@@ -26,7 +26,7 @@ private:
 public:
 	bool ParseAACFile(const  char* filepath);
 	int Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigned char* data ,size_t* data_size);
-	bool ParseADTS(const  char* filepath);
+	bool ParseADTS(const  char* filepath, bool bmp4);
 	char* GetConfig();
 	unsigned int GetConfigLength();
 	unsigned int Size();

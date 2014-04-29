@@ -1333,14 +1333,74 @@ public:
 				} else
 #endif
 				{
-					if(!mixer.ParseADTS(audioItem->fileName.c_str())) {
+					if(!mixer.ParseADTS(audioItem->fileName.c_str(), false)) {
 						logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
 						break;
 					}
 				}
 
 				const char* destFile = m_pFileQueue->GetCurDestFile();
-				if(!mixer.WriteOutPutFile(destFile)) {
+				if(!mixer.WriteOutPutFile(destFile, OUTPUT_TYPE_FLV)) {
+					logger_err(LOGM_TS_MUX, "Write flv file failed.\n");
+					break;
+				}
+
+				ret = MUX_ERR_SUCCESS;
+			}
+		} while(false);
+
+		return ret;
+	}
+};
+
+
+class CMP4Muxer : public CMuxer
+{
+public:
+	CMP4Muxer() {m_muxInfoSizeRatio = 0.02f;}
+
+	const char* GetOutExt(bool fAudioOnly) 
+	{
+		return "mp4";
+	}
+
+	int Mux()
+	{
+		if(!m_pFileQueue) {
+			logger_err(LOGM_TS_MUX, "FileQueue hasn't been set.\n");
+			return MUX_ERR_INVALID_FILE_QUEUE;
+		}
+
+		int ret = MUX_ERR_INVALID_FILE;
+		do {
+			CFileQueue::queue_item_t* audioItem = m_pFileQueue->GetFirst(ST_AUDIO);
+			CFileQueue::queue_item_t* videoItem = m_pFileQueue->GetFirst(ST_VIDEO); 			
+
+			if(audioItem && videoItem) {
+				FileMixer mixer;
+				if(!mixer.Parse264File(videoItem->fileName.c_str())) {
+					logger_err(LOGM_TS_MUX, "Parse 264 file failed.\n");
+					break;
+				}
+
+#ifdef _WIN32
+				if(audioItem->ainfo->format == AC_AAC_HE || 
+					audioItem->ainfo->format == AC_AAC_HEV2) {
+						if(!mixer.ParseAACFile(audioItem->fileName.c_str())) {
+							logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
+							break;
+						}
+				} else
+#endif
+				{
+					if(!mixer.ParseADTS(audioItem->fileName.c_str(), true)) {
+						logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
+						break;
+					}
+				}
+
+				const char* destFile = m_pFileQueue->GetCurDestFile();
+				if(!mixer.WriteOutPutFile(destFile, OUTPUT_TYPE_MP4)) {
 					logger_err(LOGM_TS_MUX, "Write flv file failed.\n");
 					break;
 				}
@@ -1359,10 +1419,10 @@ CMuxer* CMuxerFactory::CreateInstance(int type)
 
 	switch (type) {
 #ifdef PRODUCT_MEDIACODERDEVICE		// Device version only support mp4 format
-	case MUX_MP4:		muxer = new CMp4box(); break;
+	case MUX_MP4:		muxer = new CMP4Muxer(); break;
 	case MUX_MKV:		muxer = new CMatroska(); break;
 #else
-	case MUX_MP4:		muxer = new CMp4box(); break;
+	case MUX_MP4:		muxer = new CMP4Muxer(); break;
 	case MUX_TSMUXER:	muxer = new CTSMuxer();	break;
 	case MUX_FFMPEG:	muxer = new CFFmpegMuxer();	break;
 	case MUX_DUMMY:     muxer = new CDummyMuxer(); break;

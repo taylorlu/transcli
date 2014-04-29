@@ -1,9 +1,7 @@
 #include "AACParse.h"
 #include "Box.h"
 #include <time.h>
-
 static int frequencies[] = { 96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350};
-
 AACParse::AACParse(void)
 {
 	mFile = NULL;
@@ -96,7 +94,7 @@ int AACParse::Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigne
 #define BUFFER_MAX_LEN 1024*1024
 #define FRAME_MAX_LEN 1024*1024
 
-bool AACParse::ParseADTS(const char* filepath)
+bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 {
 	if (!filepath)
 	{
@@ -132,7 +130,14 @@ bool AACParse::ParseADTS(const char* filepath)
 	unsigned int sampling_frequency_index;
 	unsigned int channel_configuration;
 	unsigned int number_of_raw_data_blocks_in_frame;
-	mConfigSize = 2;
+	if (bmp4)
+	{
+		mConfigSize = 7;
+	}else
+	{
+		mConfigSize = 2;
+	}
+	
 	if (mConfig)
 	{
 		delete[] mConfig;
@@ -164,16 +169,12 @@ bool AACParse::ParseADTS(const char* filepath)
 				bGot = true;
 				profile = ((frame[2] & 0xC0) >> 6) + 1;
 				sampling_frequency_index = (frame[2] & 0x3C) >> 2;
-				channel_configuration = ((frame[2] & 0x01) << 2) | ((frame[3] & 0xC0) >> 6);
+				channel_configuration = ((frame[2] & 0x01) << 2) | ((frame[3] & 0xC0) >> 6);	
+				number_of_raw_data_blocks_in_frame = ((frame[6] & 0x03) + 1) * 1024;
 				mConfig[0] = (profile << 3) | ((sampling_frequency_index & 0xe) >> 1);
 				mConfig[1] = ((sampling_frequency_index & 0x1) << 7) | (channel_configuration << 3);
-				number_of_raw_data_blocks_in_frame = ((frame[6] & 0x03) + 1) * 1024;
 			}
 			input_data += size;
-			if (data_size < size)
-			{
-				int fuck = 0;
-			}
 			data_size -= size;
 			AudioSourceData temp(size - 7, totalPos + curpos + 7);
 			mAudios.push_back(temp);
@@ -182,14 +183,12 @@ bool AACParse::ParseADTS(const char* filepath)
 		}
 		
 	} 
-	for (int i = 1; i < mAudios.size(); i++)
+	for (int i = 0; i < mAudios.size(); i++)
 	{
 		mAudios[i].mTimeStamp = i * number_of_raw_data_blocks_in_frame * 1000.0 / frequencies[sampling_frequency_index];
 	}
 	
-	/*mConfig[0] = 0x12;
-	mConfig[1] = 0x10;
-	mSampleRate = 44100;*/
+	mSampleRate = frequencies[sampling_frequency_index];
 	if (data)
 	{
 		delete[] data;
