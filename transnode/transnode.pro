@@ -34,7 +34,21 @@ SOURCES += \
     videoEnhancer.cpp \
     WorkManager.cpp \
     XvidEncode.cpp \
-    CEac3Encode.cpp
+    CEac3Encode.cpp \
+    flvmuxer/AACParse.cpp \
+    flvmuxer/AudioSourceData.cpp \
+    flvmuxer/Box.cpp \
+    flvmuxer/DecodeConfig.cpp \
+    flvmuxer/FileMixer.cpp \
+    flvmuxer/FileWrite.cpp \
+    flvmuxer/GlobalDefine.cpp \
+    flvmuxer/H264Parse.cpp \
+    flvmuxer/MetaUnit.cpp \
+    flvmuxer/PPS.cpp \
+    flvmuxer/SourceData.cpp \
+    flvmuxer/SPS.cpp \
+    flvmuxer/VideoSourceData.cpp \
+    fdkAacEncode.cpp
 
 HEADERS += \
     AudioEncode.h \
@@ -60,7 +74,23 @@ HEADERS += \
     videoEnhancer.h \
     WorkManager.h \
     XvidEncode.h \
-    CEac3Encode.h
+    CEac3Encode.h \
+    flvmuxer/AACParse.h \
+    flvmuxer/AudioSourceData.h \
+    flvmuxer/Box.h \
+    flvmuxer/CommonDef.h \
+    flvmuxer/DecodeConfig.h \
+    flvmuxer/FileMixer.h \
+    flvmuxer/FileWriter.h \
+    flvmuxer/GlobalDefine.h \
+    flvmuxer/H264Parse.h \
+    flvmuxer/MetaUnit.h \
+    flvmuxer/PPS.h \
+    flvmuxer/SourceData.h \
+    flvmuxer/SPS.h \
+    flvmuxer/TypeDef.h \
+    flvmuxer/VideoSourceData.h \
+    fdkAacEncode.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

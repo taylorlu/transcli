@@ -57,6 +57,7 @@ enum {
 	LOGM_TS_AE,			// Transcoder Audio Encoder
 	LOGM_TS_AE_MP3,		// Transcoder Lame mp3 encoder
 	LOGM_TS_AE_FAAC,	// Transcoder Faac encoder
+	LOGM_TS_AE_FDK,		// Transcoder FDK aac encoder
 	LOGM_TS_AE_EAC3,	// Dolby EAC-3 encoder
 	LOGM_TS_AE_FFMPEG,	// Transcoder FFMPEG audio encoder
 	LOGM_TS_AE_WM,		// Transcoder WM audio encoder

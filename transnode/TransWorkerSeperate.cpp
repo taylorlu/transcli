@@ -44,6 +44,7 @@
 #if defined(HAVE_LIBEAC3)
 #include "CEac3Encode.h"
 #endif
+#include "fdkAacEncode.h"
 
 //#include "AudioEncodeFFMpeg.h"
 
@@ -135,12 +136,12 @@ bool CTransWorkerSeperate::setAudioPref(CXMLPref* prefs)
 
 	audio_format_t aFormat = (audio_format_t)prefs->GetInt("overall.audio.format");
 	audio_encoder_t encType = (audio_encoder_t)prefs->GetInt("overall.audio.encoder");
-#ifndef WIN32
+//#ifndef WIN32
 	// Under linux there is no NeroAacEnc 64, use ffmpeg(libfdk_aac) encoding AAC_HE
-	if(aFormat == AC_AAC_HE || aFormat == AC_AAC_HEV2) {
-		 encType = AE_FFMPEG;
-	}
-#endif
+//	if(aFormat == AC_AAC_HE || aFormat == AC_AAC_HEV2) {
+//		 encType = AE_FFMPEG;
+//	}
+//#endif
 	int outSampleRate = prefs->GetInt("audiofilter.resample.samplerate");
 	if(outSampleRate < 0) outSampleRate = 0;
 	
@@ -2249,7 +2250,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudio()
 			if(m_videoEncs.empty()) {
 				if((int)(m_tmpBenchData.audioEncTime)%4 == 0) benchmark();
 			} 
-		} else {
+		} else if(encodeBytes < 0) {
 			ret = -1;
 		}
 	}
@@ -2578,6 +2579,8 @@ CAudioEncoder* CTransWorkerSeperate::createAudioEncoder(audio_encoder_t encType,
 #endif
 	case AE_NEROREF:
 		pAudioEnc = new CNeroAudioEncoder(tmpFile.c_str()); break;
+	case AE_FDK:
+		pAudioEnc = new CFdkAacEncode(tmpFile.c_str()); break;
 	default:
 		logger_err(m_logType, "unsupported Audio encoder (%d)\n", encType);
 		break;

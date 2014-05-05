@@ -22,6 +22,7 @@ private:
 	unsigned int mSampleRate;
 
 	char* mTempfile;
+	int mAacEncType;
 
 public:
 	bool ParseAACFile(const  char* filepath);
@@ -35,6 +36,7 @@ public:
 	double GetPTSByIndex(unsigned int index);
 	unsigned int GetSampleRate();
 	unsigned long long GetFileLength();
+	void SetAacEncodeType(int type) {mAacEncType = type;}
 
 private:
 	bool analyze_mp4head(FILE *infile,unsigned long long frontlength = 0);

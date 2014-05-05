@@ -156,6 +156,7 @@ static void print_msg_module(FILE* stream, int mod)
         "TS_AE",
 		"AE_MP3",
 		"AE_FAAC",
+		"AE_FDK",
 		"AE_EAC3",
 		"AE_FFMPEG",
 		"AE_WM",

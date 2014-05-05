@@ -203,6 +203,7 @@
     <ClCompile Include="DecoderFFMpeg.cpp" />
     <ClCompile Include="encoderCommon.cpp" />
     <ClCompile Include="FaacEncode.cpp" />
+    <ClCompile Include="fdkAacEncode.cpp" />
     <ClCompile Include="FileQueue.cpp" />
     <ClCompile Include="flvmuxer\AACParse.cpp" />
     <ClCompile Include="flvmuxer\AudioSourceData.cpp" />
@@ -241,6 +242,7 @@
     <ClInclude Include="DecoderFFMpeg.h" />
     <ClInclude Include="encoderCommon.h" />
     <ClInclude Include="FaacEncode.h" />
+    <ClInclude Include="fdkAacEncode.h" />
     <ClInclude Include="FileQueue.h" />
     <ClInclude Include="flvmuxer\AACParse.h" />
     <ClInclude Include="flvmuxer\AudioSourceData.h" />

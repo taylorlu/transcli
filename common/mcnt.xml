@@ -252,6 +252,7 @@
         <enum>Vorbis</enum>
         <enum>Nero Encoder</enum>
         <enum>FAAC</enum>
+        <enum>FDK AAC</enum>
         <enum>CT AAC+</enum>
         <enum>3GPP AAC+</enum>
         <enum>WM Encoder</enum>
@@ -598,6 +599,49 @@
       <node key="options" type="string" text="Extra options" max="127"/>
       <node key="path" type="file" text="Path">
         <value>.\codecs\faac.exe</value>
+      </node>
+    </node>
+    <node key="fdkaac" type="node" text="FDK-AAC">
+      <desc>It supports several MPEG-4 object types (LC, Main, LTP, HE AAC, PS) and file formats (ADTS AAC, raw AAC, MP4), multichannel and gapless en/decoding as well as MP4 metadata tags. The codecs are compatible with standard-compliant audio applications using one or more of these profiles.</desc>
+      <node key="mode" type="enum" text="Mode">
+        <enum>CBR</enum>
+        <enum>VBR</enum>
+      </node>
+      <node key="bitrate" type="int" text="Bitrate" min="16" max="256">
+        <value>128</value>
+      </node>
+      <node key="profile" type="enum" text="AAC Profile">
+        <enum>MPEG4 LC</enum>
+        <enum sel="1">MPEG4 HE-AAC</enum>
+        <enum>MPEG4 HE-AAC v2</enum>
+        <enum>MPEG4 Low-Delay</enum>
+        <enum>MPEG4 ELD</enum>
+        <enum>MPEG2 LC</enum>
+        <enum>MPEG2 HE-AAC</enum>
+        <enum>MPEG2 HE-AAC v2</enum>
+      </node>
+      <node key="eldSbr" type="bool" text="Enable SBR under ELD">
+        <value>true</value>
+      </node>
+      <node key="afterBurner" type="bool" text="Enable afterBurner">
+        <value>true</value>
+      </node>
+      <node key="chOrder" type="enum" text="Channel order">
+        <enum>MPEG</enum>
+        <enum sel="1">WAV</enum>
+      </node>
+      <node key="signaling" type="enum" text="AOT signaling">
+        <enum>Implicit backward compatible signaling</enum>
+        <enum>Explicit SBR and implicit PS signaling</enum>
+        <enum>Explicit hierarchical signaling</enum>
+      </node>
+      <node key="container" type="enum" text="Container">
+        <enum>Raw</enum>
+        <enum>ADIF</enum>
+        <enum sel="1">ADTS</enum>
+        <enum>LATM with config</enum>
+        <enum>LATM</enum>
+        <enum>LOAS</enum>
       </node>
     </node>
     <node key="aacplus" type="node" text="CT AAC+ Encoder">

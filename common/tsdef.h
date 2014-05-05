@@ -266,6 +266,7 @@ typedef enum {
 	AE_VORBIS,
 	AE_NEROREF,
 	AE_FAAC,
+	AE_FDK,
 	AE_CTAAC,
 	AE_3GPPAAC,
 	AE_WMA,

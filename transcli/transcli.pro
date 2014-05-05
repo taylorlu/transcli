@@ -6,9 +6,8 @@ CONFIG -= qt
 DEFINES += STRPRO_STATIC WATERMARK_STATIC
 INCLUDEPATH += ./ ../include ../common ../transnode ../strpro
 
-LIBS += -L$$_PRO_FILE_PWD_/../lib
 LIBS += -ltransnode -lfaac -llame -lx264 \
-   -lx265 -lxvidcore -leac3enc -lsamplerate -lwatermark -lcommon -lstrpro -lxml2 -liconv
+   -lx265 -lxvidcore -leac3enc -lfdk-aac -lsamplerate -lwatermark -lcommon -lstrpro -lxml2 -liconv
 
 DEPENDPATH += $$_PRO_FILE_PWD_/../lib
 
@@ -22,7 +21,7 @@ CONFIG(debug, debug|release) {
 
 win32 {
     DEPENDPATH += $$_PRO_FILE_PWD_/../lib/ia32
-    LIBS += -L$$_PRO_FILE_PWD_/../lib/ia32 -lWSock32 -luser32 -lzlib1
+    LIBS += -L$$_PRO_FILE_PWD_/../lib/win32/intel -L$$_PRO_FILE_PWD_/../lib/win32 -lWSock32 -luser32 -lzlib1
     DESTDIR = $$_PRO_FILE_PWD_/../bin/win32
 }
 

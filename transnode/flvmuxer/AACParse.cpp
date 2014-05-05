@@ -96,13 +96,11 @@ int AACParse::Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigne
 
 bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 {
-	if (!filepath)
-	{
+	if (!filepath) {
 		return false;
 	}
 	mFile = fopen(filepath, "rb");
-	if (!mFile)
-	{
+	if (!mFile) {
 		return false;
 	}
 	fseek(mFile,0,SEEK_END);
@@ -144,6 +142,7 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 		mConfig = NULL;
 	}
 	mConfig = new char[mConfigSize];
+	
 	while(offset < filelength)
 	{ 
 		proleft = 0;
@@ -181,11 +180,12 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 			curpos += size;
 
 		}
-		
 	} 
-	for (int i = 0; i < mAudios.size(); i++)
+
+	const int frequence = frequencies[sampling_frequency_index];
+	for (int i = 1; i < mAudios.size(); i++)
 	{
-		mAudios[i].mTimeStamp = i * number_of_raw_data_blocks_in_frame * 1000.0 / frequencies[sampling_frequency_index];
+		mAudios[i].mTimeStamp = i * number_of_raw_data_blocks_in_frame * 1000.0 / frequence;
 	}
 	
 	mSampleRate = frequencies[sampling_frequency_index];

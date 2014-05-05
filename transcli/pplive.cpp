@@ -1386,15 +1386,17 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		int encoder;
 		const char *psz_encoder;
 	} audio_map[] = {
-		{"aac", AC_AAC_HE, "HE-AAC", AE_NEROREF, "Nero Encoder"},
-		{"lcaac", AC_AAC_LC, "LC-AAC", AE_FAAC, "FAAC"},
+		/*{"aac", AC_AAC_HE, "HE-AAC", AE_NEROREF, "Nero Encoder"},
+		{"lcaac", AC_AAC_LC, "LC-AAC", AE_FAAC, "FAAC"},*/
+		{"aac", AC_AAC_HE, "HE-AAC", AE_FDK, "FDK AAC"},
+		{"lcaac", AC_AAC_LC, "LC-AAC", AE_FDK, "FDK AAC"},
 		{"mp3", AC_MP3, "MP3", AE_FFMPEG, "FFmpeg"},
 		{"mp2", AC_MP2, "MP2", AE_FFMPEG, "FFmpeg"},
 		{"ac3", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
 		{"eac3", AC_EAC3, "E-AC3", AE_DOLBY, "Dolby Encoder"},
 		{"copy", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
-                {"amr", AC_AMR, "AMR", AE_FFMPEG, "FFmpeg"}, 
-                {"disable", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},		
+        {"amr", AC_AMR, "AMR", AE_FFMPEG, "FFmpeg"}, 
+        {"disable", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},		
 		{"", 0, 0}
 	};
 
@@ -1425,10 +1427,15 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		prefs.SetStreamPref("audioenc.nero.mode", 1, STAUDIO);
 	} else if(audio_map[idx].encoder == AE_DOLBY) {	// E-AC3 only support 48k samplerate, should up sample
 		prefs.SetStreamPref("audiofilter.resample.downSamplingOnly", false, STAUDIO);
+	} else if (audio_map[idx].encoder == AE_FDK) {
+		if (audio_map[idx].fmt == AC_AAC_LC) {
+			prefs.SetStreamPref("audioenc.fdkaac.profile", "MPEG4 LC", STAUDIO);
+		}
 	}
 
 	if (conf.target.acodec.bitrate > 0) {
 		prefs.SetStreamPref("audioenc.faac.bitrate", conf.target.acodec.bitrate, STAUDIO);
+		prefs.SetStreamPref("audioenc.fdkaac.bitrate", conf.target.acodec.bitrate, STAUDIO);
 		prefs.SetStreamPref("audioenc.ffmpeg.bitrate", conf.target.acodec.bitrate, STAUDIO);
 		prefs.SetStreamPref("audioenc.nero.bitrate", conf.target.acodec.bitrate, STAUDIO);
 		int dolbyBrcode = 0;
@@ -1954,7 +1961,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		{"3gp", CF_3GP, "3GP", MUX_MP4, "MP4Box"},
 		{"3gp2", CF_3GP2, "3GP2", MUX_MP4, "MP4Box"},
 		{"mp4", CF_MP4, "MP4", MUX_MP4, "MP4Box"},
-		{"flv", CF_FLV, "FLV", MUX_MP4, "FLVMuxer"},
+		{"flv", CF_FLV, "FLV", MUX_FLV, "FLVMuxer"},
 		{"f4v", CF_F4V, "F4V", MUX_MP4, "MP4Box"},
 		{"mkv", CF_MKV, "Matroska", MUX_MKV, "MKVMerge"},
 		{"ts", CF_MPEG2TS, "MPEG TS", MUX_TSMUXER, "TSMuxer"},

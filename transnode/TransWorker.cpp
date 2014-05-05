@@ -420,9 +420,11 @@ bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 	if(audioPref->GetBoolean("audiofilter.extra.brdown")) {
 		const char* brField = "audioenc.ffmpeg.bitrate";
 		if(pAInfo->format == AC_AAC_LC) {
-			brField = "audioenc.faac.bitrate";
+			//brField = "audioenc.faac.bitrate";
+			brField = "audioenc.fdkaac.bitrate";
 		} else if(pAInfo->format == AC_AAC_HE || pAInfo->format == AC_AAC_HEV2) {
-			brField = "audioenc.nero.bitrate";
+			//brField = "audioenc.nero.bitrate";
+			brField = "audioenc.fdkaac.bitrate";
 		} else if(pAInfo->format == AC_MP3) {
 			brField = "audioenc.lame.bitrate";
 		}

@@ -257,7 +257,8 @@ std::string CFileQueue::GetStreamFileName(stream_type_t streamType, int format, 
 			strExt = ".aac";
 			break;
 		case AC_AAC_HE:
-			strExt = ".m4a";
+			//strExt = ".m4a";
+			strExt = ".aac";
 			break;
 		case AC_AAC_HEV2:
 			strExt = ".m4a";

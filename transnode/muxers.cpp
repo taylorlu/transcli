@@ -1323,7 +1323,7 @@ public:
 					break;
 				}
 
-#ifdef _WIN32
+/*#ifdef _WIN32
 				if(audioItem->ainfo->format == AC_AAC_HE || 
 					audioItem->ainfo->format == AC_AAC_HEV2) {
 					if(!mixer.ParseAACFile(audioItem->fileName.c_str())) {
@@ -1331,7 +1331,7 @@ public:
 						break;
 					}
 				} else
-#endif
+#endif*/
 				{
 					if(!mixer.ParseADTS(audioItem->fileName.c_str(), false)) {
 						logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
