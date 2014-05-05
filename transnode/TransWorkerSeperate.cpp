@@ -2250,7 +2250,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudio()
 			if(m_videoEncs.empty()) {
 				if((int)(m_tmpBenchData.audioEncTime)%4 == 0) benchmark();
 			} 
-		} else if(encodeBytes < 0) {
+		} else {
 			ret = -1;
 		}
 	}

@@ -183,15 +183,17 @@ int64_t CFdkAacEncode::EncodeBuffer(uint8_t* pAudioBuf, int bufLen)
 
 	if ((err = aacEncEncode(m_sHandle, &in_buf, &out_buf, &in_args, &out_args)) != AACENC_OK) {
 		if(err == AACENC_ENCODE_EOF) {
-			return 0;
+			return 1;	// Not an error, should continue
 		}
 		logger_err(m_logModuleType, "Fdk encode frame failed, error code:%d.\n", err);
 		return -1;
 	}
-	if (out_args.numOutBytes == 0) {
-		return 0;
-	}
+
 	int outBytes = out_args.numOutBytes;
+	if (outBytes == 0) {
+		return 1;		// Not an error, should continue
+	}
+	
 	if(m_pStreamOut && m_pStreamOut->Write((char*)m_pOutBuf, outBytes) <= 0) {
 		logger_err(m_logModuleType, "Write file failed.\n");
 		return -1;
