@@ -39,7 +39,7 @@ private:
 
 	double mLastKeyFrameTimeStamp;
 	double mLastKeyFrameLocation;
-	vector<vector<double>> mKeyFrames;
+    vector<vector<double> > mKeyFrames;
 
 	//mp4
 	bool mHighVersion;

@@ -1,7 +1,7 @@
 #include "FileMixer.h"
 #include "GlobalDefine.h"
 #include "mp4headInterface.h"
-#include "xzcompress.h"
+//#include "xzcompress.h"
 #include "crc32.h"
 #include <time.h>
 

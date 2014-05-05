@@ -1353,7 +1353,7 @@ public:
 	}
 };
 
-
+/*
 class CMP4Muxer : public CMuxer
 {
 public:
@@ -1411,7 +1411,7 @@ public:
 
 		return ret;
 	}
-};
+};*/
 
 CMuxer* CMuxerFactory::CreateInstance(int type)
 {
@@ -1422,7 +1422,7 @@ CMuxer* CMuxerFactory::CreateInstance(int type)
 	case MUX_MP4:		muxer = new CMP4Muxer(); break;
 	case MUX_MKV:		muxer = new CMatroska(); break;
 #else
-	case MUX_MP4:		muxer = new CMP4Muxer(); break;
+    case MUX_MP4:		muxer = new CMp4box(); break;
 	case MUX_TSMUXER:	muxer = new CTSMuxer();	break;
 	case MUX_FFMPEG:	muxer = new CFFmpegMuxer();	break;
 	case MUX_DUMMY:     muxer = new CDummyMuxer(); break;

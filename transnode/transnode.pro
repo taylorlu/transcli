@@ -9,7 +9,7 @@ QT       -= core gui
 TARGET = transnode
 TEMPLATE = lib
 CONFIG += staticlib
-INCLUDEPATH += ./ ../common ../include ../strpro ../watermark
+INCLUDEPATH += ./ ../common ../include ../strpro ../watermark ./flvmuxer/lzma
 
 SOURCES += \
     AudioEncode.cpp \
@@ -48,7 +48,11 @@ SOURCES += \
     flvmuxer/SourceData.cpp \
     flvmuxer/SPS.cpp \
     flvmuxer/VideoSourceData.cpp \
-    fdkAacEncode.cpp
+    fdkAacEncode.cpp \
+    flvmuxer/ComDef.cpp \
+    flvmuxer/crc32.cpp \
+    flvmuxer/Mp4Chunk.cpp \
+    flvmuxer/mp4headInterface.cpp
 
 HEADERS += \
     AudioEncode.h \
@@ -90,7 +94,11 @@ HEADERS += \
     flvmuxer/SPS.h \
     flvmuxer/TypeDef.h \
     flvmuxer/VideoSourceData.h \
-    fdkAacEncode.h
+    fdkAacEncode.h \
+    flvmuxer/ComDef.h \
+    flvmuxer/crc32.h \
+    flvmuxer/Mp4Chunk.h \
+    flvmuxer/mp4headInterface.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

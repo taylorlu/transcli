@@ -3,7 +3,7 @@
 #include "xzcompress.h"
 extern "C"
 {
-	#include "lzma.h"
+    #include "lzma/lzma.h"
 };
 using namespace std;
 
