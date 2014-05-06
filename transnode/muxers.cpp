@@ -1353,7 +1353,6 @@ public:
 	}
 };
 
-/*
 class CMP4Muxer : public CMuxer
 {
 public:
@@ -1383,25 +1382,14 @@ public:
 					break;
 				}
 
-#ifdef _WIN32
-				if(audioItem->ainfo->format == AC_AAC_HE || 
-					audioItem->ainfo->format == AC_AAC_HEV2) {
-						if(!mixer.ParseAACFile(audioItem->fileName.c_str())) {
-							logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
-							break;
-						}
-				} else
-#endif
-				{
-					if(!mixer.ParseADTS(audioItem->fileName.c_str(), true)) {
-						logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
-						break;
-					}
+				if(!mixer.ParseADTS(audioItem->fileName.c_str(), true)) {
+					logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
+					break;
 				}
 
 				const char* destFile = m_pFileQueue->GetCurDestFile();
 				if(!mixer.WriteOutPutFile(destFile, OUTPUT_TYPE_MP4)) {
-					logger_err(LOGM_TS_MUX, "Write flv file failed.\n");
+					logger_err(LOGM_TS_MUX, "Write mp4 file failed.\n");
 					break;
 				}
 
@@ -1411,7 +1399,7 @@ public:
 
 		return ret;
 	}
-};*/
+};
 
 CMuxer* CMuxerFactory::CreateInstance(int type)
 {

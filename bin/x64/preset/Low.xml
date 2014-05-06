@@ -3,7 +3,7 @@
   <source>
     <audio stream="0" channel="both" />
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
-    <!--clip start="00:00:00.0" end="00:00:30.0"/-->  
+    <!--clip start="00:00:00.0" end="00:18:30.0"/-->  
   </source>
   <target>
     <mux format="mp4" />
