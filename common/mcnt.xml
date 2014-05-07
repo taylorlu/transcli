@@ -2354,7 +2354,7 @@
       <node key="packed" type="bool" text="Packed bitstream when importing raw ASP"/>
       <node key="sbr" type="enum" text="Backward compatible AAC-SBR signalling">
         <enum>Default</enum>
-        <enum>Compatible</enum>
+        <enum sel="1">Compatible</enum>
         <enum>Not compatible</enum>
       </node>
       <node key="fps" type="bool" text="Specifiy frame rate">

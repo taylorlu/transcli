@@ -2876,7 +2876,7 @@ bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLP
 			}
 			subNode = mediaInfo->findNextNode("subtitle");
 		}
-	} else {		// Auto select Chinese subtitle or first subtitle
+	} else if(subIndex == -1){		// Auto select Chinese subtitle or first subtitle
 		int firstValidIdx = -1;
 		int selectedIdx = -1;
 		const char* firstSubStreamId = NULL;

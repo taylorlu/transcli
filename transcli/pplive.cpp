@@ -1407,15 +1407,15 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		}
 	}
 
-	if(idx == 0 && conf.target.acodec.bitrate > 96) {
+	if(idx == 0 && conf.target.acodec.bitrate >= 96) {
 		idx = 1;	// If bitrate > 96 use faac instead of neroAacEnc
 	}
         
-        if(strcmp(conf.target.acodec.name, "disable") == 0) {   // disable audio
-             prefs.SetStreamPref("overall.audio.enabled", true, STAUDIO);
+    if(strcmp(conf.target.acodec.name, "disable") == 0) {   // disable audio
+        prefs.SetStreamPref("overall.audio.enabled", false, STAUDIO);
 	}
 
-        if(strcmp(conf.target.acodec.name, "copy") == 0) {	// Copy audio
+    if(strcmp(conf.target.acodec.name, "copy") == 0) {	// Copy audio
 		prefs.SetStreamPref("overall.audio.copy", true, STAUDIO);
 		prefs.SetStreamPref("overall.video.autoSource", false, STVIDEO);
 	}

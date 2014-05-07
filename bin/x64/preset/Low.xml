@@ -3,7 +3,7 @@
   <source>
     <audio stream="0" channel="both" />
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
-    <!--clip start="00:00:00.0" end="00:18:30.0"/-->  
+    <clip start="00:00:00.0" end="00:2:30.0"/>  
   </source>
   <target>
     <mux format="mp4" />
@@ -37,6 +37,7 @@
     <additon>
       <x264 option="-level=4.1,-fourcc=H.264" />
       <mpga option="-level=base" />
+	  <mp4 option="-sbr=1,"/>
     </additon>
   </target>
 </TranscodeArgsXml>
