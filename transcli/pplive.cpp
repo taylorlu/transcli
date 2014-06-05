@@ -248,6 +248,7 @@ enum movie_type_t {
 struct source_config_t {
 	int audio_stream;
 	int audio_channel;
+	int track_config;	// 0:单音轨, 1:原始音轨数, 2:双音轨
 	int mix;
 	int video_stream;
 	float_rect_t video_rect;
@@ -644,6 +645,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 		//source audio
 		if (xmlConfig.findChildNode("audio") != NULL) {
 			config->source.audio_stream = xmlConfig.getAttributeInt("stream");
+			config->source.track_config = xmlConfig.getAttributeInt("track");
 			const char *channel = xmlConfig.getAttribute("channel");
 			if (channel != NULL) {
 				if (strcmp(channel, "left") == 0) {
@@ -1399,6 +1401,15 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
         {"disable", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},		
 		{"", 0, 0}
 	};
+
+	// Audio track selection
+	if(conf.source.track_config > 0) {
+		prefs.SetStreamPref("extension.audio.tracknum", conf.source.track_config, STAUDIO);
+	}
+
+	if(conf.source.audio_stream > 0) {
+		prefs.SetStreamPref("extension.audio.track1", conf.source.audio_stream, STAUDIO);
+	}
 
 	int idx = 0;
 	for (; *audio_map[idx].name != '\0'; idx++) {

@@ -360,6 +360,7 @@ void CTransWorker::parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_
 		if(interlaceType >= 0) pVideoAttrib->interlaced = interlaceType;
 		int isVfr = mediaInfo->getChildNodeValueInt("is_vfr");
 		if(isVfr >= 0) pVideoAttrib->is_vfr = isVfr;
+		pVideoAttrib->rotate = mediaInfo->getChildNodeValueInt("rotate");
 	}
 }
 
@@ -524,6 +525,8 @@ bool CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,at
 	pVInfo->duration = pVideoAttrib->duration;
 	pVInfo->is_vfr = pVideoAttrib->is_vfr;
 	pVInfo->index = pVideoAttrib->id;
+	pVInfo->rotate = pVideoAttrib->rotate;
+
 	if(pVInfo->fps_in.num <= 0 || pVInfo->fps_in.den <= 0) {
 		pVInfo->fps_in.num = 24;
 		pVInfo->fps_in.den = 1;
@@ -544,6 +547,8 @@ bool CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,at
 	if(*(pVideoAttrib->fileFormat)) {
 		if(_stricmp(m_srcVideoAttrib->fileFormat, "mpegts") == 0) {
 			pVInfo->src_container = CF_MPEG2TS;
+		} else if(_stricmp(m_srcVideoAttrib->fileFormat, "mpeg") == 0) {
+			pVInfo->src_container = CF_MPEG2;
 		} else if(_stricmp(m_srcVideoAttrib->fileFormat, "asf") == 0) {
 			pVInfo->src_container = CF_ASF;
 		} else if(_stricmp(m_srcVideoAttrib->fileFormat, "matroska,webm") == 0) {

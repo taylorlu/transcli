@@ -12,7 +12,8 @@
   <source>
     <type>0</type>  <!--0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game-->
     <demuxer>0</demuxer>  <!--0:default, 1:lavf, change demuxer of ts file-->
-    <audio stream="0" channel="both" decoder="auto"/> <!--"both", "left", "right", "mix", "original"-->
+	<!--track config:single(0)/original(1)/dual(2)-->
+    <audio stream="0" channel="both" decoder="auto" track="0"/> <!--"both", "left", "right", "mix", "original"-->
     <video stream="0" rectangle="{0,0,480,360}" crop="auto" threshold="26" decoder="auto"/> <!--crop:disable(0)/manual(1)/auto(4)/calc(2)/expand(3)-->
     <clipmode>0</clipmode>  <!--0:frame accurate(transcoding), 1:I-frame accurate(may be 5 secs error)-->
     <clip start="00:00:02.0" end="00:01:10.0"/>   <!--First clip-->

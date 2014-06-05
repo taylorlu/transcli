@@ -43,7 +43,7 @@ static bool IsThisUrlSpecial(const char* instr)
 	return false;
 }
 
-static void removeTagContent(std::string& infoContent, const char* tagName, const char* exceptKey=NULL)
+static void removeTagContent(std::string& infoContent, const char* tagName, std::vector<const char*> exceptKeys)
 {
 	char tagStartName[32] = {0};
 	sprintf(tagStartName, "<%s", tagName);
@@ -54,20 +54,23 @@ static void removeTagContent(std::string& infoContent, const char* tagName, cons
 	
 	// Remove all content enclosed by tagName
 	while (tagStart != std::string::npos && tagEnd != std::string::npos) {
-		if(exceptKey) {		// Skip removing except tag
-			std::string exceptPartStart = tagStartName;
-			exceptPartStart += " key=\"";
-			exceptPartStart += exceptKey;
-			exceptPartStart += "\"";
-			if(infoContent.find(exceptPartStart, tagStart) == tagStart) {	// Match expcept tag
-				tagStart = infoContent.find(tagStartName, tagStart+2);
-				tagEnd = infoContent.find(tagEndName, tagEnd+2);
-				continue;
+		bool keepCurTag = false;
+		for(size_t i=0; i<exceptKeys.size(); ++i) {
+			const char* exceptKey = exceptKeys[i];
+			if(exceptKey) {		// Skip removing except tag
+				std::string exceptPartStart = tagStartName;
+				exceptPartStart.append(" key=\"").append(exceptKey).append("\"");
+				if(infoContent.find(exceptPartStart, tagStart) == tagStart) {	// Match expcept tag
+					keepCurTag = true;
+					break;
+				}
 			}
 		}
 
-		infoContent.replace(tagStart, tagEnd-tagStart+strlen(tagEndName), "  ");
-		tagStart = infoContent.find(tagStartName, tagStart+1);
+		if(!keepCurTag) {
+			infoContent.replace(tagStart, tagEnd-tagStart+strlen(tagEndName), " ");
+		}
+		tagStart = infoContent.find(tagStartName, tagStart+2);
 		tagEnd = infoContent.find(tagEndName, tagStart+2);
 	}
 }
@@ -154,7 +157,10 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	const char* uselessTags[] = {"disposition", "tag"};
 	for(int i=0; i<sizeof(uselessTags)/sizeof(uselessTags[0]); ++i) {
 		// Remove all tags except language tag
-		removeTagContent(strResult, uselessTags[i], "language");
+		std::vector<const char*> exceptKeys;
+		exceptKeys.push_back("language");
+		exceptKeys.push_back("rotate");
+		removeTagContent(strResult, uselessTags[i], exceptKeys);
 	}
 	// Normalize language tag(remove messy code in language)
 	normalizeTagValue(strResult, "language");
@@ -305,7 +311,8 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 			}
 		}
 	}
-	
+	mediaInfo->addChild("interlaced", interlaced);
+
 	const char* realFpsStr = xml.getAttribute("r_frame_rate");
 	const char* avgFpsStr = xml.getAttribute("avg_frame_rate");
 	if(realFpsStr && avgFpsStr) {
@@ -371,7 +378,14 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 		mediaInfo->addChild("dar_den", darDen);
 	}
 	
-	mediaInfo->addChild("interlaced", interlaced);
+	// Parse video rotation attribute
+	if(xml.findChildNode("tag", "key", "rotate")) {
+		const char* rotateStr = xml.getAttribute("value");
+		if(rotateStr && *rotateStr) {
+			mediaInfo->addChild("rotate", rotateStr);
+		}
+		xml.goParent();
+	}
 }
 
 static void parseSubtitleInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int subIdx)

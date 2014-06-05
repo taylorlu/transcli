@@ -1995,7 +1995,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeAudio()
 		} else {							// Simple mode
 			ret = transcodeSingleAudio();
 		}
-	} else if(audioNum > 1){				// Multi video streams encoding
+	} else if(audioNum > 1){				// Multi audio streams encoding
 		if(!m_pSplitter) {
 			ret = transcodeMbrAudio();
 		} else {
@@ -3406,15 +3406,17 @@ bool CTransWorkerSeperate::ParseSetting()
 		
 		// Parse media info and get duration
 		StrPro::CXML2* pMediaPref = m_pRootPref->GetSrcMediaInfoDoc();
+		if(!parseDurationInfo(pTaskPref, pMediaPref)) {
+			ret = false;  break;
+		}
+
 		// Init audio and video info according to mediainfo
 		if(!pMediaPref || !setSourceAVInfo(pMediaPref)) {
 			SetErrorCode(EC_INVILID_VIDEO_ATTRIB);
 			ret = false;  break;
 		}
 
-		if(!parseDurationInfo(pTaskPref, pMediaPref)) {
-			ret = false;  break;
-		}
+		
 		// After parse duration, if use decoder to trim then clear clip sets.
 		//if(pTaskPref->GetBoolean("overall.task.decoderTrim")) {
 		//	m_clipStartSet.clear();

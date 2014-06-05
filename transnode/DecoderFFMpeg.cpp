@@ -141,9 +141,9 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	const char* audioCompensate = NULL;	// soft compenstion
 	
 	if(m_bDecVideo && m_bDecAudio) {
-		//if(m_pVInfo->src_container == CF_MPEG2TS || m_pVInfo->src_container == CF_ASF) {
+		if(m_pVInfo->src_container != CF_MPEG2) {
 			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input
-		//} 
+		} 
 		if(!pPref->GetBoolean("overall.audio.insertBlank")) {
 			audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
 		}
@@ -468,6 +468,16 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 			}
 		}
 
+		// When video is rotated by PI/2 or 3*PI/2 in the first pass, then restore width/height and dar/sar 
+		if(m_bLastPass) {
+			if(m_pVInfo->rotate == 90 || m_pVInfo->rotate == 270) {
+				std::swap(m_pVInfo->res_out.width, m_pVInfo->res_out.height);
+				std::swap(m_pVInfo->dest_par.num, m_pVInfo->dest_par.den);
+				std::swap(m_pVInfo->dest_dar.num, m_pVInfo->dest_dar.den);
+				std::swap(m_pVInfo->src_dar.num, m_pVInfo->src_dar.den);
+			}
+		}
+
 		resolution_t resOut = m_pVInfo->res_out;
 		//resolution_t resIn = m_pVInfo->res_in;
 		int scaleW = resOut.width, scaleH = resOut.height;
@@ -549,6 +559,25 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 				m_pVInfo->res_out.width = w;
 				m_pVInfo->res_out.height = h;
 				//printf("Pad:x=%d,y=%d,w=%d,h=%d\n", x, y, w, h);
+			}
+		}
+
+		if(m_pVInfo->rotate > 0 && m_pVInfo->rotate < 360) {
+			const char* rotateStr = "PI/2";
+			if(m_pVInfo->rotate == 270) {
+				rotateStr = "3*PI/2";
+			} else if(m_pVInfo->rotate == 180) {
+				rotateStr = "PI";
+			}
+			backPart << "rotate=" << rotateStr ;
+			if(m_pVInfo->rotate == 90 || m_pVInfo->rotate == 270) {
+				std::swap(m_pVInfo->res_out.width, m_pVInfo->res_out.height);
+				std::swap(m_pVInfo->dest_par.num, m_pVInfo->dest_par.den);
+				std::swap(m_pVInfo->dest_dar.num, m_pVInfo->dest_dar.den);
+				std::swap(m_pVInfo->src_dar.num, m_pVInfo->src_dar.den);
+				backPart << ":ow=ih:oh=iw,";
+			} else {
+				backPart << ",";
 			}
 		}
 	} 
