@@ -234,7 +234,7 @@ bool CTransWorkerSeperate::setVideoPref(CXMLPref* prefs)
 		videoBits = 24;
 	}
 
-	video_info_t videoInfo = {CF_DEFAULT, encType, encFormat, vfType, outSize, {0, 0}, outFps, {0, 0},
+	video_info_t videoInfo = {{0}, CF_DEFAULT, encType, encFormat, vfType, outSize, {0, 0}, outFps, {0, 0},
 		outPar, {0,0}, outDar, 0, 0, rawFormat, videoBits, 0, 0, 0};
 	
 	CVideoEncoder* pEncoder = createVideoEncoder(encType, encFormat, vfType);

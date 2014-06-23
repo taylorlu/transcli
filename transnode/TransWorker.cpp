@@ -154,6 +154,9 @@ bool CTransWorker::parseDurationInfo(CXMLPref* pTaskPref, StrPro::CXML2* pMediaP
 		m_tmpBenchData.mainDur = totalDur - decodeStart;
 	}
 
+	if(m_tmpBenchData.mainDur > 5*60*60*1000) {		// 5 hours
+		m_tmpBenchData.mainDur = INT_MAX;
+	}
 	// Adjust duration according to clips
 	/*if(pTaskPref->GetBoolean("overall.task.decoderTrim")) {
 		int curDur = 0;
@@ -276,6 +279,7 @@ void CTransWorker::parseMediaAudioInfoNode(StrPro::CXML2* mediaInfo, attr_audio_
 	strncpy(pAudioAttrib->codec, SAFESTRING(mediaInfo->getChildNodeValue("codec")), CODEC_NAME_LEN);
 	strncpy(pAudioAttrib->profile, SAFESTRING(mediaInfo->getChildNodeValue("profile")), CODEC_NAME_LEN);
 	strncpy(pAudioAttrib->lang, SAFESTRING(mediaInfo->getChildNodeValue("lang")), 32);
+	strncpy(pAudioAttrib->title, SAFESTRING(mediaInfo->getChildNodeValue("title")), CODEC_NAME_LEN);
 
 	int aId = mediaInfo->getChildNodeValueInt("id");
 	if (aId >= 192 && aId <= 199) aId -= 192;
@@ -329,6 +333,7 @@ void CTransWorker::parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_
 		strncpy(pVideoAttrib->profile, SAFESTRING(mediaInfo->getChildNodeValue("profile")), CODEC_NAME_LEN);
 		strncpy(pVideoAttrib->version, SAFESTRING(mediaInfo->getChildNodeValue("version")), CODEC_NAME_LEN);
 		strncpy(pVideoAttrib->standard, SAFESTRING(mediaInfo->getChildNodeValue("standard")), 32);
+		strncpy(pVideoAttrib->title, SAFESTRING(mediaInfo->getChildNodeValue("title")), CODEC_NAME_LEN);
 
 		pVideoAttrib->id = mediaInfo->getChildNodeValueInt("index");
 		pVideoAttrib->duration = vDuration;
@@ -375,7 +380,10 @@ bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 	if(*(pAudioAttrib->lang)) {
 		strncpy(pAInfo->lang, pAudioAttrib->lang, 32);
 	}
-
+	memset(pAInfo->title, 0, CODEC_NAME_LEN);
+	if(*(pAudioAttrib->title)) {
+		strncpy(pAInfo->title, pAudioAttrib->title, 32);
+	}
 	// If encoding E-AC3 audio, if source channel < 6, then report error
 	if(audioPref->GetBoolean("overall.dolby.sixchOnly")) {
 		if(pAInfo->format == AC_EAC3 && pAInfo->in_channels < 6) {
@@ -515,6 +523,10 @@ bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 
 bool CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,attr_video_t* pVideoAttrib)
 {
+	memset(pVInfo->title, 0, CODEC_NAME_LEN);
+	if(*(pVideoAttrib->title)) {
+		strncpy(pVInfo->title, pVideoAttrib->title, 32);
+	}
 	pVInfo->src_dar.num = pVideoAttrib->dar_num;
 	pVInfo->src_dar.den = pVideoAttrib->dar_den;
 	pVInfo->fps_in.num = pVideoAttrib->fps_num;

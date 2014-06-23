@@ -159,6 +159,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 		// Remove all tags except language tag
 		std::vector<const char*> exceptKeys;
 		exceptKeys.push_back("language");
+		exceptKeys.push_back("title");
 		exceptKeys.push_back("rotate");
 		removeTagContent(strResult, uselessTags[i], exceptKeys);
 	}
@@ -245,6 +246,14 @@ static void parseAudioInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int aud
 		const char* langStr = xml.getAttribute("value");
 		if(langStr && *langStr) {
 			mediaInfo->addChild("lang", langStr);
+		}
+		xml.goParent();
+	}
+	// Parse title attribute
+	if(xml.findChildNode("tag", "key", "title")) {
+		const char* titleStr = xml.getAttribute("value");
+		if(titleStr && *titleStr) {
+			mediaInfo->addChild("title", titleStr);
 		}
 		xml.goParent();
 	}
@@ -383,6 +392,14 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 		const char* rotateStr = xml.getAttribute("value");
 		if(rotateStr && *rotateStr) {
 			mediaInfo->addChild("rotate", rotateStr);
+		}
+		xml.goParent();
+	}
+	// Parse title attribute
+	if(xml.findChildNode("tag", "key", "title")) {
+		const char* titleStr = xml.getAttribute("value");
+		if(titleStr && *titleStr) {
+			mediaInfo->addChild("title", titleStr);
 		}
 		xml.goParent();
 	}

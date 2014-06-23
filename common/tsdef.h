@@ -391,6 +391,7 @@ typedef struct {
 	char codec[CODEC_NAME_LEN];		// audio codec name string
 	char profile[CODEC_NAME_LEN];	// audio codec profile
 	char lang[32];					// audio language
+	char title[CODEC_NAME_LEN];		// audio stream title
 	int duration;
 	int bitrate;					// audio bit rate
 	int bitratemode;				// bit rate mode (1 for CBR, 2 for VBR, 0 for unknown)
@@ -409,6 +410,7 @@ typedef struct {
 	char codec[CODEC_NAME_LEN];				// video codec name string
 	char profile[CODEC_NAME_LEN];			// video codec profile string
 	char version[CODEC_NAME_LEN];			// video codec version
+	char title[CODEC_NAME_LEN];				// video stream title
 	char standard[32];						// video standard (PAL/NTSC/Component)
 	int duration;
 	int bitrate;					// video bit rate
@@ -427,6 +429,7 @@ typedef struct {
 } attr_video_t;
 
 typedef struct {
+	char title[CODEC_NAME_LEN];			// video stream title
 	container_format_t src_container;
 	video_encoder_t encoder_type;
 	video_format_t format;
@@ -466,6 +469,7 @@ typedef struct {
 	int index;
 	int duration;		// ms
 	char lang[32];
+	char title[CODEC_NAME_LEN];		// audio stream title
 } audio_info_t;
 
 typedef enum {

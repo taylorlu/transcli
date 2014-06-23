@@ -323,10 +323,20 @@ public:
 			}
 			
 			if(ContainStream(ST_AUDIO, streamIdx)) {
-				audioTrackStr << " -add \"" << item->fileName << "\"#audio:name=Audio"
-					<< streamIdx+1;
+				std::string audioTitle = item->ainfo->title;
+				if(audioTitle.empty()) {
+					char idxStr[8] = {0};
+					sprintf(idxStr, "%d", streamIdx+1);
+					audioTitle = "Audio";
+					audioTitle += idxStr;
+					if(*(item->ainfo->lang)) {
+						audioTitle += item->ainfo->lang;
+					}
+				}
+				audioTrackStr << " -add \"" << item->fileName << "\"#audio:name=\""
+					<< audioTitle << "\"";
 				if(*(item->ainfo->lang)) {
-					audioTrackStr << "-" << item->ainfo->lang << ":lang=" << item->ainfo->lang;
+					audioTrackStr << ":lang=" << item->ainfo->lang;
 				}
 // 				if(item->ainfo && item->ainfo->delay != 0) {
 // 					audioTrackStr << ":delay=" << item->ainfo->delay;
@@ -342,7 +352,13 @@ public:
 				if(item->vinfo && item->vinfo->fps_out.den > 0 && m_pref->GetBoolean("muxer.mp4box.fps")) {
 					videoTrackStr << " -fps " << (float)item->vinfo->fps_out.num / item->vinfo->fps_out.den;
 				}
-				videoTrackStr << " -add \"" << item->fileName << "\"#video:name=VideoByEZMediaEditor";
+
+				const char* videoTitle = item->vinfo->title;
+				if(!(*videoTitle)) {
+					videoTitle = "VideoByEZMediaEditor";
+				}
+
+				videoTrackStr << " -add \"" << item->fileName << "\"#video:name=\"" << videoTitle << "\"";
 				if(m_pref->GetBoolean("muxer.mp4box.par") && item->vinfo && item->vinfo->dest_par.den > 0) {
 					videoTrackStr << ":par=" << item->vinfo->dest_par.num << ':' << item->vinfo->dest_par.den;
 				}
@@ -1018,7 +1034,7 @@ public:
 		bool useAACBsf = false;
 		for (CFileQueue::queue_item_t* item = m_pFileQueue->GetFirst(ST_AUDIO); item; item = m_pFileQueue->GetNext(ST_AUDIO)) {
 			if(ContainStream(ST_AUDIO, acount)) {
-				if(item->ainfo->encoder_type == AE_FAAC) {
+				if(item->ainfo->encoder_type == AE_FAAC || item->ainfo->encoder_type == AE_FDK) {
 					useAACBsf = true;
 				}
 				audioTrackStr << " -i \"" << item->fileName << "\"";
