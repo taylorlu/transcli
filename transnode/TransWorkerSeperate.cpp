@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <algorithm>
+#include "TransnodeUtils.h"
 
 #include "zml_gain_analysis.h"
 #include "bitconfig.h"
@@ -3370,6 +3371,23 @@ bool CTransWorkerSeperate::ParseSetting()
 			if(!this->setVideoPref(videoPref)) {
 				FAIL_INFO("Set video pref failed.\n");
 			}
+		}
+		
+		// Get cores number
+		int runOnCores = pTaskPref->GetInt("overall.task.cores");
+		if(runOnCores <= 0) {
+			// Check environment variables
+			char* strUseCores = getenv("TRANSCLI_USE_CORES");
+			if(strUseCores && (*strUseCores)) {
+				runOnCores = atoi(strUseCores);
+			}
+		}
+
+		if(runOnCores > 0) {
+			CTransnodeUtils::BindToCores(runOnCores);
+			int threasNum = (int)(runOnCores*1.5);
+			pTaskPref->SetInt("videoenc.x264.threads", threasNum);
+			pTaskPref->SetInt("videoenc.x265.threads", threasNum);
 		}
 		
 		// Parse watch folder path before set muxer preference

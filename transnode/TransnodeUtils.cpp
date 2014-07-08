@@ -7,6 +7,7 @@
 
 #include "TransnodeUtils.h"
 #include "logger.h"
+#include "util.h"
 
 bool CTransnodeUtils::m_Initalized = false;
 bool CTransnodeUtils::m_bUseSingleCore = false;
@@ -25,6 +26,38 @@ void CTransnodeUtils::Initialize()
 		//g_playlistQueue.clear();
 		m_Initalized = true;
 	}
+}
+
+void CTransnodeUtils::BindToCores(int coreNum)
+{
+	int cpuCoresNum = GetCpuCoreNum();
+	if(coreNum >= cpuCoresNum) return;
+
+#if defined(WIN32)
+	HANDLE hProcess = GetCurrentProcess();
+	if(hProcess) {
+		DWORD_PTR processAffinityMask;	
+		for(int i=0; i<coreNum; ++i) {
+			if(i>0) {
+				processAffinityMask |= (1 << i);
+			} else {
+				processAffinityMask = 1;
+			}
+		}
+		SetProcessAffinityMask(hProcess, processAffinityMask);
+	}
+#elif defined(HAVE_LINUX)
+	cpu_set_t mask;
+	CPU_ZERO(&mask);
+	for (int i = 0; i < coreNum; i++) {
+		CPU_SET(i, &mask);
+	}
+	
+	sched_setaffinity(0/*current process*/, sizeof(mask), &mask);
+	sleep(8); //rescheduling
+#else
+#warning "TODO:Set CPU Affinity"
+#endif
 }
 
 void CTransnodeUtils::SetUseSingleCore(bool bUseSingleCore)

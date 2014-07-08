@@ -326,7 +326,7 @@ public:
 				std::string audioTitle = item->ainfo->title;
 				if(audioTitle.empty()) {
 					char idxStr[8] = {0};
-					sprintf(idxStr, "%d", streamIdx+1);
+					sprintf(idxStr, "%d-", streamIdx+1);
 					audioTitle = "Audio";
 					audioTitle += idxStr;
 					if(*(item->ainfo->lang)) {

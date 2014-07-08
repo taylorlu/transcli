@@ -26,6 +26,7 @@
   </delogo>
   
   <target>
+    <cores>0</cores> <!--Transcli running on some cores, default is 0, running on all cores.-->
     <audio>
       <codec format="aac" bitrate="48k" samplerate="24000" timeshift="1.5s" brdown="true"/>
       <volgain mode="auto" value="0.0"/> <!--mode:auto/manual,default is auto. value range:-200~60-->

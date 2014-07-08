@@ -187,6 +187,10 @@
       <node key="fps" type="float" text="Override frame rate">
         <desc>This overrides the frame rate parameter of input file</desc>
       </node>
+	    <node key="threads" type="int" text="Decoding threads number">
+        <desc>Set threads number when decoding. Default is 0, threads number is auto set by decoder.</desc>
+		    <value>0</value>
+      </node>
       <node key="rebuildAVIIndex" type="bool" text="Rebuild AVI index"/>
       <node key="feed" type="bool" text="Feed data for audio/video source"/>
     </node>

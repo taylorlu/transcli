@@ -270,6 +270,12 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 			coreNum = 1;
 		}
 		cmd << " -threads:v " << coreNum;*/
+
+		int threadsNum = pPref->GetInt("overall.decoding.threads");
+		if(threadsNum > 0) {
+			cmd << " -threads:v " << threadsNum;
+		}
+
 		if(pPref->GetBoolean("overall.audio.insertBlank")) {
 			cmd << " -shortest";
 		}

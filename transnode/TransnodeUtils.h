@@ -19,6 +19,9 @@ public:
 	static void SetUseSingleCore(bool bUseSingleCore);
 	static bool GetUseSingleCore() { return m_bUseSingleCore; }
 
+	// Bind current process to several cores
+	static void BindToCores(int coreNum);
+
 	// vf stuff
 	static bool InitVideoFilter(const char* vfdllPath);
 	static bool InitVideoFilter();

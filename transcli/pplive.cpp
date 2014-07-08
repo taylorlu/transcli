@@ -438,6 +438,7 @@ struct target_config_t {
 	struct thumbnail_t thumbnail;
 	struct hls_t hlsConfig;
 	int ignoreErrIdx;	// ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)
+	int coresNum;
 };
 
 typedef struct {
@@ -891,6 +892,12 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 				xmlConfig.goParent();
 			}
 			
+			xmlConfig.goParent();
+		}
+
+		// Bind process to some cores
+		if (xmlConfig.findChildNode("cores") != NULL) {
+			config->target.coresNum = xmlConfig.getNodeValueInt();
 			xmlConfig.goParent();
 		}
 
@@ -1624,6 +1631,12 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			break;
 		}
 		prefs.SetStreamPref(refStr, conf.target.vcodec.bframes, STVIDEO);
+	}
+
+	// Set decoder and encoder threads number
+	if(conf.target.coresNum > 0) {
+		const char* refStr = "overall.task.cores";
+		prefs.SetStreamPref(refStr, conf.target.coresNum, STVIDEO);
 	}
 
 	// Adjust x264 and bitrate params according to movie type
