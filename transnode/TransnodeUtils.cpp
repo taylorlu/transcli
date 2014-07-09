@@ -46,7 +46,7 @@ void CTransnodeUtils::BindToCores(int coreNum)
 		}
 		SetProcessAffinityMask(hProcess, processAffinityMask);
 	}
-#elif defined(HAVE_LINUX)
+#else
 	cpu_set_t mask;
 	CPU_ZERO(&mask);
 	for (int i = 0; i < coreNum; i++) {
@@ -55,8 +55,6 @@ void CTransnodeUtils::BindToCores(int coreNum)
 	
 	sched_setaffinity(0/*current process*/, sizeof(mask), &mask);
 	sleep(8); //rescheduling
-#else
-#warning "TODO:Set CPU Affinity"
 #endif
 }
 
@@ -75,7 +73,7 @@ void CTransnodeUtils::SetUseSingleCore(bool bUseSingleCore)
 			SetProcessAffinityMask(hProcess, sysAffinityMask);			// Cancel binding to cpu 0(bind to all)
 		}
 	}
-#elif defined(HAVE_LINUX)
+#else
     cpu_set_t mask;
 
     m_bUseSingleCore = bUseSingleCore; 
@@ -93,8 +91,6 @@ void CTransnodeUtils::SetUseSingleCore(bool bUseSingleCore)
 
     sched_setaffinity(0/*current process*/, sizeof(mask), &mask);
     sleep(0); //rescheduling
-#else
-    #warning "TODO:Set CPU Affinity"
 #endif
 }
 
