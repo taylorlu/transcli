@@ -29,7 +29,7 @@ CVideoEncoder::CVideoEncoder(const char* outFileName):m_pOutStream(NULL),
 								m_fdRead(-1), m_fdWrite(-1), m_tid(0),
 								m_frameCount(0), m_yuvFrameSize(0), m_frameSizeAfterVf(0),
 								m_pVideoFilter(NULL), m_logModuleType(LOGM_TS_VE), m_pXmlPrefs(NULL),
-								m_pWaterMarkMan(NULL), m_pThumbnail(NULL),
+								m_pWaterMarkMan(NULL), m_pThumbnail(NULL), m_pThumbnail1(NULL),
 								m_encodePass(1),m_bMultiPass(false)
 {
 	m_strOutFile = outFileName;
@@ -60,7 +60,9 @@ CVideoEncoder::~CVideoEncoder(void)
 	if(m_pThumbnail) {
 		delete m_pThumbnail;
 	}
-
+	if(m_pThumbnail1) {
+		delete m_pThumbnail1;
+	}
 	if(m_pPassLogFile) {
 		free(m_pPassLogFile);
 	}
@@ -132,7 +134,14 @@ bool CVideoEncoder::InitWaterMark()
 	if(m_encodePass == 2 && m_bMultiPass) return true;
 	
 	bool ret = parseWaterMarkInfo(m_pWaterMarkMan, m_pXmlPrefs, &m_vInfo);
+	if(!ret) {
+		return false;
+	}
 	ret = parseThumbnailInfo(m_pThumbnail,m_pXmlPrefs,&m_vInfo,m_destFileName);
+	if(!ret) {
+		return false;
+	}
+	ret = parseThumbnailInfo1(m_pThumbnail1,m_pXmlPrefs,&m_vInfo,m_destFileName);
 	return ret;
 }
 
@@ -225,6 +234,9 @@ uint8_t* CVideoEncoder::FilterFrame(uint8_t* pOrigBuf, int origBufSize)
 		m_pThumbnail->GenerateThumbnail(processedData);
 	}
 
+	if(m_pThumbnail1 && m_encodePass == 1) {
+		m_pThumbnail1->GenerateThumbnail(processedData);
+	}
 	return processedData;
 }
 
@@ -253,6 +265,9 @@ bool CVideoEncoder::StopThumbnail()
 {
 	if(m_pThumbnail && m_encodePass == 1) {
 		return m_pThumbnail->StopThumbnail();
+	}
+	if(m_pThumbnail1 && m_encodePass == 1) {
+		return m_pThumbnail1->StopThumbnail();
 	}
 	return true;
 }

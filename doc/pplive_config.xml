@@ -27,16 +27,16 @@
   
   <target>
     <cores>0</cores> <!--Transcli running on some cores, default is 0, running on all cores.-->
-    <audio>
+    <audio disable="false">
       <codec format="aac" bitrate="48k" samplerate="24000" timeshift="1.5s" brdown="true"/>
       <volgain mode="auto" value="0.0"/> <!--mode:auto/manual,default is auto. value range:-200~60-->
     </audio>
-    <video>
+    <video disable="false">
       <lowerbitrate>1</lowerbitrate> <!--0:disable decreasing bitrate, 1:enable(default)-->
       <videoenhance>1</videoenhance> <!--0:disable video enhance, 1:enable(default)-->
       <rcmode>4</rcmode>  <!--1:ABR, 2:CRF, 3:CBR, 4:2-pass-->
       <ref>4</ref>  <!--Reframes, default is 4-->
-      <codec format="h264" bitrate="380k" rectangle="{0,0,176,144}" position="{10,10,166,134}" />
+      <codec format="h264" bitrate="380k" rectangle="{0,0,176,144}" position="{10,10,166,134}" encode="true"/> <!--encode:true(do video encoding), false(not do video encoding)-->
       <fps>0</fps>
       <dar>0.0</dar>  <!--Float value, Should be parsed to darNum and darDen-->
       <keyint>5</keyint> <!--Key frame interval. If keyint < 10, it's senconds else it's frame num.-->
@@ -58,7 +58,7 @@
       <denoise mode="0" luma="4" chroma="3" temporal="6"/>
       <deinterlace mode="0" algorithm="0"/> <!--mode:0(auto), 1(enable), 2(disable)-->
     </filter>
-    <mux format="flv" />  <!--Muxer format:flv/mp4/ts/hls-->
+    <mux format="flv" disable="false"/>  <!--Muxer format:flv/mp4/ts/hls disable:enable or disable muxing-->
     <!--type:average/none, size:segment size(sec), postfix:index/time/.mp4.%d, lastsegpercent:20%, threshold:duration>=1800 segment-->
     <segment type="average" unit="time" size="40" postfix="index" threshold="1800" lastsegpercent="20"/>
     <!--Static image:image and druation. Dynamic image tail:folder-->
@@ -68,7 +68,7 @@
 	<!--Apple HLS format. dur:segment duration(s), listsize:how many segments one list contain,startindex:segment file start number -->
 	<hls dur="5" listsize="100000" postfix=".mp4" startindex="1"/>
     <!--start:start time, end:end time, interval:frequency, row:tile row, col:tile column, type:1(png)/2(jpg)/3(bmp)/4(gif), count:thumbnail count, quality:Jpeg quality(max:100), stitch:tile thumbnail to big image, pack:pack images to ipk file-->
-    <thumbnail start="5" end="0" interval="6" row="10" col="10" width="180" height="0" type="2" count="0" quality="85" stitch="true" pack="true"/>
+    <thumbnail start="5" end="0" interval="6" row="10" col="10" width="180" height="0" type="2" count="0" quality="85" stitch="true" pack="true" postfix="_shot"/> <!--postfix:postfix of thumbnail's file name-->
     <!--ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)-->
     <errorignore>0</errorignore>
     

@@ -473,7 +473,7 @@ typedef struct {
 } audio_info_t;
 
 typedef enum {
-	EC_NO_ERROR = 0,			// no error
+	EC_NO_ERROR = 0,				// no error
 	EC_NOT_INITED = 1,				// not initialized
 	EC_INIT_ERROR = 2,				// initialization error
 	EC_START_ERROR = 3,				// worker start error
@@ -492,15 +492,15 @@ typedef enum {
 	EC_INVALID_CONTAINER = 16,		// invalid container format
 	EC_AUDIO_SOURCE_ERROR = 17,		// an audio source error occurred
 	EC_AUDIO_ENCODER_ERROR = 18,		// an audio encoder error occurred
-	EC_VIDEO_SOURCE_ERROR = 19,		// an video source error occurred
+	EC_VIDEO_SOURCE_ERROR = 19,			// an video source error occurred
 	EC_VIDEO_ENCODER_ERROR = 20,		// an video encoder error occurred
-	EC_MUXER_ERROR = 21, 			// an muxer error occurred
-	EC_PREF_KEY_NOT_FOUND = 22,		// pref key not found
+	EC_MUXER_ERROR = 21, 				// an muxer error occurred
+	EC_PREF_KEY_NOT_FOUND = 22,			// pref key not found
 	EC_TAG_WRITE_ERROR = 23,			// tag writing error
-	EC_NODE_DOWN = 24,				// a node has broken down
+	EC_NODE_DOWN = 24,					// a node has broken down
 	EC_XMLRPC_SOCKET_ERROR = 25,		// xmlrpc socket timeout or other error 
-	EC_XMLRPC_INVALID_PAYLOAD = 26,  // xmlrpc: invaild payload
-	EC_XMLRPC_OTHER_ERROR = 27,		 // other xmlrpc error, TODO: breaking down is needed
+	EC_XMLRPC_INVALID_PAYLOAD = 26,		// xmlrpc: invaild payload
+	EC_XMLRPC_OTHER_ERROR = 27,			// other xmlrpc error, TODO: breaking down is needed
 	EC_AUDIO_ENCODER_ABNORMAL_EXIT = 28,	// audio encoder exit unexpectedly
 	EC_VIDEO_ENCODER_ABNORMAL_EXIT = 29,	// video encoder exit unexpectedly
 	EC_INVILID_AUDIO_ATTRIB = 30,			// Invalide audio attribute

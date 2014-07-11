@@ -111,6 +111,8 @@ CTransWorkerSeperate::CTransWorkerSeperate():
 	m_logType = LOGM_TS_WK_SEP;
 	m_pCopyAudioInfo = NULL;
 	m_pCopyVideoInfo = NULL;
+	m_bEnableVideoEncode = true;
+	m_bEnableMuxing = true;
 }
 
 
@@ -124,7 +126,7 @@ bool CTransWorkerSeperate::setAudioPref(CXMLPref* prefs)
 {
 	if(!prefs) return false;
 	if(!prefs->GetBoolean("overall.audio.enabled")) {	// Ignore audio stream
-		logger_info(m_logType, "audio is disabled\n");
+		logger_info(m_logType, "Audio is disabled.\n");
 		return true;
 	}
 
@@ -178,6 +180,12 @@ bool CTransWorkerSeperate::setVideoPref(CXMLPref* prefs)
 		return true;
 	}
 
+	if(!prefs->GetBoolean("overall.video.encode")) {
+		m_bEnableVideoEncode = false;
+	} else {
+		m_bEnableVideoEncode = true;
+	}
+	
 	int filterType = prefs->GetInt("videofilter.generic.applicator");
 	if(filterType < 0) filterType = 0;
 	vf_type_t vfType = (vf_type_t)(filterType);
@@ -262,6 +270,13 @@ bool CTransWorkerSeperate::setVideoPref(CXMLPref* prefs)
 
 bool CTransWorkerSeperate::setMuxerPref(CXMLPref* prefs)
 {
+	if(!prefs) return false;
+	if(!prefs->GetBoolean("overall.container.enabled")) {
+		m_bEnableMuxing = false;
+	} else {
+		m_bEnableMuxing = true;
+	}
+
 	int muxerType = prefs->GetInt("overall.container.muxer");
 	if (muxerType == PREF_ERR_NO_INTNODE) muxerType = 0;
 	
@@ -1412,7 +1427,7 @@ THREAD_RET_T CTransWorkerSeperate::mainFunc()
 		// After all thread finished, do muxing
 		logger_status(m_logType, "Start muxing...\n");
 		SetState(TASK_MUXING);
-		if(!doMux()) {
+		if(m_bEnableMuxing && !doMux()) {
 			FAIL_INFO("Muxing failed.\n");
 		}
 #ifdef BUILD_FOR_PPLIVE
@@ -1587,7 +1602,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 #endif
 		//filter
 		uint8_t* pFrameBuf = pSingleEncoder->FilterFrame(m_yuvBuf, m_frameBufSize);
-		if (pFrameBuf == NULL) {	//skiped or failed
+		if (!m_bEnableVideoEncode || pFrameBuf == NULL) {	//skiped or failed
 			continue;
 		}
 
@@ -1807,7 +1822,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideoComplex()
 #endif
 		//filter
 		uint8_t* pFrameBuf = pSingleEncoder->FilterFrame(m_yuvBuf, m_frameBufSize);
-		if (pFrameBuf == NULL) {	//skiped or failed
+		if (!m_bEnableVideoEncode || pFrameBuf == NULL) {	//skiped or failed
 			continue;
 		}
 
@@ -3600,6 +3615,9 @@ void CTransWorkerSeperate::autoSelectBestDecoder(const char* srcFile, CXMLPref* 
 
 bool CTransWorkerSeperate::parsePlaylistConfig(CXMLPref* prefs)
 {
+	if(m_streamFiles.GetDestFiles().size() <= 0) {
+		return false;
+	}
 	std::string dstFile = m_streamFiles.GetDestFiles().at(0);
 	std::string dstFolder, dstTitle, dstExt;
 	StrPro::StrHelper::splitFileName(dstFile.c_str(), dstFolder, dstTitle, dstExt);

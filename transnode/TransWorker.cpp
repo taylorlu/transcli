@@ -538,6 +538,7 @@ bool CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,at
 	pVInfo->is_vfr = pVideoAttrib->is_vfr;
 	pVInfo->index = pVideoAttrib->id;
 	pVInfo->rotate = pVideoAttrib->rotate;
+	pVInfo->duration = m_tmpBenchData.mainDur;
 
 	if(pVInfo->fps_in.num <= 0 || pVInfo->fps_in.den <= 0) {
 		pVInfo->fps_in.num = 24;

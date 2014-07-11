@@ -52,6 +52,7 @@ public:
 	//------------------------- Thumbnail Param settings ----------------------------------
 	void SetFolder(const char* folderPath);
 	void SetPrefixName(const char* prefixName) {if(prefixName) m_prefixName = prefixName;}
+	void SetPostfixName(const char* postfixName) {if(postfixName) m_postfixName = postfixName;}
 	void SetImageFormat(int thumbType) {m_thumbType = (ThumbnailType)thumbType;}
 	void SetImageQuality(unsigned int quality) {m_imageQuality = quality;}
 	void SetCropMode(int cropMode) {m_cropMode = cropMode;}
@@ -124,6 +125,7 @@ private:
 	std::vector<int> m_capturePoint;
 	std::string m_folder;
 	std::string m_prefixName;
+	std::string m_postfixName;
 	std::string m_sizePostfix;
 	std::vector<cimg_library::CImg<uint8_t>* > m_imgList;
 

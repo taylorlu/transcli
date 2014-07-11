@@ -49,24 +49,35 @@ void CThumbnailFilter::SetFolder(const char* folderPath)
 bool CThumbnailFilter::CalculateCapturePoint()
 {
 	if(m_thumbCount < 1) return false;
-
-	// Check thumbnail size
-	if(m_thumbW > 0 && m_thumbH <= 0) {
-		if(m_dar > 0) {
-			m_thumbH = (int)(m_thumbW/m_dar);
-			EnsureMultipleOfDivisor(m_thumbH, 2);
-		}
-	} else if(m_thumbH > 0 && m_thumbW <= 0) {
-		if(m_dar > 0) {
-			m_thumbW = (int)(m_thumbH*m_dar);
-			EnsureMultipleOfDivisor(m_thumbW, 2);
-		}
-	}
-	if(m_yuvW <= 0 || m_yuvH <= 0 || m_thumbW <= 0 || m_thumbH <= 0) {
+	if(m_yuvW <= 0 || m_yuvH <= 0 || (m_thumbW <= 0 && m_thumbH <= 0)) {
 		logger_err(LOGM_TS_VE, "YUV frame size or thumbnail size not set in CThumbnailFilter.\n");
 		return false;
 	}
-
+	// Check thumbnail size
+	if(m_thumbW > 0 && m_thumbH <= 0) {
+		if(m_thumbW > m_yuvW) {
+			m_thumbW = m_yuvW;
+		}
+		if(m_dar > 0) {
+			m_thumbH = (int)(m_thumbW/m_dar);
+			EnsureMultipleOfDivisor(m_thumbH, 2);
+		} 
+	} else if(m_thumbH > 0 && m_thumbW <= 0) {
+		if(m_thumbH > m_yuvH) {
+			m_thumbH = m_yuvH;
+		}
+		if(m_dar > 0) {
+			m_thumbW = (int)(m_thumbH*m_dar);
+			EnsureMultipleOfDivisor(m_thumbW, 2);
+		} 
+	} else {
+		if(m_thumbW > m_yuvW) {
+			m_thumbW = m_yuvW;
+			m_thumbH = (int)(m_thumbW/m_dar);
+			EnsureMultipleOfDivisor(m_thumbH, 2);
+		}
+	}
+	
 	if(m_thumbType == THUMB_DEFAULT) {
 		m_thumbType = THUMB_BMP;
 	}
@@ -537,7 +548,7 @@ void CThumbnailFilter::convertYUV2RGB(uint8_t* pYuvBuf, uint8_t* dstRGB)
 
 std::string CThumbnailFilter::getThumbFileName(int w, int h)
 {
-	std::string thumbFile = m_folder + PATH_DELIMITER + m_prefixName;
+	std::string thumbFile = m_folder + PATH_DELIMITER + m_prefixName + m_postfixName;
 	// If enable pack image into ipk file, ensure every output image's name is different
 	if((m_thumbCount > 1 && !m_bStitching) || m_enablePackImage) {
 		thumbFile += '_';

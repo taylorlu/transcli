@@ -256,6 +256,7 @@ bool parseThumbnailInfo(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
 		strPrefix = ansiName;
 		free(ansiName);
 	}
+
 	int thumbFormat = videoPref->GetInt("videofilter.thumb.format");
 	int thumbW = videoPref->GetInt("videofilter.thumb.width");
 	int thumbH = videoPref->GetInt("videofilter.thumb.height");
@@ -289,6 +290,11 @@ bool parseThumbnailInfo(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
 		std::string fileTitle;
 		StrPro::StrHelper::getFileTitle(destFileName.c_str(), fileTitle);
 		pThumbnail->SetPrefixName(fileTitle.c_str());
+	}
+
+	const char* postfix = videoPref->GetString("videofilter.thumb.postfix");
+	if(postfix && *postfix) {
+		pThumbnail->SetPostfixName(postfix);
 	}
 
 	fraction_t dar = pVinfo->dest_dar;
@@ -362,6 +368,141 @@ bool parseThumbnailInfo(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
 
 	return true;
 }
+
+bool parseThumbnailInfo1(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
+	video_info_t* pVinfo, std::string destFileName)
+{
+	bool enableThumb = videoPref->GetBoolean("videofilter.thumb1.enabled");
+	if(!enableThumb) return true;
+	const char* folderPath = videoPref->GetString("videofilter.thumb1.folder");
+	StrPro::CCharset encodeConvert;
+	std::string thumbFolder;
+	char* ansiFolder = encodeConvert.UTF8toANSI(folderPath);
+	if(ansiFolder) {
+		thumbFolder = ansiFolder;
+		free(ansiFolder);
+	}
+
+	const char* prefixName = videoPref->GetString("videofilter.thumb1.name");
+	std::string strPrefix;
+	char* ansiName = encodeConvert.UTF8toANSI(prefixName);
+	if(ansiName) {
+		strPrefix = ansiName;
+		free(ansiName);
+	}
+
+	int thumbFormat = videoPref->GetInt("videofilter.thumb1.format");
+	int thumbW = videoPref->GetInt("videofilter.thumb1.width");
+	int thumbH = videoPref->GetInt("videofilter.thumb1.height");
+	int startTime = videoPref->GetInt("videofilter.thumb1.start");
+	int endTime = videoPref->GetInt("videofilter.thumb1.end");
+	int thumbCount = videoPref->GetInt("videofilter.thumb1.count");
+	bool bStitching = videoPref->GetBoolean("videofilter.thumb1.stitching");
+	int thumbAlign = videoPref->GetInt("videofilter.thumb1.align");
+	int imageQuality = videoPref->GetInt("videofilter.thumb1.quality");
+	int cropMode = videoPref->GetInt("videofilter.thumb1.crop");
+	bool enableMultiSize = videoPref->GetBoolean("videofilter.thumb1.multiSize");
+	bool enablePack = videoPref->GetBoolean("videofilter.thumb1.pack");
+	bool bOptimize = videoPref->GetBoolean("videofilter.thumb1.optimize");
+	int thumbInterval = videoPref->GetInt("videofilter.thumb1.interval");
+	int thumbRow = videoPref->GetInt("videofilter.thumb1.row");
+	int thumbCol = videoPref->GetInt("videofilter.thumb1.col");
+	pThumbnail = new CThumbnailFilter();
+
+	if(thumbFolder.empty()) {
+		size_t startIdx = destFileName.find_last_of('\\');
+		if(startIdx == std::string::npos) {
+			startIdx = destFileName.find_last_of('/');
+		}
+		thumbFolder = destFileName.substr(0, startIdx);
+	}
+	pThumbnail->SetFolder(thumbFolder.c_str());
+
+	if(!strPrefix.empty()) {
+		pThumbnail->SetPrefixName(strPrefix.c_str());
+	} else {
+		std::string fileTitle;
+		StrPro::StrHelper::getFileTitle(destFileName.c_str(), fileTitle);
+		pThumbnail->SetPrefixName(fileTitle.c_str());
+	}
+
+	const char* postfix = videoPref->GetString("videofilter.thumb1.postfix");
+	if(postfix && *postfix) {
+		pThumbnail->SetPostfixName(postfix);
+	}
+
+	fraction_t dar = pVinfo->dest_dar;
+	if(dar.den > 0) {
+		pThumbnail->SetVideoDar((float)dar.num/dar.den);
+		NormalizeResolution(thumbW, thumbH, dar.num, dar.den);
+	}
+	pThumbnail->SetThumbnailSize(thumbW, thumbH);
+	pThumbnail->SetImageFormat(thumbFormat);
+	pThumbnail->SetStartTime(startTime);
+	pThumbnail->SetEndTime(endTime);
+	pThumbnail->SetYUVFrameSize(pVinfo->res_out.width, pVinfo->res_out.height);
+	pThumbnail->SetFps((float)pVinfo->fps_out.num/pVinfo->fps_out.den);
+	int vdur = pVinfo->duration/1000;
+	if(vdur <= 0) {
+		vdur = 50;		// 50 s
+	} else if(vdur > 3600*12) {
+		vdur = 200;		// 200 s
+	}
+	pThumbnail->SetDuration(vdur);
+	if(imageQuality > 0 && imageQuality < 100) {
+		pThumbnail->SetImageQuality((unsigned int)imageQuality);
+	}
+	pThumbnail->SetCropMode(cropMode);
+	if(thumbCount > 0) pThumbnail->SetThumbnailCount(thumbCount);
+	if(bStitching) {
+		pThumbnail->SetEanbleStitching(bStitching);
+		pThumbnail->SetStitchAlign(thumbAlign);
+	}
+	if(thumbInterval > 0) {
+		pThumbnail->SetThumbnailInterval(thumbInterval);
+	}
+	if(thumbRow > 0) {
+		pThumbnail->SetStitchGrid(thumbRow, thumbCol);
+	}
+	// Pack image 
+	pThumbnail->SetEnablePackImage(enablePack);
+	pThumbnail->SetEnableOptimize(bOptimize);
+
+	// Multi size output support
+	if(enableMultiSize) {
+		pThumbnail->SetEnableMultiSize(true);
+		if(thumbW > 0 && thumbH > 0) {
+			pThumbnail->AddThumbSize(Vector2i(thumbW, thumbH));
+		}
+		const char* sizePostfix = videoPref->GetString("videofilter.thumb1.sizePostfix");
+		if(sizePostfix) pThumbnail->SetSizePostfixFormat(sizePostfix);
+
+		// Support another 4 different size output
+		for(int i=1; i<=4; ++i) {
+			char multiW[32] = {0};
+			char multiH[32] = {0};
+			sprintf(multiW, "videofilter.thumb1.width%d", i);
+			sprintf(multiH, "videofilter.thumb1.height%d", i);
+			int tempW = videoPref->GetInt(multiW);
+			int tempH = videoPref->GetInt(multiH);
+			if(dar.den > 0) {
+				NormalizeResolution(tempW, tempH, dar.num, dar.den);
+			}
+			if(tempW > 0 && tempH > 0) {
+				pThumbnail->AddThumbSize(Vector2i(tempW, tempH));
+			}
+		}
+	}
+
+	if(!pThumbnail->CalculateCapturePoint()) {
+		delete pThumbnail;
+		pThumbnail = NULL;
+		return false;
+	}
+
+	return true;
+}
+
 /*------------------------------------------------------------------------------
 *  Convert an uint8_t buffer holding 8 or 16 bit PCM values with
 *  channels interleaved to a int16_t buffer, still with channels interleaved

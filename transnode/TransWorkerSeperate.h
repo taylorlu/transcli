@@ -169,7 +169,8 @@ private:
 	bool m_bCopyAudio;
 	bool m_bCopyVideo;
 	bool m_bMultiAudioTrack;
-
+	bool m_bEnableVideoEncode;
+	bool m_bEnableMuxing;
 	std::string m_playlistKey;
 };
 

@@ -295,6 +295,9 @@
       <node key="enabled" type="bool" text="Enable Video">
         <value>true</value>
       </node>
+      <node key="encode" type="bool" text="Enable video encoding">
+        <value>true</value>
+      </node>
       <node key="mode" type="enum" text="Encode Mode">
         <enum>ABR</enum>
         <enum>VBR</enum>
@@ -413,6 +416,9 @@
       </node>
     </node>
     <node key="container" type="node" text="Container Options">
+      <node key="enabled" type="bool" text="Enable muxing">
+        <value>true</value>
+      </node>
       <node key="format" type="enum" text="Container format">
         <enum>Default</enum>
         <enum>Raw Stream</enum>

@@ -89,6 +89,7 @@ protected:
 	// Water mark and snapshot
 	CWaterMarkManager* m_pWaterMarkMan;
 	CThumbnailFilter* m_pThumbnail;
+	CThumbnailFilter* m_pThumbnail1;
 	int				  m_bClosed;
 	
 	int				  m_encodePass;

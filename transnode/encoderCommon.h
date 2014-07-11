@@ -21,6 +21,8 @@ int GetAudioBitrateForAVEnc(CXMLPref* pAudioPref);
 bool parseWaterMarkInfo(CWaterMarkManager*& pWatermarkMan,CXMLPref* videoPref,video_info_t* pVinfo);
 bool parseThumbnailInfo(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
 	                    video_info_t* pVinfo, std::string destFileName);
+bool parseThumbnailInfo1(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
+						video_info_t* pVinfo, std::string destFileName);
 
 // Generate dest file name according to src file and naming rules 
 std::string genDestFileName(const char* fileTitle, CXMLPref* muxerPref, const char* outExt,

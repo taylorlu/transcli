@@ -224,6 +224,7 @@ const char *iptvTemplate =
 #define BUF_LEN 32
 #define MAX_LOGO_FILE_NUMBER 30
 #define MAX_LOGO_POS_NUMBER 8
+#define MAX_THUMBNAIL_NUM 2
 
 struct rectangle_t {
 	int left, top, right, bottom;
@@ -282,6 +283,7 @@ struct video_codec_t {
 	int lower_bitrate;
 	int video_enhance;
 	int brdown;		// Only downgrade video bitrate, if settings is bigger than source, use source bitrate
+	int encoding;	// if encoding or not encoding, default will encode.
 };
 
 struct audio_codec_t {
@@ -297,7 +299,7 @@ struct audio_codec_t {
 struct logo_config_t {
 	char graph_files[MAX_LOGO_FILE_NUMBER+1][MAX_PATH];
 	int graph_interval;
-	struct timed_rect_t log_pos[MAX_LOGO_POS_NUMBER];
+	timed_rect_t log_pos[MAX_LOGO_POS_NUMBER];
 	int relativePos;
 	float offsetx;
 	float offsety;
@@ -352,10 +354,10 @@ struct filter_deint_config_t {
 };
 
 struct filter_config_t {
-	struct filter_color_config_t color;
-	struct filter_noise_config_t noise;
-	struct filter_denoise_config_t denoise;
-	struct filter_deint_config_t deint;
+	filter_color_config_t color;
+	filter_noise_config_t noise;
+	filter_denoise_config_t denoise;
+	filter_deint_config_t deint;
 };
 
 #define X264_ZONE_NUM 2
@@ -374,7 +376,7 @@ enum {
 
 struct codec_addition_t {
 	char option[BUF_LEN*4+1];
-	struct x264_zone_t* x264Zones[X264_ZONE_NUM]; 
+	x264_zone_t* x264Zones[X264_ZONE_NUM]; 
 };
 
 struct segment_t {
@@ -418,32 +420,36 @@ struct thumbnail_t {
 	int width;			// Thumbnail width
 	int height;			// Thumbnail height
 	int quality;		// Jpeg quality(max:100->best)
+	char postfix[64];	// Postfix of thumbnail name
 	bool bStitch;		// Stitch thumbnails to bigger image
 	bool bPack;			// Pack thumbnail to ipk file
 	bool bOptimize;		// Whether optimize jpeg image
 };
 
 struct target_config_t {
-	struct audio_codec_t acodec;
-	struct video_codec_t vcodec;
+	audio_codec_t acodec;
+	video_codec_t vcodec;
 	float subtitle_timeshift;		// sec
 	int   sub_id;
-	struct logo_config_t logo;
-	struct filter_config_t filter;
+	logo_config_t logo;
+	filter_config_t filter;
 	char container_format[BUF_LEN];
-	struct codec_addition_t codecConfig[ADDITION_OPTION_NUMBER];
-	struct segment_t segmentConfig;
-	struct playlist_t playlistConfig;
-	struct image_src_t imageTail;
-	struct thumbnail_t thumbnail;
-	struct hls_t hlsConfig;
+	codec_addition_t codecConfig[ADDITION_OPTION_NUMBER];
+	segment_t segmentConfig;
+	playlist_t playlistConfig;
+	image_src_t imageTail;
+	thumbnail_t thumbnails[MAX_THUMBNAIL_NUM];
+	hls_t hlsConfig;
 	int ignoreErrIdx;	// ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)
 	int coresNum;
+	int disable_audio;	
+	int disable_video;
+	int disable_muxer;
 };
 
 typedef struct {
-	struct source_config_t source;
-	struct target_config_t target;
+	source_config_t source;
+	target_config_t target;
 } transcode_config_t;
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -616,6 +622,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 	config->target.vcodec.lower_bitrate = 1;	// Default enable lower bitrate
 	config->target.vcodec.video_enhance	= 1;	// Default enable video enhance
 	config->target.vcodec.bframes = -1;
+	config->target.vcodec.encoding = 1;
 	config->target.acodec.autoVolGain = 1;		// Default enable volume auto gain
 	config->target.vcodec.brdown = 1;
 	config->target.acodec.brdown = 1;
@@ -744,154 +751,174 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 		}
 		//target audio
 		if (xmlConfig.findChildNode("audio") != NULL) {
-			if (xmlConfig.findChildNode("codec") != NULL || xmlConfig.findChildNode("codes") != NULL) {
-				//format
-				const char *format = xmlConfig.getAttribute("format");
-				if (format != NULL) {
-					strncpy(config->target.acodec.name, format, BUF_LEN);
-				}
-				//bitrate
-				const char *bitrate = xmlConfig.getAttribute("bitrate");
-				if (bitrate != NULL) {
-					config->target.acodec.bitrate = atoi(bitrate);
-					if (bitrate[strlen(bitrate) - 1] != 'k' &&  bitrate[strlen(bitrate) - 1] != 'K') {
-						config->target.acodec.bitrate /= 1000;
+			const char* disableStr = xmlConfig.getAttribute("disable");
+			bool bEnableAudio = true;
+			if(disableStr && !_stricmp(disableStr, "true")) {
+				bEnableAudio = false;
+				config->target.disable_audio = 1;
+			}
+			if(bEnableAudio) {
+				if (xmlConfig.findChildNode("codec") != NULL || xmlConfig.findChildNode("codes") != NULL) {
+					//format
+					const char *format = xmlConfig.getAttribute("format");
+					if (format != NULL) {
+						strncpy(config->target.acodec.name, format, BUF_LEN);
 					}
-				}
-				//samplerate
-				config->target.acodec.samplerate = xmlConfig.getAttributeInt("samplerate");
-				//timeshift (ms)
-				config->target.acodec.timeshift = (int)(xmlConfig.getAttributeFloat("timeshift") * 1000);
+					//bitrate
+					const char *bitrate = xmlConfig.getAttribute("bitrate");
+					if (bitrate != NULL) {
+						config->target.acodec.bitrate = atoi(bitrate);
+						if (bitrate[strlen(bitrate) - 1] != 'k' &&  bitrate[strlen(bitrate) - 1] != 'K') {
+							config->target.acodec.bitrate /= 1000;
+						}
+					}
+					//samplerate
+					config->target.acodec.samplerate = xmlConfig.getAttributeInt("samplerate");
+					//timeshift (ms)
+					config->target.acodec.timeshift = (int)(xmlConfig.getAttributeFloat("timeshift") * 1000);
 				
-				const char* brdown = xmlConfig.getAttribute("brdown");
-				if(brdown && !_stricmp(brdown, "false")) {
-					config->target.acodec.brdown = 0;
+					const char* brdown = xmlConfig.getAttribute("brdown");
+					if(brdown && !_stricmp(brdown, "false")) {
+						config->target.acodec.brdown = 0;
+					}
+
+					xmlConfig.goParent();
 				}
 
-				xmlConfig.goParent();
-			}
-
-			// volume control
-			if (xmlConfig.findChildNode("volgain") != NULL) {
-				config->target.acodec.volGain = xmlConfig.getAttributeFloat("value");
-				const char* gainMode = xmlConfig.getAttribute("mode");
-				if(gainMode && _stricmp(gainMode, "manual") == 0) {
-					config->target.acodec.autoVolGain = 0;
+				// volume control
+				if (xmlConfig.findChildNode("volgain") != NULL) {
+					config->target.acodec.volGain = xmlConfig.getAttributeFloat("value");
+					const char* gainMode = xmlConfig.getAttribute("mode");
+					if(gainMode && _stricmp(gainMode, "manual") == 0) {
+						config->target.acodec.autoVolGain = 0;
+					}
+					xmlConfig.goParent();
 				}
-				xmlConfig.goParent();
 			}
-
 			xmlConfig.goParent();
 		}
 
 		//target video
 		if (xmlConfig.findChildNode("video") != NULL) {
-			if (xmlConfig.findChildNode("rcmode") != NULL) {
-				int rcMode = xmlConfig.getNodeValueInt();
-				if(rcMode >= 1 && rcMode <= 4) {
-					config->target.vcodec.rcmode = rcMode;
-				}
-				xmlConfig.goParent();
+			const char* disableStr = xmlConfig.getAttribute("disable");
+			bool bEnableVideo = true;
+			if(disableStr && !_stricmp(disableStr, "true")) {
+				bEnableVideo = false;
+				config->target.disable_video = 1;
 			}
 
-			if (xmlConfig.findChildNode("codec") != NULL) {
-				//format
-				const char *format = xmlConfig.getAttribute("format");
-				if (format != NULL) {
-					strncpy(config->target.vcodec.name, format, BUF_LEN);
-				}
-				//bitrate
-				const char *bitrate = xmlConfig.getAttribute("bitrate");
-				if (bitrate != NULL) {
-					config->target.vcodec.bitrate = atoi(bitrate);
-					if (bitrate[strlen(bitrate) - 1] != 'k' && bitrate[strlen(bitrate) - 1] != 'K') {
-						config->target.vcodec.bitrate /= 1000;
+			if(bEnableVideo) {
+				if (xmlConfig.findChildNode("rcmode") != NULL) {
+					int rcMode = xmlConfig.getNodeValueInt();
+					if(rcMode >= 1 && rcMode <= 4) {
+						config->target.vcodec.rcmode = rcMode;
 					}
-				}
-				//rectangle
-				ParseRect(xmlConfig.getAttribute("rectangle"), &(config->target.vcodec.rect));
-				//pos
-				ParseRect(xmlConfig.getAttribute("position"), &(config->target.vcodec.pos));
-
-				// Dimension no bigger than the original size
-				const char* nobigger = xmlConfig.getAttribute("nobigger");
-				if(nobigger && strcmp(nobigger, "true") == 0) {
-					config->target.vcodec.dim_nobigger = 1;
-				} else {
-					config->target.vcodec.dim_nobigger = 0;
+					xmlConfig.goParent();
 				}
 
-				const char* brdown = xmlConfig.getAttribute("brdown");
-				if(brdown && !_stricmp(brdown, "false")) {
-					config->target.vcodec.brdown = 0;
-				}
-				xmlConfig.goParent();
-			}
+				if (xmlConfig.findChildNode("codec") != NULL) {
+					//format
+					const char *format = xmlConfig.getAttribute("format");
+					if (format != NULL) {
+						strncpy(config->target.vcodec.name, format, BUF_LEN);
+					}
+					//bitrate
+					const char *bitrate = xmlConfig.getAttribute("bitrate");
+					if (bitrate != NULL) {
+						config->target.vcodec.bitrate = atoi(bitrate);
+						if (bitrate[strlen(bitrate) - 1] != 'k' && bitrate[strlen(bitrate) - 1] != 'K') {
+							config->target.vcodec.bitrate /= 1000;
+						}
+					}
+					//rectangle
+					ParseRect(xmlConfig.getAttribute("rectangle"), &(config->target.vcodec.rect));
+					//pos
+					ParseRect(xmlConfig.getAttribute("position"), &(config->target.vcodec.pos));
 
-			if (xmlConfig.findChildNode("fps") != NULL) {
-				int fpsIndex = xmlConfig.getNodeValueInt();
-				int fpsNum = 0, fpsDen = 0;
-				switch(fpsIndex) {
-				case 1: fpsNum = 8; fpsDen = 1; break;
-				case 2: fpsNum = 12; fpsDen = 1; break;
-				case 3: fpsNum = 15; fpsDen = 1; break;
-				case 4: fpsNum = 18; fpsDen = 1; break;
-				case 5: fpsNum = 20; fpsDen = 1; break;
-				case 6: fpsNum = 24000; fpsDen = 1001; break;
-				case 7: fpsNum = 24; fpsDen = 1; break;
-				case 8: fpsNum = 25; fpsDen = 1; break;
-				case 9: fpsNum = 30000; fpsDen = 1001; break;
-				case 10: fpsNum = 30; fpsDen = 1; break;
-				case 11: fpsNum = 5; fpsDen = 1; break;
-				case 12: fpsNum = 10; fpsDen = 1; break;
-				case 13: fpsNum = 6; fpsDen = 1; break;
-				case 14: fpsNum = 7; fpsDen = 1; break;
-				}
-				config->target.vcodec.fpsNum = fpsNum;
-				config->target.vcodec.fpsDen = fpsDen;
-				xmlConfig.goParent();
-			}
-			if (xmlConfig.findChildNode("dar") != NULL) {
-				float darValue = xmlConfig.getNodeValueFloat();
-				int darNum = 0, darDen = 0;
-				if(darValue > 0.001f) {
-					GetFraction(darValue, &darNum, &darDen);
-				}
-				config->target.vcodec.darNum = darNum;
-				config->target.vcodec.darDen = darDen;
-				xmlConfig.goParent();
-			}
-			if (xmlConfig.findChildNode("keyint") != NULL) {
-				int keyint = xmlConfig.getNodeValueInt();
-				if(keyint >= 0) {
-					config->target.vcodec.keyint = keyint;
-				}
-				xmlConfig.goParent();
-			}
-			if (xmlConfig.findChildNode("ref") != NULL) {
-				int reframes = xmlConfig.getNodeValueInt();
-				if(reframes > 0) {
-					config->target.vcodec.reframes = reframes;
-				}
-				xmlConfig.goParent();
-			}
-			if (xmlConfig.findChildNode("bframes") != NULL) {
-				int bframes = xmlConfig.getNodeValueInt();
-				if(bframes >= 0) {
-					config->target.vcodec.bframes = bframes;
-				}
-				xmlConfig.goParent();
-			}
-			if (xmlConfig.findChildNode("lowerbitrate") != NULL) {
-				config->target.vcodec.lower_bitrate = xmlConfig.getNodeValueInt();
-				xmlConfig.goParent();
-			}
+					// Dimension no bigger than the original size
+					const char* nobigger = xmlConfig.getAttribute("nobigger");
+					if(nobigger && strcmp(nobigger, "true") == 0) {
+						config->target.vcodec.dim_nobigger = 1;
+					} else {
+						config->target.vcodec.dim_nobigger = 0;
+					}
 
-			if (xmlConfig.findChildNode("videoenhance") != NULL) {
-				config->target.vcodec.video_enhance = xmlConfig.getNodeValueInt();
-				xmlConfig.goParent();
+					const char* brdown = xmlConfig.getAttribute("brdown");
+					if(brdown && !_stricmp(brdown, "false")) {
+						config->target.vcodec.brdown = 0;
+					}
+
+					const char* encodeStr = xmlConfig.getAttribute("encode");
+					if(encodeStr && !_stricmp(encodeStr, "false")) {
+						config->target.vcodec.encoding = 0;
+					}
+					xmlConfig.goParent();
+				}
+
+				if (xmlConfig.findChildNode("fps") != NULL) {
+					int fpsIndex = xmlConfig.getNodeValueInt();
+					int fpsNum = 0, fpsDen = 0;
+					switch(fpsIndex) {
+					case 1: fpsNum = 8; fpsDen = 1; break;
+					case 2: fpsNum = 12; fpsDen = 1; break;
+					case 3: fpsNum = 15; fpsDen = 1; break;
+					case 4: fpsNum = 18; fpsDen = 1; break;
+					case 5: fpsNum = 20; fpsDen = 1; break;
+					case 6: fpsNum = 24000; fpsDen = 1001; break;
+					case 7: fpsNum = 24; fpsDen = 1; break;
+					case 8: fpsNum = 25; fpsDen = 1; break;
+					case 9: fpsNum = 30000; fpsDen = 1001; break;
+					case 10: fpsNum = 30; fpsDen = 1; break;
+					case 11: fpsNum = 5; fpsDen = 1; break;
+					case 12: fpsNum = 10; fpsDen = 1; break;
+					case 13: fpsNum = 6; fpsDen = 1; break;
+					case 14: fpsNum = 7; fpsDen = 1; break;
+					}
+					config->target.vcodec.fpsNum = fpsNum;
+					config->target.vcodec.fpsDen = fpsDen;
+					xmlConfig.goParent();
+				}
+				if (xmlConfig.findChildNode("dar") != NULL) {
+					float darValue = xmlConfig.getNodeValueFloat();
+					int darNum = 0, darDen = 0;
+					if(darValue > 0.001f) {
+						GetFraction(darValue, &darNum, &darDen);
+					}
+					config->target.vcodec.darNum = darNum;
+					config->target.vcodec.darDen = darDen;
+					xmlConfig.goParent();
+				}
+				if (xmlConfig.findChildNode("keyint") != NULL) {
+					int keyint = xmlConfig.getNodeValueInt();
+					if(keyint >= 0) {
+						config->target.vcodec.keyint = keyint;
+					}
+					xmlConfig.goParent();
+				}
+				if (xmlConfig.findChildNode("ref") != NULL) {
+					int reframes = xmlConfig.getNodeValueInt();
+					if(reframes > 0) {
+						config->target.vcodec.reframes = reframes;
+					}
+					xmlConfig.goParent();
+				}
+				if (xmlConfig.findChildNode("bframes") != NULL) {
+					int bframes = xmlConfig.getNodeValueInt();
+					if(bframes >= 0) {
+						config->target.vcodec.bframes = bframes;
+					}
+					xmlConfig.goParent();
+				}
+				if (xmlConfig.findChildNode("lowerbitrate") != NULL) {
+					config->target.vcodec.lower_bitrate = xmlConfig.getNodeValueInt();
+					xmlConfig.goParent();
+				}
+
+				if (xmlConfig.findChildNode("videoenhance") != NULL) {
+					config->target.vcodec.video_enhance = xmlConfig.getNodeValueInt();
+					xmlConfig.goParent();
+				}
 			}
-			
 			xmlConfig.goParent();
 		}
 
@@ -1046,11 +1073,21 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 
 		//target container
 		if (xmlConfig.findChildNode("mux") != NULL) {
-			//format
-			const char *format = xmlConfig.getAttribute("format");
-			if (format != NULL) {
-				strncpy(config->target.container_format, format, BUF_LEN);
+			const char* disableStr = xmlConfig.getAttribute("disable");
+			bool bEnableMux = true;
+			if(disableStr && !_stricmp(disableStr, "true")) {
+				bEnableMux = false;
+				config->target.disable_muxer = 1;
 			}
+
+			//format
+			if(bEnableMux) {
+				const char *format = xmlConfig.getAttribute("format");
+				if (format != NULL) {
+					strncpy(config->target.container_format, format, BUF_LEN);
+				}
+			}
+			
 			xmlConfig.goParent();
 		}
 
@@ -1139,33 +1176,73 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 
 		// Thumbnail
 		if (xmlConfig.findChildNode("thumbnail") != NULL) {
-			config->target.thumbnail.start = ParsingTimeString(xmlConfig.getAttribute("start"));
-			config->target.thumbnail.end = ParsingTimeString(xmlConfig.getAttribute("end"));
-			config->target.thumbnail.interval = xmlConfig.getAttributeInt("interval");
-			config->target.thumbnail.row = xmlConfig.getAttributeInt("row");
-			config->target.thumbnail.col = xmlConfig.getAttributeInt("col");
-			config->target.thumbnail.type = xmlConfig.getAttributeInt("type");
-			config->target.thumbnail.count = xmlConfig.getAttributeInt("count");
-			config->target.thumbnail.width = xmlConfig.getAttributeInt("width");
-			config->target.thumbnail.height = xmlConfig.getAttributeInt("height");
-			config->target.thumbnail.quality = xmlConfig.getAttributeInt("quality");
+			config->target.thumbnails[0].start = ParsingTimeString(xmlConfig.getAttribute("start"));
+			config->target.thumbnails[0].end = ParsingTimeString(xmlConfig.getAttribute("end"));
+			config->target.thumbnails[0].interval = xmlConfig.getAttributeInt("interval");
+			config->target.thumbnails[0].row = xmlConfig.getAttributeInt("row");
+			config->target.thumbnails[0].col = xmlConfig.getAttributeInt("col");
+			config->target.thumbnails[0].type = xmlConfig.getAttributeInt("type");
+			config->target.thumbnails[0].count = xmlConfig.getAttributeInt("count");
+			config->target.thumbnails[0].width = xmlConfig.getAttributeInt("width");
+			config->target.thumbnails[0].height = xmlConfig.getAttributeInt("height");
+			config->target.thumbnails[0].quality = xmlConfig.getAttributeInt("quality");
 			const char* stitchStr = xmlConfig.getAttribute("stitch");
 			const char* packStr = xmlConfig.getAttribute("pack");
 			const char* optimizeStr = xmlConfig.getAttribute("optimize");
+			const char* postfixStr = xmlConfig.getAttribute("postfix");
 			if(stitchStr && !_stricmp(stitchStr, "true")) {
-				config->target.thumbnail.bStitch = true;
+				config->target.thumbnails[0].bStitch = true;
 			} else {
-				config->target.thumbnail.bStitch = false;
+				config->target.thumbnails[0].bStitch = false;
 			}
 			if(packStr && !_stricmp(packStr, "true")) {
-				config->target.thumbnail.bPack = true;
+				config->target.thumbnails[0].bPack = true;
 			} else {
-				config->target.thumbnail.bPack = false;
+				config->target.thumbnails[0].bPack = false;
 			}
 			if(optimizeStr && !_stricmp(optimizeStr, "true")) {
-				config->target.thumbnail.bOptimize = true;
+				config->target.thumbnails[0].bOptimize = true;
 			} else {
-				config->target.thumbnail.bOptimize = false;
+				config->target.thumbnails[0].bOptimize = false;
+			}
+			if(postfixStr && *postfixStr) {
+				strncpy(config->target.thumbnails[0].postfix, postfixStr, 63);
+			}
+			
+			// Parse another thumbnail
+			if(xmlConfig.findNextNode("thumbnail")) {
+				config->target.thumbnails[1].start = ParsingTimeString(xmlConfig.getAttribute("start"));
+				config->target.thumbnails[1].end = ParsingTimeString(xmlConfig.getAttribute("end"));
+				config->target.thumbnails[1].interval = xmlConfig.getAttributeInt("interval");
+				config->target.thumbnails[1].row = xmlConfig.getAttributeInt("row");
+				config->target.thumbnails[1].col = xmlConfig.getAttributeInt("col");
+				config->target.thumbnails[1].type = xmlConfig.getAttributeInt("type");
+				config->target.thumbnails[1].count = xmlConfig.getAttributeInt("count");
+				config->target.thumbnails[1].width = xmlConfig.getAttributeInt("width");
+				config->target.thumbnails[1].height = xmlConfig.getAttributeInt("height");
+				config->target.thumbnails[1].quality = xmlConfig.getAttributeInt("quality");
+				const char* stitchStr = xmlConfig.getAttribute("stitch");
+				const char* packStr = xmlConfig.getAttribute("pack");
+				const char* optimizeStr = xmlConfig.getAttribute("optimize");
+				const char* postfixStr = xmlConfig.getAttribute("postfix");
+				if(stitchStr && !_stricmp(stitchStr, "true")) {
+					config->target.thumbnails[1].bStitch = true;
+				} else {
+					config->target.thumbnails[1].bStitch = false;
+				}
+				if(packStr && !_stricmp(packStr, "true")) {
+					config->target.thumbnails[1].bPack = true;
+				} else {
+					config->target.thumbnails[1].bPack = false;
+				}
+				if(optimizeStr && !_stricmp(optimizeStr, "true")) {
+					config->target.thumbnails[1].bOptimize = true;
+				} else {
+					config->target.thumbnails[1].bOptimize = false;
+				}
+				if(postfixStr && *postfixStr) {
+					strncpy(config->target.thumbnails[1].postfix, postfixStr, 63);
+				}
 			}
 			xmlConfig.goParent();
 		}
@@ -1386,142 +1463,149 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		}
 	}
 
+	int idx = 0;
 	////////////////////////////////////////////////////////////////////////////
 	//audio
-	struct {
-		const char * name;
-		int fmt;
-		const char *psz_fmt;
-		int encoder;
-		const char *psz_encoder;
-	} audio_map[] = {
-		/*{"aac", AC_AAC_HE, "HE-AAC", AE_NEROREF, "Nero Encoder"},
-		{"lcaac", AC_AAC_LC, "LC-AAC", AE_FAAC, "FAAC"},*/
-		{"aac", AC_AAC_HE, "HE-AAC", AE_FDK, "FDK AAC"},
-		{"lcaac", AC_AAC_LC, "LC-AAC", AE_FDK, "FDK AAC"},
-		{"mp3", AC_MP3, "MP3", AE_FFMPEG, "FFmpeg"},
-		{"mp2", AC_MP2, "MP2", AE_FFMPEG, "FFmpeg"},
-		{"ac3", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
-		{"eac3", AC_EAC3, "E-AC3", AE_DOLBY, "Dolby Encoder"},
-		{"copy", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
-        {"amr", AC_AMR, "AMR", AE_FFMPEG, "FFmpeg"}, 
-        {"disable", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},		
-		{"", 0, 0}
-	};
+	if(!conf.target.disable_audio) {
+		struct {
+			const char * name;
+			int fmt;
+			const char *psz_fmt;
+			int encoder;
+			const char *psz_encoder;
+		} audio_map[] = {
+			/*{"aac", AC_AAC_HE, "HE-AAC", AE_NEROREF, "Nero Encoder"},
+			{"lcaac", AC_AAC_LC, "LC-AAC", AE_FAAC, "FAAC"},*/
+			{"aac", AC_AAC_HE, "HE-AAC", AE_FDK, "FDK AAC"},
+			{"lcaac", AC_AAC_LC, "LC-AAC", AE_FDK, "FDK AAC"},
+			{"mp3", AC_MP3, "MP3", AE_FFMPEG, "FFmpeg"},
+			{"mp2", AC_MP2, "MP2", AE_FFMPEG, "FFmpeg"},
+			{"ac3", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
+			{"eac3", AC_EAC3, "E-AC3", AE_DOLBY, "Dolby Encoder"},
+			{"copy", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},
+			{"amr", AC_AMR, "AMR", AE_FFMPEG, "FFmpeg"}, 
+			{"disable", AC_AC3, "AC3", AE_FFMPEG, "FFmpeg"},		
+			{"", 0, 0}
+		};
 
-	// Audio track selection
-	if(conf.source.track_config > 0) {
-		prefs.SetStreamPref("extension.audio.tracknum", conf.source.track_config, STAUDIO);
-	}
-
-	if(conf.source.audio_stream > 0) {
-		prefs.SetStreamPref("extension.audio.track1", conf.source.audio_stream, STAUDIO);
-	}
-
-	int idx = 0;
-	for (; *audio_map[idx].name != '\0'; idx++) {
-		if (strcmp(conf.target.acodec.name, audio_map[idx].name) == 0) {
-			break;
+		// Audio track selection
+		if(conf.source.track_config > 0) {
+			prefs.SetStreamPref("extension.audio.tracknum", conf.source.track_config, STAUDIO);
 		}
-	}
 
-	if(idx == 0 && conf.target.acodec.bitrate >= 96) {
-		idx = 1;	// If bitrate > 96 use faac instead of neroAacEnc
-	}
+		if(conf.source.audio_stream > 0) {
+			prefs.SetStreamPref("extension.audio.track1", conf.source.audio_stream, STAUDIO);
+		}
+
+		for (; *audio_map[idx].name != '\0'; idx++) {
+			if (strcmp(conf.target.acodec.name, audio_map[idx].name) == 0) {
+				break;
+			}
+		}
+
+		if(idx == 0 && conf.target.acodec.bitrate >= 96) {
+			idx = 1;	// If bitrate > 96 use faac instead of neroAacEnc
+		}
         
-    if(strcmp(conf.target.acodec.name, "disable") == 0) {   // disable audio
-        prefs.SetStreamPref("overall.audio.enabled", false, STAUDIO);
-	}
-
-    if(strcmp(conf.target.acodec.name, "copy") == 0) {	// Copy audio
-		prefs.SetStreamPref("overall.audio.copy", true, STAUDIO);
-		prefs.SetStreamPref("overall.video.autoSource", false, STVIDEO);
-	}
-
-	prefs.SetStreamPref("overall.audio.format", audio_map[idx].psz_fmt, STAUDIO);
-	prefs.SetStreamPref("overall.audio.encoder", audio_map[idx].psz_encoder, STAUDIO);
-
-	if (audio_map[idx].encoder == AE_NEROREF) {
-		prefs.SetStreamPref("audioenc.nero.mode", 1, STAUDIO);
-	} else if(audio_map[idx].encoder == AE_DOLBY) {	// E-AC3 only support 48k samplerate, should up sample
-		prefs.SetStreamPref("audiofilter.resample.downSamplingOnly", false, STAUDIO);
-	} else if (audio_map[idx].encoder == AE_FDK) {
-		if (audio_map[idx].fmt == AC_AAC_LC) {
-			prefs.SetStreamPref("audioenc.fdkaac.profile", "MPEG4 LC", STAUDIO);
+		if(strcmp(conf.target.acodec.name, "disable") == 0) {   // disable audio
+			prefs.SetStreamPref("overall.audio.enabled", false, STAUDIO);
 		}
-	}
 
-	if (conf.target.acodec.bitrate > 0) {
-		prefs.SetStreamPref("audioenc.faac.bitrate", conf.target.acodec.bitrate, STAUDIO);
-		prefs.SetStreamPref("audioenc.fdkaac.bitrate", conf.target.acodec.bitrate, STAUDIO);
-		prefs.SetStreamPref("audioenc.ffmpeg.bitrate", conf.target.acodec.bitrate, STAUDIO);
-		prefs.SetStreamPref("audioenc.nero.bitrate", conf.target.acodec.bitrate, STAUDIO);
-		int dolbyBrcode = 0;
-		if(conf.target.acodec.bitrate <= 96) {
-			dolbyBrcode = 0;
-		} else if(conf.target.acodec.bitrate <= 192) {
-			dolbyBrcode = 1;
-		} else if(conf.target.acodec.bitrate <= 256) {
-			dolbyBrcode = 2;
-		} else if(conf.target.acodec.bitrate <= 384) {
-			dolbyBrcode = 3;
-		} else if(conf.target.acodec.bitrate <= 448) {
-			dolbyBrcode = 4;
-		} else {
-			dolbyBrcode = 5;
+		if(strcmp(conf.target.acodec.name, "copy") == 0) {	// Copy audio
+			prefs.SetStreamPref("overall.audio.copy", true, STAUDIO);
+			prefs.SetStreamPref("overall.video.autoSource", false, STVIDEO);
 		}
-		prefs.SetStreamPref("audioenc.dolby.bitrate", dolbyBrcode, STAUDIO);
-		prefs.SetStreamPref("audioenc.faac.mode", 1, STAUDIO);
-	}
 
-	if (conf.target.acodec.samplerate > 0) {
-		prefs.SetStreamPref("audiofilter.resample.samplerate", conf.target.acodec.samplerate, STAUDIO);
-	}
+		prefs.SetStreamPref("overall.audio.format", audio_map[idx].psz_fmt, STAUDIO);
+		prefs.SetStreamPref("overall.audio.encoder", audio_map[idx].psz_encoder, STAUDIO);
 
-	if(conf.target.acodec.brdown == 0) {
-		prefs.SetStreamPref("audiofilter.extra.brdown", "false", STAUDIO);
-	}
+		if (audio_map[idx].encoder == AE_NEROREF) {
+			prefs.SetStreamPref("audioenc.nero.mode", 1, STAUDIO);
+		} else if(audio_map[idx].encoder == AE_DOLBY) {	// E-AC3 only support 48k samplerate, should up sample
+			prefs.SetStreamPref("audiofilter.resample.downSamplingOnly", false, STAUDIO);
+		} else if (audio_map[idx].encoder == AE_FDK) {
+			if (audio_map[idx].fmt == AC_AAC_LC) {
+				prefs.SetStreamPref("audioenc.fdkaac.profile", "MPEG4 LC", STAUDIO);
+			}
+		}
 
-	// channel
-	if(conf.source.mix == 1) {
-		prefs.SetStreamPref("audiofilter.channels.mix", 1, STAUDIO);
-		prefs.SetStreamPref("overall.audio.channels", 3, STAUDIO);
-		//prefs.SetStreamPref("audiofilter.volume.gain", 5, STAUDIO);
-	} else {
-		switch(conf.source.audio_channel) {
-		case 0:
-			prefs.SetStreamPref("overall.audio.channels", 1, STAUDIO);
-			break;
-		case 1:
-			prefs.SetStreamPref("overall.audio.channels", 2, STAUDIO);
-			break;
-		case 2:
+		if (conf.target.acodec.bitrate > 0) {
+			prefs.SetStreamPref("audioenc.faac.bitrate", conf.target.acodec.bitrate, STAUDIO);
+			prefs.SetStreamPref("audioenc.fdkaac.bitrate", conf.target.acodec.bitrate, STAUDIO);
+			prefs.SetStreamPref("audioenc.ffmpeg.bitrate", conf.target.acodec.bitrate, STAUDIO);
+			prefs.SetStreamPref("audioenc.nero.bitrate", conf.target.acodec.bitrate, STAUDIO);
+			int dolbyBrcode = 0;
+			if(conf.target.acodec.bitrate <= 96) {
+				dolbyBrcode = 0;
+			} else if(conf.target.acodec.bitrate <= 192) {
+				dolbyBrcode = 1;
+			} else if(conf.target.acodec.bitrate <= 256) {
+				dolbyBrcode = 2;
+			} else if(conf.target.acodec.bitrate <= 384) {
+				dolbyBrcode = 3;
+			} else if(conf.target.acodec.bitrate <= 448) {
+				dolbyBrcode = 4;
+			} else {
+				dolbyBrcode = 5;
+			}
+			prefs.SetStreamPref("audioenc.dolby.bitrate", dolbyBrcode, STAUDIO);
+			prefs.SetStreamPref("audioenc.faac.mode", 1, STAUDIO);
+		}
+
+		if (conf.target.acodec.samplerate > 0) {
+			prefs.SetStreamPref("audiofilter.resample.samplerate", conf.target.acodec.samplerate, STAUDIO);
+		}
+
+		if(conf.target.acodec.brdown == 0) {
+			prefs.SetStreamPref("audiofilter.extra.brdown", "false", STAUDIO);
+		}
+
+		// channel
+		if(conf.source.mix == 1) {
+			prefs.SetStreamPref("audiofilter.channels.mix", 1, STAUDIO);
 			prefs.SetStreamPref("overall.audio.channels", 3, STAUDIO);
-			break;
-		case 3:
-			prefs.SetStreamPref("overall.audio.channels", 0, STAUDIO);
-			break;
+			//prefs.SetStreamPref("audiofilter.volume.gain", 5, STAUDIO);
+		} else {
+			switch(conf.source.audio_channel) {
+			case 0:
+				prefs.SetStreamPref("overall.audio.channels", 1, STAUDIO);
+				break;
+			case 1:
+				prefs.SetStreamPref("overall.audio.channels", 2, STAUDIO);
+				break;
+			case 2:
+				prefs.SetStreamPref("overall.audio.channels", 3, STAUDIO);
+				break;
+			case 3:
+				prefs.SetStreamPref("overall.audio.channels", 0, STAUDIO);
+				break;
+			}
+		}
+		// audio decoder
+		if(conf.source.audio_decoder > 0) {
+			prefs.SetStreamPref("overall.video.autoSource", false, STVIDEO);
+			prefs.SetStreamPref("overall.audio.source", conf.source.audio_decoder, STAUDIO);
+		} 
+
+		// timeshift (ms)
+		int audioDelay = conf.target.acodec.timeshift;
+		if(audioDelay != 0) {
+			prefs.SetStreamPref("overall.audio.delay1", audioDelay, STAUDIO);
+		}
+
+		// audio volume adjustment
+		bool bAutoGain = conf.target.acodec.autoVolGain ? true : false;
+		prefs.SetStreamPref("audiofilter.volume.autoGain", bAutoGain, STAUDIO);
+
+		if(!FloatEqual(conf.target.acodec.volGain, 0.f)) {	// not zero
+			prefs.SetStreamPref("audiofilter.volume.gain", conf.target.acodec.volGain, STAUDIO);
+		}
+
+		if(conf.target.disable_audio) {
+			prefs.SetStreamPref("overall.audio.enabled", false, STAUDIO);
 		}
 	}
-	// audio decoder
-	if(conf.source.audio_decoder > 0) {
-		prefs.SetStreamPref("overall.video.autoSource", false, STVIDEO);
-		prefs.SetStreamPref("overall.audio.source", conf.source.audio_decoder, STAUDIO);
-	} 
-
-	// timeshift (ms)
-	int audioDelay = conf.target.acodec.timeshift;
-	if(audioDelay != 0) {
-		prefs.SetStreamPref("overall.audio.delay1", audioDelay, STAUDIO);
-	}
-
-	// audio volume adjustment
-	bool bAutoGain = conf.target.acodec.autoVolGain ? true : false;
-	prefs.SetStreamPref("audiofilter.volume.autoGain", bAutoGain, STAUDIO);
-
-	if(!FloatEqual(conf.target.acodec.volGain, 0.f)) {	// not zero
-		prefs.SetStreamPref("audiofilter.volume.gain", conf.target.acodec.volGain, STAUDIO);
-	}
+	
 
 	// ---------------video & filter----------------
 	struct {
@@ -1768,6 +1852,13 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		}
 	}
 
+	if(conf.target.disable_video) {
+		prefs.SetStreamPref("overall.video.enabled", false, STVIDEO);
+	}
+	if(conf.target.vcodec.encoding == 0) {
+		prefs.SetStreamPref("overall.video.encode", false, STVIDEO);
+	}
+	
 	// When resolution is small than 480, don't use psy, reduce FPS and key frame interval
 	//if(abs(480-picW) < abs(640-picW)) {		
 	//	prefs.SetStreamPref("videofilter.frame.enabled", true, STVIDEO);
@@ -1975,132 +2066,139 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	//conf.target.filter.noise
 
 	// ----------------------container------------------------------
-	struct {
-		const char * name;
-		int fmt;
-		const char * psz_fmt;
-		int muxer;
-		const char * psz_muxer;
-	} container_map[] = {
-		{"3gp", CF_3GP, "3GP", MUX_MP4, "MP4Box"},
-		{"3gp2", CF_3GP2, "3GP2", MUX_MP4, "MP4Box"},
-		{"mp4", CF_MP4, "MP4", MUX_MP4, "MP4Box"},
-		{"flv", CF_FLV, "FLV", MUX_FLV, "FLVMuxer"},
-		{"f4v", CF_F4V, "F4V", MUX_MP4, "MP4Box"},
-		{"mkv", CF_MKV, "Matroska", MUX_MKV, "MKVMerge"},
-		{"ts", CF_MPEG2TS, "MPEG TS", MUX_TSMUXER, "TSMuxer"},
-		{"hls", CF_HLS, "HLS", MUX_MP4, "MP4Box"},
-		{"", 0, 0}
-	};
+	if(!conf.target.disable_muxer) {
+		struct {
+			const char * name;
+			int fmt;
+			const char * psz_fmt;
+			int muxer;
+			const char * psz_muxer;
+		} container_map[] = {
+			{"3gp", CF_3GP, "3GP", MUX_MP4, "MP4Box"},
+			{"3gp2", CF_3GP2, "3GP2", MUX_MP4, "MP4Box"},
+			{"mp4", CF_MP4, "MP4", MUX_MP4, "MP4Box"},
+			{"flv", CF_FLV, "FLV", MUX_FLV, "FLVMuxer"},
+			{"f4v", CF_F4V, "F4V", MUX_MP4, "MP4Box"},
+			{"mkv", CF_MKV, "Matroska", MUX_MKV, "MKVMerge"},
+			{"ts", CF_MPEG2TS, "MPEG TS", MUX_TSMUXER, "TSMuxer"},
+			{"hls", CF_HLS, "HLS", MUX_MP4, "MP4Box"},
+			{"", 0, 0}
+		};
 
-	for (idx = 0; *container_map[idx].name != '\0'; idx++) {
-		if (_stricmp(container_map[idx].name, conf.target.container_format) == 0) {
-			break;
+		for (idx = 0; *container_map[idx].name != '\0'; idx++) {
+			if (_stricmp(container_map[idx].name, conf.target.container_format) == 0) {
+				break;
+			}
 		}
-	}
 
-	prefs.SetStreamPref("overall.container.format", container_map[idx].psz_fmt, STMUXER);
-	prefs.SetStreamPref("overall.container.muxer", container_map[idx].psz_muxer, STMUXER);
+		prefs.SetStreamPref("overall.container.format", container_map[idx].psz_fmt, STMUXER);
+		prefs.SetStreamPref("overall.container.muxer", container_map[idx].psz_muxer, STMUXER);
 
-	if(idx == 6) {	// Muxer is TS
-		prefs.SetStreamPref("muxer.tsmuxer.vbrmax", conf.target.vcodec.bitrate*3, STMUXER);
-		// zoominla(preset for Jilin guangdian)
-		/*prefs.SetStreamPref("videofilter.frame.enabled", true, STVIDEO);
-		prefs.SetStreamPref("videofilter.frame.fps", 25, STVIDEO);
-		prefs.SetStreamPref("videofilter.frame.fpsScale", 1, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.weight_p", 2, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.bframes", 3, STVIDEO);
-        prefs.SetStreamPref("videoenc.x264.frameref", 3, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.keyint", 24, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.keyint_min", 24, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.b_adapt", 0, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.b_pyramid", 0, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.me_range", 16, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.subme", 7, STVIDEO);
-		prefs.SetStreamPref("audiofilter.extra.brdown", false, STAUDIO);
-		prefs.SetStreamPref("videofilter.extra.brdown", false, STVIDEO);
-		prefs.SetStreamPref("videofilter.scale.scaleDown", false, STVIDEO);*/
+		if(idx == 6) {	// Muxer is TS
+			prefs.SetStreamPref("muxer.tsmuxer.vbrmax", conf.target.vcodec.bitrate*3, STMUXER);
+			// zoominla(preset for Jilin guangdian)
+			/*prefs.SetStreamPref("videofilter.frame.enabled", true, STVIDEO);
+			prefs.SetStreamPref("videofilter.frame.fps", 25, STVIDEO);
+			prefs.SetStreamPref("videofilter.frame.fpsScale", 1, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.weight_p", 2, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.bframes", 3, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.frameref", 3, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.keyint", 24, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.keyint_min", 24, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.b_adapt", 0, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.b_pyramid", 0, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.me_range", 16, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.subme", 7, STVIDEO);
+			prefs.SetStreamPref("audiofilter.extra.brdown", false, STAUDIO);
+			prefs.SetStreamPref("videofilter.extra.brdown", false, STVIDEO);
+			prefs.SetStreamPref("videofilter.scale.scaleDown", false, STVIDEO);*/
 		
 		
-		// When encoding TS format, input ts file must be good source, use lavf demuxer
-		/*
-		conf.source.demuxer = 1;
-		if (conf.target.vcodec.bitrate > 0) {
-			prefs.SetStreamPref("videoenc.x264.vbv_maxrate", conf.target.vcodec.bitrate, STVIDEO);
-			prefs.SetStreamPref("videoenc.x264.vbv_bufsize", conf.target.vcodec.bitrate/3, STVIDEO);
-			prefs.SetStreamPref("muxer.tsmuxer.cbrrate", conf.target.vcodec.bitrate+200, STMUXER);
-		}
-		prefs.SetStreamPref("muxer.tsmuxer.mode", 2, STMUXER);
-		prefs.SetStreamPref("videoenc.x264.profile", "Main", STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.weight_p", 2, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.bframes", 3, STVIDEO);
-        prefs.SetStreamPref("videoenc.x264.frameref", 3, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.keyint", 50, STVIDEO);
-		prefs.SetStreamPref("videoenc.x264.nalhrd", 2, STVIDEO);
-		if(destW > 0 && destH > 0) {	// If output width & height are set, ts output
-			// Add black band to reach 720p ts output
-			prefs.SetStreamPref("videofilter.crop.mode", 3, STVIDEO);
-		}
-		*/
-	} else if(idx <= 2) {	// Mp4/3GP/3GP2
-		// Change muxer according to video codec and mux format
-		if(idx == 0 && conf.target.vcodec.name && !_stricmp(conf.target.vcodec.name, "xvid")) {
-			prefs.SetStreamPref("overall.container.muxer", "FFmpeg", STMUXER);
-		}
+			// When encoding TS format, input ts file must be good source, use lavf demuxer
+			/*
+			conf.source.demuxer = 1;
+			if (conf.target.vcodec.bitrate > 0) {
+				prefs.SetStreamPref("videoenc.x264.vbv_maxrate", conf.target.vcodec.bitrate, STVIDEO);
+				prefs.SetStreamPref("videoenc.x264.vbv_bufsize", conf.target.vcodec.bitrate/3, STVIDEO);
+				prefs.SetStreamPref("muxer.tsmuxer.cbrrate", conf.target.vcodec.bitrate+200, STMUXER);
+			}
+			prefs.SetStreamPref("muxer.tsmuxer.mode", 2, STMUXER);
+			prefs.SetStreamPref("videoenc.x264.profile", "Main", STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.weight_p", 2, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.bframes", 3, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.frameref", 3, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.keyint", 50, STVIDEO);
+			prefs.SetStreamPref("videoenc.x264.nalhrd", 2, STVIDEO);
+			if(destW > 0 && destH > 0) {	// If output width & height are set, ts output
+				// Add black band to reach 720p ts output
+				prefs.SetStreamPref("videofilter.crop.mode", 3, STVIDEO);
+			}
+			*/
+		} else if(idx <= 2) {	// Mp4/3GP/3GP2
+			// Change muxer according to video codec and mux format
+			if(idx == 0 && conf.target.vcodec.name && !_stricmp(conf.target.vcodec.name, "xvid")) {
+				prefs.SetStreamPref("overall.container.muxer", "FFmpeg", STMUXER);
+			}
 
-		prefs.SetStreamPref("overall.tagging.tag", true, STMUXER);
-		char cprtStr[64] = {0};
-		// Add dynamic segment strategy in copyright box
-		int firstSegSize = 4, commonSegSize = 40;
-		if(presetLevel == 1) {		// BD
-			firstSegSize = 18;
-			commonSegSize = 90;
-		} else if(presetLevel == 2) {	// CQ
-			firstSegSize = 12;
-			commonSegSize = 70;
-		} else if(presetLevel == 3) {	// HD
-			firstSegSize = 8;
-			commonSegSize = 40;
-		} else if(presetLevel == 4) {	// SD
-			firstSegSize = 4;
+			prefs.SetStreamPref("overall.tagging.tag", true, STMUXER);
+			char cprtStr[64] = {0};
+			// Add dynamic segment strategy in copyright box
+			int firstSegSize = 4, commonSegSize = 40;
+			if(presetLevel == 1) {		// BD
+				firstSegSize = 18;
+				commonSegSize = 90;
+			} else if(presetLevel == 2) {	// CQ
+				firstSegSize = 12;
+				commonSegSize = 70;
+			} else if(presetLevel == 3) {	// HD
+				firstSegSize = 8;
+				commonSegSize = 40;
+			} else if(presetLevel == 4) {	// SD
+				firstSegSize = 4;
+				commonSegSize = 20;
+			}
+
+			firstSegSize = 20;
 			commonSegSize = 20;
-		}
+			// Temporally set segsize = 20M, use old segment method
+			sprintf(cprtStr, "PPTV-"TS_MAJOR_VERSION"."TS_MINOR_VERSION"."SVN_REVISION"(%d,%d)[1]",
+				firstSegSize, commonSegSize);
+			prefs.SetStreamPref("overall.tagging.copyright", cprtStr, STMUXER);
+			const char* mp4Option = conf.target.codecConfig[MP4BOX_ADDITION_OPTION].option;
+			if(mp4Option && *mp4Option) {
+				const char* pCh = NULL;
+				if(pCh = strstr(mp4Option, "-hint")) {	// hint
+					std::string hintStr = GetStringBetweenDelims(pCh, "=", ",");
+					if(hintStr.compare("true") == 0) {
+						prefs.SetStreamPref("muxer.mp4box.hint", true, STMUXER);
+					}
+				}
+				if(pCh = strstr(mp4Option, "-sbr")) {	// sbr
+					std::string hintStr = GetStringBetweenDelims(pCh, "=", ",");
+					int sbrNum = atoi(hintStr.c_str());
+					prefs.SetStreamPref("muxer.mp4box.sbr", sbrNum, STMUXER);
+				}
 
-		firstSegSize = 20;
-		commonSegSize = 20;
-		// Temporally set segsize = 20M, use old segment method
-		sprintf(cprtStr, "PPTV-"TS_MAJOR_VERSION"."TS_MINOR_VERSION"."SVN_REVISION"(%d,%d)[1]",
-			firstSegSize, commonSegSize);
-		prefs.SetStreamPref("overall.tagging.copyright", cprtStr, STMUXER);
-		const char* mp4Option = conf.target.codecConfig[MP4BOX_ADDITION_OPTION].option;
-		if(mp4Option && *mp4Option) {
-			const char* pCh = NULL;
-			if(pCh = strstr(mp4Option, "-hint")) {	// hint
-				std::string hintStr = GetStringBetweenDelims(pCh, "=", ",");
-				if(hintStr.compare("true") == 0) {
-					prefs.SetStreamPref("muxer.mp4box.hint", true, STMUXER);
+				if(pCh = strstr(mp4Option, "-brand")) {	// brand
+					std::string brandStr = GetStringBetweenDelims(pCh, "=", ",");
+					prefs.SetStreamPref("muxer.mp4box.brand", brandStr.c_str(), STMUXER);
+				}
+				if(pCh = strstr(mp4Option, "-version")) {	// version number
+					std::string verStr = GetStringBetweenDelims(pCh, "=", ",");
+					int verNum = atoi(verStr.c_str());
+					prefs.SetStreamPref("muxer.mp4box.version", verNum, STMUXER);
 				}
 			}
-			if(pCh = strstr(mp4Option, "-sbr")) {	// sbr
-				std::string hintStr = GetStringBetweenDelims(pCh, "=", ",");
-				int sbrNum = atoi(hintStr.c_str());
-				prefs.SetStreamPref("muxer.mp4box.sbr", sbrNum, STMUXER);
-			}
-
-			if(pCh = strstr(mp4Option, "-brand")) {	// brand
-				std::string brandStr = GetStringBetweenDelims(pCh, "=", ",");
-				prefs.SetStreamPref("muxer.mp4box.brand", brandStr.c_str(), STMUXER);
-			}
-			if(pCh = strstr(mp4Option, "-version")) {	// version number
-				std::string verStr = GetStringBetweenDelims(pCh, "=", ",");
-				int verNum = atoi(verStr.c_str());
-				prefs.SetStreamPref("muxer.mp4box.version", verNum, STMUXER);
-			}
 		}
 	}
+	
 
 	if(conf.source.demuxer == 1) {	// Select demuxer to ts files
 		prefs.SetStreamPref("videosrc.mencoder.lavfdemux", true, STVIDEO);
+	}
+
+	if(conf.target.disable_muxer) {
+		prefs.SetStreamPref("overall.container.enabled", false, STMUXER);
 	}
 
 	// Segment configuration
@@ -2172,8 +2270,8 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		prefs.SetStreamPref("muxer.hls.postfix", hlsConfig.postfix, STMUXER);
 	}
 
-	// Thumbnail
-	const thumbnail_t& thumbNail = conf.target.thumbnail;
+	// Thumbnail 0
+	const thumbnail_t& thumbNail = conf.target.thumbnails[0];
 	if(thumbNail.count > 0 || thumbNail.interval > 0) {
 		prefs.SetStreamPref("videofilter.thumb.enabled", true, STVIDEO);
 		prefs.SetStreamPref("videofilter.thumb.align", 3, STVIDEO);	// User grid alignment
@@ -2190,6 +2288,32 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		prefs.SetStreamPref("videofilter.thumb.pack", thumbNail.bPack, STVIDEO);
 		prefs.SetStreamPref("videofilter.thumb.optimize", thumbNail.bOptimize, STVIDEO);
 		prefs.SetStreamPref("videofilter.thumb.quality", thumbNail.quality, STVIDEO);
+		if(*(thumbNail.postfix)) {
+			prefs.SetStreamPref("videofilter.thumb.postfix", thumbNail.postfix, STVIDEO);
+		}
+	}
+
+	// Thumbnail 1
+	const thumbnail_t& thumbNail1 = conf.target.thumbnails[1];
+	if(thumbNail.count > 0 || thumbNail.interval > 0) {
+		prefs.SetStreamPref("videofilter.thumb1.enabled", true, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.align", 3, STVIDEO);	// User grid alignment
+		prefs.SetStreamPref("videofilter.thumb1.start", thumbNail1.start, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.end", thumbNail1.end, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.interval", thumbNail1.interval, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.row", thumbNail1.row, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.col", thumbNail1.col, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.format", thumbNail1.type, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.count", thumbNail1.count, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.width", thumbNail1.width, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.height", thumbNail1.height, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.stitching", thumbNail1.bStitch, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.pack", thumbNail1.bPack, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.optimize", thumbNail1.bOptimize, STVIDEO);
+		prefs.SetStreamPref("videofilter.thumb1.quality", thumbNail1.quality, STVIDEO);
+		if(*(thumbNail1.postfix)) {
+			prefs.SetStreamPref("videofilter.thumb1.postfix", thumbNail1.postfix, STVIDEO);
+		}
 	}
 
 	// Ignore error index
