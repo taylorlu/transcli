@@ -434,6 +434,14 @@ static void parseSubtitleInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int 
 		}
 		xml.goParent();
 	}
+	// Parse title attribute
+	if(xml.findChildNode("tag", "key", "title")) {
+		const char* titleStr = xml.getAttribute("value");
+		if(titleStr && *titleStr) {
+			mediaInfo->addChild("title", titleStr);
+		}
+		xml.goParent();
+	}
 }
 
 bool GetMediaInfo(const char *mediaPath /*IN*/, StrPro::CXML2 *mediaInfo/*OUT*/)

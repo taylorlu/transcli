@@ -54,6 +54,7 @@ private:
 	bool initSrcVideoAttrib(StrPro::CXML2* mediaInfo);
 	bool initSrcGeneralAttrib(StrPro::CXML2* mediaInfo);
 	bool initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLPref* pVideoPref);
+	void extractSubtitle(StrPro::CXML2* mediaInfo, int extractId);
 	bool setDecoderParam(video_info_t* pVInfo, CXMLPref* pVideoPref, 
 		audio_info_t* pAInfo, CXMLPref* pAduioPref);
 	bool startDecoder(const char* srcFileName);

@@ -2949,6 +2949,74 @@ bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLP
 	return true;
 }
 
+void CTransWorkerSeperate::extractSubtitle(StrPro::CXML2* mediaInfo, int extractId)
+{
+	mediaInfo->goRoot();
+	
+	// Determine sub id and extension
+	std::vector<int> subIdexs;
+	std::vector<std::string> subExts;
+	void* subNode = mediaInfo->findChildNode("subtitle");
+	while(subNode) {
+		int aIndex = mediaInfo->getChildNodeValueInt("index");
+		const char* pSubType = mediaInfo->getChildNodeValue("codec");
+		const char* langCode = mediaInfo->getChildNodeValue("lang");
+		const char* streamTitle = mediaInfo->getChildNodeValue("title");
+		if(pSubType && (!_stricmp(pSubType, "subrip") || !_stricmp(pSubType, "ssa"))) {
+			std::string curExt;
+			if(langCode && *langCode) {
+				curExt += ".";
+				curExt += langCode;
+			}
+			if(streamTitle && *streamTitle) {
+				curExt += ".";
+				curExt += streamTitle;
+			}
+			if(!_stricmp(pSubType, "subrip")) {
+				curExt += ".srt";
+			} else {
+				curExt += ".ass";
+			}
+			if(extractId >= 0) {
+				if(extractId == aIndex) {
+					subIdexs.push_back(aIndex);
+					subExts.push_back(curExt);
+					break;
+				}
+			} else {
+				subIdexs.push_back(aIndex);
+				subExts.push_back(curExt);
+			}
+		}
+		subNode = mediaInfo->findNextNode("subtitle");
+	}
+
+	if(subIdexs.empty()) {
+		return;
+	}
+
+	// Extract command line
+	std::string extractCmd = FFMPEG" -i \"";
+	extractCmd += m_streamFiles.GetFirstSrcFile();
+	extractCmd += "\" -an -vn";
+
+	std::string outFileName = GetOutputFileName(0);
+	std::string strDir, strTitle, strExt;
+	StrPro::StrHelper::splitFileName(outFileName.c_str(), strDir, strTitle, strExt);
+
+	for (size_t i=0; i<subIdexs.size(); ++i) {
+		std::string curDestSub = strDir + strTitle + subExts[i];
+		char idxStr[12] = {0};
+		_itoa(subIdexs[i], idxStr, 10);
+		extractCmd += " -map 0:s:";
+		extractCmd += idxStr;
+		extractCmd += " -y \"";
+		extractCmd += curDestSub;
+		extractCmd += "\"";
+	}
+	CProcessWrapper::Run(extractCmd.c_str());
+}
+
 bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 {
 	// Parse all source audio track attributes
@@ -3449,7 +3517,12 @@ bool CTransWorkerSeperate::ParseSetting()
 			ret = false;  break;
 		}
 
-		
+		// Extract text subtitle in original movie.
+		int extractSubId = pTaskPref->GetInt("overall.subtitle.extract");
+		if(extractSubId >= -1) {
+			extractSubtitle(pMediaPref, extractSubId);
+		}
+
 		// After parse duration, if use decoder to trim then clear clip sets.
 		//if(pTaskPref->GetBoolean("overall.task.decoderTrim")) {
 		//	m_clipStartSet.clear();

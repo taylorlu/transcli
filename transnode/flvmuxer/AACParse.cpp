@@ -178,7 +178,6 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 			AudioSourceData temp(size - 7, totalPos + curpos + 7);
 			mAudios.push_back(temp);
 			curpos += size;
-
 		}
 	} 
 

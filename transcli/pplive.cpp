@@ -431,6 +431,7 @@ struct target_config_t {
 	video_codec_t vcodec;
 	float subtitle_timeshift;		// sec
 	int   sub_id;
+	int   extract_sub_id;			// sub id that will be extracted (-2:no extract, -1:extract all, other:specific sub id)
 	logo_config_t logo;
 	filter_config_t filter;
 	char container_format[BUF_LEN];
@@ -627,6 +628,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 	config->target.vcodec.brdown = 1;
 	config->target.acodec.brdown = 1;
 	config->target.hlsConfig.dur = 5;
+	config->target.extract_sub_id = -2;			// default:no extract sub
 	strcpy(config->target.hlsConfig.postfix, ".mp4");
 	do {
 		if (xmlConfig.goRoot() == NULL) break;
@@ -933,6 +935,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			//timeshift (unit: sec)
 			config->target.subtitle_timeshift = xmlConfig.getAttributeFloat("timeshift");
 			config->target.sub_id = xmlConfig.getAttributeInt("id", -1);
+			config->target.extract_sub_id = xmlConfig.getAttributeInt("extract", -2);
 			xmlConfig.goParent();
 		}
 
@@ -1983,6 +1986,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	// subtitle delay
 	prefs.SetStreamPref("overall.subtitle.delay", conf.target.subtitle_timeshift, STVIDEO);
 	prefs.SetStreamPref("overall.subtitle.sid", conf.target.sub_id, STVIDEO);
+	prefs.SetStreamPref("overall.subtitle.extract", conf.target.extract_sub_id, STVIDEO);
 	
 	// Write current machine ip to user data
 	std::string curLocalIp = GetLocalIp();
