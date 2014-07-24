@@ -2921,10 +2921,12 @@ bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLP
 			} 
 
 			const char* langCode = mediaInfo->getChildNodeValue("lang");
-			if(validSub && langCode && *langCode && !_stricmp(langCode, "cht")) {		// No language field, use first valid subtitle
+			if(validSub && langCode && *langCode && 
+				(!_stricmp(langCode, "cht") || !_stricmp(langCode, "chi"))) {		// No language field, use first valid subtitle
 				selectedIdx = aIndex;
 				selectedEmbedType = pSubType;
 				selSubStreamId = subStreamIdStr;
+				break;
 			}
 			subNode = mediaInfo->findNextNode("subtitle");
 		}
@@ -3005,9 +3007,12 @@ void CTransWorkerSeperate::extractSubtitle(StrPro::CXML2* mediaInfo, int extract
 	StrPro::StrHelper::splitFileName(outFileName.c_str(), strDir, strTitle, strExt);
 
 	for (size_t i=0; i<subIdexs.size(); ++i) {
-		std::string curDestSub = strDir + strTitle + subExts[i];
 		char idxStr[12] = {0};
 		_itoa(subIdexs[i], idxStr, 10);
+		std::string curDestSub = strDir + strTitle;
+		curDestSub += ".";
+		curDestSub += idxStr;
+		curDestSub += subExts[i];
 		extractCmd += " -map 0:s:";
 		extractCmd += idxStr;
 		extractCmd += " -y \"";
