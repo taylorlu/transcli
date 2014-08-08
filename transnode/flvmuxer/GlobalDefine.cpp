@@ -13,47 +13,40 @@ unsigned int Read8(FILE *pf)
 
 unsigned int Read16(FILE *pf)
 {
-	unsigned char temp[3] = "";
-	unsigned int num = 0;
-	fread(temp, 2, 1, pf);
-	for(int i = 0; i < 2; i++)
-	{
-		num |= temp[i] << ((1 - i) * 8);
-	}
+	unsigned char temp[2] = {0};
+	fread(temp, 1, 2, pf);
+	unsigned int num = temp[0] << 8;
+	num |= temp[1];
 	return num;
 }
 
 unsigned int Read24(FILE *pf)
 {
-	unsigned char temp[4] = "";
-	unsigned int num = 0;
-	fread(temp, 3, 1, pf);
-	for(int i = 0; i < 3; i++)
-	{
-		num |= temp[i]<<(2 - i) * 8;
-	}
+	unsigned char temp[3] = {0};
+	fread(temp, 1, 3, pf);
+	unsigned int num = temp[0] << 16;
+	num |= temp[1] << 8;
+	num |= temp[2];
 	return num;
 }
 
 unsigned int Read32(FILE *pf)
 {
-	unsigned char temp[5] = "";
-	unsigned int num = 0;
-	fread(temp, 4, 1, pf);
-	for(int i = 0; i < 4; i++)
-	{
-		num |= temp[i] << ((3 - i) *8);
-	}
+	unsigned char temp[4] = {0};
+	fread(temp, 1, 4, pf);
+	unsigned int num = temp[0] << 24;
+	num |= temp[1] << 16;
+	num |= temp[2] << 8;
+	num |= temp[3];
 	return num;
 }
 
 unsigned long long Read64(FILE *pf)
 {
-	unsigned char temp[9] = "";
+	unsigned char temp[8] = {0};
 	unsigned long long num = 0;
-	fread(temp, 8, 1, pf);
-	for(int i = 0; i < 8; i++)
-	{
+	fread(temp, 1, 8, pf);
+	for(int i = 0; i < 8; i++) {
 		num = num << 8;
 		num |= temp[i];
 	}
@@ -62,12 +55,12 @@ unsigned long long Read64(FILE *pf)
 
 unsigned int ReadL32(FILE *pf)
 {
-	unsigned int temp = Read32(pf);
-	unsigned int num = 0;
-	num |= (temp >> 24) & 0x000000ff;
-	num |= (temp >> 8) & 0x0000ff00;
-	num |= (temp << 8) & 0x00ff0000;
-	num |= (temp << 24) & 0xff000000;
+	unsigned char temp[4] = {0};
+	fread(temp, 1, 4, pf);
+	unsigned int num = temp[3] << 24;
+	num |= temp[2] << 16;
+	num |= temp[1] << 8;
+	num |= temp[0];
 	return num;
 }
 
@@ -111,6 +104,11 @@ string ReadBytes(FILE *pf, const unsigned int length )
 		left -= current;
 	}
 	return str;
+}
+
+void Skip(FILE *pf, unsigned long long bytesOffset)
+{
+	fseek(pf, bytesOffset, SEEK_CUR);
 }
 
 void Write8( FILE *pf, unsigned char temp)

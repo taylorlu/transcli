@@ -15,7 +15,7 @@
 	  <rcmode>1</rcmode>
       <codec format="h264" bitrate="290k" rectangle="{0,0,480,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
     </video>
-    <subtitle timeshift="0s">
+    <subtitle timeshift="0s" extract="-1" id="-2">
       <Files />
     </subtitle>
     <!--segment type="average" unit="time" postfix="index" size="40" threshold="1800" lastsegpercent="25"/-->

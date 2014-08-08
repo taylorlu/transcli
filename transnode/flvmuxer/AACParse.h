@@ -1,46 +1,25 @@
-#ifndef __AAC_PARSE_H
-#define __AAC_PARSE_H
+#ifndef __AAC_PARSE_H__
+#define __AAC_PARSE_H__
+#include "AudioParse.h"
 
-#include "AudioSourceData.h"
-#include <vector>
-using namespace std;
-
-class AACParse
+class AACParse : public AudioParse
 {
 public:
 	AACParse(void);
 	~AACParse(void);
 
-private:
-	vector<AudioSourceData> mAudios;
-
-	FILE *mFile;
-
-	char* mConfig;
-	unsigned int mConfigSize;
-
-	unsigned int mSampleRate;
-
-	char* mTempfile;
-	int mAacEncType;
-
-public:
-	bool ParseAACFile(const  char* filepath);
-	int Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigned char* data ,size_t* data_size);
-	bool ParseADTS(const  char* filepath, bool bmp4);
-	char* GetConfig();
-	unsigned int GetConfigLength();
-	unsigned int Size();
-	unsigned int GetSizeByIndex(unsigned int index);
-	bool GetDataByIndex(unsigned int index,char* data,unsigned int &size);
-	double GetPTSByIndex(unsigned int index);
-	unsigned int GetSampleRate();
-	unsigned long long GetFileLength();
-	void SetAacEncodeType(int type) {mAacEncType = type;}
+	bool Parse(const char* esFileName);
+	uint32_t GetFrameLength();
+	uint8_t  GetObjectTypeIndication();
+	const char* GetAudioType() {return "mp4a";}
+	//void SetAacEncodeType(int type) {mAacEncType = type;}
 
 private:
-	bool analyze_mp4head(FILE *infile,unsigned long long frontlength = 0);
-	void Clear();
+	//int mAacEncType;
+	bool analyze_mp4head(FILE *infile, uint64_t frontlength = 0);
+	int  getOneADTSFrame(uint8_t* buffer, size_t buf_size, uint8_t* data ,size_t* data_size);
+	bool parseADTS();
+	bool parseM4A();
 };
 
 

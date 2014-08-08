@@ -3,11 +3,9 @@
 
 #include "SourceData.h"
 
-class AudioSourceData :
-	public SourceData
+class AudioSourceData : public SourceData
 {
 public:
-	AudioSourceData(void);
 	AudioSourceData(unsigned int datasize = 0,unsigned long long datapos = 0,double timestamp = 0);
 	~AudioSourceData(void);
 

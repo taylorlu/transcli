@@ -207,6 +207,7 @@
     <ClInclude Include="SplitterPrefs.h" />
     <ClInclude Include="tsdef.h" />
     <ClInclude Include="util.h" />
+    <ClInclude Include="writeBits.h" />
     <ClInclude Include="yuvUtil.h" />
     <ClInclude Include="zml_gain_analysis.h" />
   </ItemGroup>
@@ -217,7 +218,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\doc\pplive_config.xml" />
+    <None Include="..\doc\pplive_config.xml">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="mcnt.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

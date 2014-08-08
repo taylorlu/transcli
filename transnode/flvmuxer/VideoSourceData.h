@@ -6,7 +6,6 @@
 class VideoSourceData : public SourceData
 {
 public:
-	VideoSourceData(void);
 	VideoSourceData(unsigned int datasize = 0,double timestamp = 0,bool isheadslice = false,bool iskeyframe = false,unsigned long long datapos = 0,short dts = 0,bool issei = false);
 	~VideoSourceData(void);
 

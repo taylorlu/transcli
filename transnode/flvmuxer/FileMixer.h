@@ -1,7 +1,7 @@
 #ifndef _FILE_MIXER_H_
 #define _FILE_MIXER_H_
 
-#include "../flvmuxer/AACParse.h"
+#include "../flvmuxer/AudioParse.h"
 #include "../flvmuxer/H264Parse.h"
 #include "../flvmuxer/MetaUnit.h"
 #include "../flvmuxer/ComDef.h"
@@ -12,12 +12,12 @@
 class FileMixer
 {
 public:
-	FileMixer(void);
+	FileMixer(int outputType = OUTPUT_TYPE_FLV);
 	~FileMixer(void);
 
 private:
 	H264Parse mVParser;
-	AACParse mAParser;
+	AudioParse* m_pAParser;
 
 	FileWriter mFile;
 
@@ -49,14 +49,14 @@ private:
 	unsigned long long mVideoStcoPos;
 	unsigned long long mAudioStcoPos;
 
-	char *mOutputFile;
+	int mOutputType;
 
 public:
 	bool ParseAACFile(const char* file);
-	bool ParseAACFiles(vector<char*> files);//,vector<double> videopts);
-	bool ParseADTS(const char* file, bool bmp4 = true);
+	bool ParseAC3File(const char* file);
+	//bool ParseAACFiles(vector<char*> files);//,vector<double> videopts);
 	bool Parse264File(const char* file);
-	bool WriteOutPutFile(const char* file,int outputtype);
+	bool WriteOutPutFile(const char* file);
 	bool InitTempFile(const char* tempfile);
 
 	double GetVideoPtsByFilePos(unsigned long long pos);
@@ -77,11 +77,8 @@ private:
 
 	//mp4
 	bool WriteFileMp4();
-
 	void GenerateChunkList();
-
 	void WriteMp4Head();
-
 	void WriteMp4BoxMoov();
 	void WriteMp4BoxMvhd();
 	void WriteMp4BoxTrak(bool video);
@@ -100,18 +97,16 @@ private:
 	void WriteMp4BoxAvcc();
 	void WriteMp4BoxStsdAudio();
 	void WriteMp4BoxEsds();
+	void WriteAC3ConfigBox(const char* boxType);
 	void WriteMp4BoxStts(bool video);
 	void WriteMp4BoxStss();
 	void WriteMp4BoxCtts();
 	void WriteMp4BoxStsc(bool video);
 	void WriteMp4BoxStsz(bool video);
 	void WriteMp4BoxStco(bool video);
-
 	void WriteMp4BoxMdat();
-
 	void WriteMp4BoxFree();
-
-	void WriteBoxType(char* type);
+	void WriteBoxType(const char* type);
 	void WriteBoxSize(unsigned long long boxhead);
 
 	unsigned int descrLength(unsigned int len);

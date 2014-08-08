@@ -37,7 +37,7 @@ public:
 	void Write24(unsigned int uiTemp);
 	void Write32(unsigned int uiTemp);
 	void Write64(unsigned long long llTemp);
-	void WriteBytes(char *pBuf,unsigned int uiSize);
+	void WriteBytes(const char *pBuf,unsigned int uiSize);
 
 	void Flush();
 

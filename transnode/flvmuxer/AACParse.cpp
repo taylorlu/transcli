@@ -1,38 +1,49 @@
 #include "AACParse.h"
 #include "Box.h"
 #include <time.h>
+#include "writeBits.h"
+
 static int frequencies[] = { 96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350};
 AACParse::AACParse(void)
 {
-	mFile = NULL;
-	mConfig = NULL;
-	mConfigSize = 0;
-	mSampleRate = 0;
-	mTempfile = NULL;
 }
 
 AACParse::~AACParse(void)
 {
-	Clear();
 }
 
-bool AACParse::ParseAACFile(const char* filepath )
+bool AACParse::Parse(const char* esFileName)
 {
-	//unsigned long long t = time(0);
 	Clear();
-	if (!filepath)
-	{
+	if (!esFileName) {
 		return false;
 	}
 
-	mFile = fopen(filepath,"rb+");
-	if (!mFile)
-	{
+	mFile = fopen(esFileName,"rb");
+	if (!mFile) {
 		return false;
 	}
 
-	if (!analyze_mp4head(mFile))
-	{
+	// Get file length
+	fseek(mFile, 0, SEEK_END);
+	mFileLen = ftell(mFile);
+
+	// Judge es container type:ADTS or M4A
+	fseek(mFile, 4, SEEK_SET);
+	uint8_t fileHeader[4] = {0};
+	fread(fileHeader, 1, 4, mFile);
+	if(fileHeader[0] == 'f' && fileHeader[1] == 't' &&
+	   fileHeader[2] == 'y' && fileHeader[3] == 'p') {	// Mp4 file type
+		return parseM4A();
+	} else {
+		return parseADTS();
+	}
+}
+
+bool AACParse::parseM4A()
+{
+	//uint64_t t = time(0);
+	if (!analyze_mp4head(mFile)) {
 		mAudios.clear();
 		fclose(mFile);
 		return false;
@@ -49,7 +60,7 @@ bool AACParse::ParseAACFile(const char* filepath )
 	return true;
 }
 
-int AACParse::Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigned char* data ,size_t* data_size)
+int AACParse::getOneADTSFrame(unsigned char* buffer, size_t buf_size, unsigned char* data ,size_t* data_size)
 {
 	size_t size = 0;  
   
@@ -94,26 +105,15 @@ int AACParse::Get_One_ADTS_Frame(unsigned char* buffer, size_t buf_size, unsigne
 #define BUFFER_MAX_LEN 1024*1024
 #define FRAME_MAX_LEN 1024*1024
 
-bool AACParse::ParseADTS(const char* filepath, bool bmp4)
+bool AACParse::parseADTS()
 {
-	if (!filepath) {
-		return false;
-	}
-	mFile = fopen(filepath, "rb");
-	if (!mFile) {
-		return false;
-	}
-	fseek(mFile,0,SEEK_END);
-	unsigned long long filelength = ftell(mFile);
-	fseek(mFile,0,SEEK_SET);
-	
 	unsigned char* data = new unsigned char[BUFFER_MAX_LEN];
-	unsigned long long preadts = 0;
-	unsigned long long curadts = -1;
+	uint64_t preadts = 0;
+	uint64_t curadts = -1;
 	unsigned short int flg = 0;
-	unsigned long long offset = 0;
-	unsigned long long proleft = 0;
-	unsigned long long data_size = 0;
+	uint64_t offset = 0;
+	uint64_t proleft = 0;
+	uint64_t data_size = 0;
 	bool bGot = false;
 	fseek(mFile, offset, SEEK_SET);
 	
@@ -124,15 +124,13 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 	int curpos = 0;
 	int totalPos = 0;
 	int iGetADTS = 0;
-	unsigned int profile;
-	unsigned int sampling_frequency_index;
-	unsigned int channel_configuration;
-	unsigned int number_of_raw_data_blocks_in_frame;
-	if (bmp4)
-	{
-		mConfigSize = 7;
-	}else
-	{
+	uint32_t profile;
+	uint32_t sr_index;
+	uint32_t channel_configuration;
+	uint32_t number_of_raw_data_blocks_in_frame;
+	if (mOutputType == OUTPUT_TYPE_MP4) {
+		mConfigSize = 5;
+	} else {
 		mConfigSize = 2;
 	}
 	
@@ -141,9 +139,9 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 		delete[] mConfig;
 		mConfig = NULL;
 	}
-	mConfig = new char[mConfigSize];
+	mConfig = new uint8_t[mConfigSize];
 	
-	while(offset < filelength)
+	while(offset < mFileLen)
 	{ 
 		proleft = 0;
 		totalPos = offset;
@@ -161,17 +159,38 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 		offset += data_size;
 		data_size += proleft;
 		
-		while ((iGetADTS = Get_One_ADTS_Frame(input_data, data_size, frame, &size)) == 0)
+		while ((iGetADTS = getOneADTSFrame(input_data, data_size, frame, &size)) == 0)
 		{
 			if (!bGot)
 			{
 				bGot = true;
 				profile = ((frame[2] & 0xC0) >> 6) + 1;
-				sampling_frequency_index = (frame[2] & 0x3C) >> 2;
-				channel_configuration = ((frame[2] & 0x01) << 2) | ((frame[3] & 0xC0) >> 6);	
+				sr_index = (frame[2] & 0x3C) >> 2;
+				mChannelCount = ((frame[2] & 0x01) << 2) | ((frame[3] & 0xC0) >> 6);	
 				number_of_raw_data_blocks_in_frame = ((frame[6] & 0x03) + 1) * 1024;
-				mConfig[0] = (profile << 3) | ((sampling_frequency_index & 0xe) >> 1);
-				mConfig[1] = ((sampling_frequency_index & 0x1) << 7) | (channel_configuration << 3);
+				mSampleRate = frequencies[sr_index];
+
+				uint32_t sbr_sr_index = sr_index;
+				for (int i=0; i<sizeof(frequencies)/sizeof(int); i++) {
+					if (frequencies[i] == 2*mSampleRate) {
+						sbr_sr_index = i;
+						break;
+					}
+				}
+
+				PutBitContext pbc;
+				init_put_bits(&pbc, mConfig, mConfigSize);
+				put_bits(&pbc, 5, profile);
+				put_bits(&pbc, 4, sr_index);
+				put_bits(&pbc, 4, mChannelCount);
+				put_bits(&pbc, 3, 0);	// pad 3bits
+				if (mOutputType == OUTPUT_TYPE_MP4) {
+					put_bits(&pbc, 11, 0x2b7);
+					put_bits(&pbc, 5, 5);
+					put_bits(&pbc, 1, 1);
+					put_bits(&pbc, 4, sbr_sr_index);
+					put_bits(&pbc, 3, 0);	// pad 3bits
+				}
 			}
 			input_data += size;
 			data_size -= size;
@@ -181,13 +200,11 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 		}
 	} 
 
-	const int frequence = frequencies[sampling_frequency_index];
 	for (int i = 1; i < mAudios.size(); i++)
 	{
-		mAudios[i].mTimeStamp = i * number_of_raw_data_blocks_in_frame * 1000.0 / frequence;
+		mAudios[i].mTimeStamp = i * number_of_raw_data_blocks_in_frame * 1000.0 / mSampleRate;
 	}
 	
-	mSampleRate = frequencies[sampling_frequency_index];
 	if (data)
 	{
 		delete[] data;
@@ -206,22 +223,18 @@ bool AACParse::ParseADTS(const char* filepath, bool bmp4)
 	return true;
 }
 
-bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 0*/ )
+bool AACParse::analyze_mp4head( FILE *infile, uint64_t frontlength /*= 0*/ )
 {
-	fseek(infile, 0, SEEK_END);
-	long long filelen = ftell(infile);
-
 	fseek(infile, 0, SEEK_SET);
-	Box root("root",filelen,0);
+	Box root("root", mFileLen,0);
 	root.FindAllChild(infile);
 	Box trak = root.GetChild("trak");
 	Box hdlr = root.GetChild("hdlr");
 	Box mdhd = root.GetChild("mdhd");
-	unsigned int traktype = hdlr.BRead32(infile,8);
-	unsigned int audiotimescale = 0;
-	unsigned int lastindex = mAudios.size();
-	if (mConfig)
-	{
+	uint32_t traktype = hdlr.BRead32(infile,8);
+	uint32_t audiotimescale = 0;
+	uint32_t lastindex = mAudios.size();
+	if (mConfig) {
 		delete[] mConfig;
 		mConfig = NULL;
 	}
@@ -239,7 +252,7 @@ bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 
 					i += 4;
 					int nCount = 4;
 					unsigned char tagflag = 0x3;
-					unsigned int nSize = 0;
+					uint32_t nSize = 0;
 					if (stsd.BRead8(infile,i + nCount) == tagflag)
 					{
 						nCount ++;
@@ -283,7 +296,7 @@ bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 
 					{
 						string config = stsd.BReadBytes(infile,i + nCount, nSize);
 						mConfigSize = config.length();
-						mConfig = new char[mConfigSize];
+						mConfig = new uint8_t[mConfigSize];
 						for (int i = 0; i < config.length(); i ++)
 						{
 							mConfig[i] = config[i];
@@ -293,14 +306,14 @@ bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 
 					break;
 				}
 			}
-			unsigned int nSampleCount = 0;
+			uint32_t nSampleCount = 0;
 
 			//data size
 			Box stsz = trak.FindBox(infile,"mdia").FindBox(infile,"minf").FindBox(infile,"stbl").FindBox(infile,"stsz");
 			if (stsz.pos)
 			{
-				unsigned int samplesize = stsz.BRead32(infile,4);
-				unsigned int nCount = stsz.BRead32(infile,8);
+				uint32_t samplesize = stsz.BRead32(infile,4);
+				uint32_t nCount = stsz.BRead32(infile,8);
 				if (samplesize == 0)
 				{
 					for (int i = 0; i < nCount; i ++)
@@ -333,13 +346,13 @@ bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 
 			Box stts = trak.FindBox(infile,"mdia").FindBox(infile,"minf").FindBox(infile,"stbl").FindBox(infile,"stts");
 			if (stts.pos)
 			{
-				unsigned int nSamples = 0;
-				unsigned int nCount = stts.BRead32(infile,4);
+				uint32_t nSamples = 0;
+				uint32_t nCount = stts.BRead32(infile,4);
 
 				for (int i = 0; i < nCount && nSamples < nSampleCount; i ++)
 				{
-					unsigned int sample_count = stts.BRead32(infile,i * 8 + 8);
-					unsigned int sample_delta = stts.BRead32(infile,i * 8 + 12);
+					uint32_t sample_count = stts.BRead32(infile,i * 8 + 8);
+					uint32_t sample_delta = stts.BRead32(infile,i * 8 + 12);
 
 					for (int j = nSamples; j < nSamples + sample_count && nSamples < nSampleCount; j ++)
 					{
@@ -357,13 +370,13 @@ bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 
 			Box ctts = trak.FindBox(infile,"mdia").FindBox(infile,"minf").FindBox(infile,"stbl").FindBox(infile,"ctts");
 			if (ctts.pos)
 			{
-				unsigned int nSamples = 0;
-				unsigned int nCount = ctts.BRead32(infile,4);
+				uint32_t nSamples = 0;
+				uint32_t nCount = ctts.BRead32(infile,4);
 
 				for (int i = 0; i < nCount && nSamples < nSampleCount; i ++)
 				{
-					unsigned int sample_count = ctts.BRead32(infile,i * 8 + 8);
-					unsigned int sample_offset = ctts.BRead32(infile,i * 8 + 12);
+					uint32_t sample_count = ctts.BRead32(infile,i * 8 + 8);
+					uint32_t sample_offset = ctts.BRead32(infile,i * 8 + 12);
 
 					for (int j = nSamples; j < nSamples + sample_count && nSamples < nSampleCount; j ++)
 					{
@@ -379,23 +392,23 @@ bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 
 			if (stsc.pos && stco.pos)
 			{
 
-				unsigned int nSamples = 0;
-				unsigned int nSTSC = stsc.BRead32(infile,4);
-				unsigned int nSTCO = stco.BRead32(infile,4);
+				uint32_t nSamples = 0;
+				uint32_t nSTSC = stsc.BRead32(infile,4);
+				uint32_t nSTCO = stco.BRead32(infile,4);
 
 				for(int i = 0; i < nSTSC && nSamples < nSampleCount; i ++)
 				{
-					unsigned int first_chunk = stsc.BRead32(infile,i * 12 + 8) - 1;
-					unsigned int sample_pre_chunk = stsc.BRead32(infile,i * 12 + 12);
-					unsigned int last_chunk = nSTCO;
+					uint32_t first_chunk = stsc.BRead32(infile,i * 12 + 8) - 1;
+					uint32_t sample_pre_chunk = stsc.BRead32(infile,i * 12 + 12);
+					uint32_t last_chunk = nSTCO;
 					if (i != nSTSC - 1)
 					{
 						last_chunk = stsc.BRead32(infile,(i + 1) * 12 + 8) - 1;
 					}
 					for (int chunk = first_chunk; chunk < last_chunk && nSamples < nSampleCount; chunk ++)
 					{
-						unsigned int first_sample = nSamples;
-						unsigned int last_sample = first_sample + sample_pre_chunk;
+						uint32_t first_sample = nSamples;
+						uint32_t last_sample = first_sample + sample_pre_chunk;
 
 						long offset = 0;
 						for (int index = first_sample; index < last_sample && nSamples < nSampleCount; index ++)
@@ -425,107 +438,11 @@ bool AACParse::analyze_mp4head( FILE *infile,unsigned long long frontlength /*= 
 	return true;
 }
 
-void AACParse::Clear()
+uint32_t AACParse::GetFrameLength()
 {
-	mAudios.clear();
-	if (mFile)
-	{
-		fclose(mFile);
-		mFile = NULL;
-	}
-	if (mConfig)
-	{
-		delete[] mConfig;
-		mConfig = NULL;
-	}
-	mConfigSize = 0;
-	mSampleRate = 0;
-	if (mTempfile)
-	{
-		remove(mTempfile);
-		delete[] mTempfile;
-		mTempfile = NULL;
-	}
+	return 1024;
 }
-
-char* AACParse::GetConfig()
+uint8_t AACParse::GetObjectTypeIndication()
 {
-	if (mConfigSize && mConfig)
-	{
-		char* config = new char[mConfigSize];
-		memcpy(config,mConfig,mConfigSize);
-		return config;
-	}
-	return NULL;
-}
-
-unsigned int AACParse::GetConfigLength()
-{
-	return mConfigSize;
-}
-
-unsigned int AACParse::Size()
-{
-	return mAudios.size();
-}
-
-bool AACParse::GetDataByIndex( unsigned int index,char* data,unsigned int &size )
-{
-	if (index >= mAudios.size())
-	{
-		return false;
-	}
-
-	AudioSourceData src = mAudios[index];
-	if (!data || size < src.mDataSize)
-	{
-		return false;
-	}
-	size = src.mDataSize;
-	fseek(mFile,src.mDataPos,SEEK_SET);
-	fread(data,size,1,mFile);
-	return 1;
-}
-
-double AACParse::GetPTSByIndex( unsigned int index )
-{
-	if (mAudios.size() == 0)
-	{
-		return 0;
-	}
-	if (index >= mAudios.size())
-	{
-		return mAudios[mAudios.size() - 1].mTimeStamp;
-	}
-
-	return mAudios[index].mTimeStamp;
-}
-
-unsigned int AACParse::GetSampleRate()
-{
-	return mSampleRate;
-}
-
-unsigned int AACParse::GetSizeByIndex( unsigned int index )
-{
-	if (index >= mAudios.size())
-	{
-		return 0;
-	}
-
-	return mAudios[index].mDataSize;
-}
-
-unsigned long long AACParse::GetFileLength()
-{
-	if (!mFile)
-	{
-		return 0;
-	}
-
-	unsigned long long current = ftell(mFile);
-	fseek(mFile,0,SEEK_END);
-	unsigned long long ret = ftell(mFile);
-	fseek(mFile,current,SEEK_SET);
-	return ret;
+	return 0x40;
 }

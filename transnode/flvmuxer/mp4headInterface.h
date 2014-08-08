@@ -369,12 +369,12 @@ const AVCodecTagPPTV ff_mp4_obj_type[] = {
 };
 
 
-typedef struct {
+struct MOVSttsPPTV{
 	int count;
 	int duration;
-} MOVSttsPPTV;
+};
 
-typedef struct AVCodecContextPPTV
+struct AVCodecContextPPTV
 {
 	enum AVMediaTypePPTV codec_type; /* see AVMEDIA_TYPE_xxx */
 	enum CodecIDPPTV codec_id; /* see CODEC_ID_xxx */

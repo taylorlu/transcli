@@ -163,7 +163,7 @@ void FileWriter::Write64(unsigned long long llTemp)
 	m_pBuffer[m_uiBufferOffset++] = (llTemp) & 0xff;
 }
 
-void FileWriter::WriteBytes(char *pBuf,unsigned int uiSize)
+void FileWriter::WriteBytes(const char *pBuf,unsigned int uiSize)
 {
 	unsigned int uiBufferSize = uiSize;
 	unsigned int uiBufOffset = 0;

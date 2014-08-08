@@ -1,13 +1,17 @@
 #include "FileMixer.h"
 #include "GlobalDefine.h"
 #include "mp4headInterface.h"
+#include "AACParse.h"
+#include "AC3Parse.h"
+
 //#include "xzcompress.h"
 #include "crc32.h"
 #include <time.h>
 
-FileMixer::FileMixer(void)
+FileMixer::FileMixer(int outputType )
 {
-	mOutputFile = NULL;
+	mOutputType = outputType;
+	m_pAParser = NULL;
 }
 
 FileMixer::~FileMixer(void)
@@ -16,18 +20,15 @@ FileMixer::~FileMixer(void)
 
 bool FileMixer::ParseAACFile(const char* file )
 {
-	bool ret = mAParser.ParseAACFile(file);
-	return ret;
+	m_pAParser = new AACParse();
+	m_pAParser->SetContainerType(mOutputType);
+	return m_pAParser->Parse(file);
 }
 
-bool FileMixer::ParseADTS(const char* file,  bool bmp4)
+bool FileMixer::ParseAC3File(const char* file)
 {
-	bool ret = mAParser.ParseADTS(file, bmp4);
-	if (!ret)
-	{
-
-	}
-	return ret;
+	m_pAParser = new AC3Parse();
+	return m_pAParser->Parse(file);
 }
 
 bool FileMixer::Parse264File(const char* file )
@@ -37,30 +38,26 @@ bool FileMixer::Parse264File(const char* file )
 	return ret;
 }
 
-bool FileMixer::WriteOutPutFile(const char* file,int outputtype )
+bool FileMixer::WriteOutPutFile(const char* file)
 {
-	unsigned long long t = time(0);
-	if (!file)
-	{
+	//unsigned long long t = time(0);
+	if (!file) {
 		return false;
 	}
 
 	mFile.Open(file);
-	if (!mFile.IsOpen())
-	{
+	if (!mFile.IsOpen()) {
 		return false;
 	}
-	mVParser.FinishParsing();
-	if (1 > mVParser.Size())
-	{
+
+	if (mVParser.Size() < 1 || m_pAParser->Size() < 1) {
 		return false;
 	}
-	if (1 > mAParser.Size())
-	{
-		return false;
-	}
+	
 	mVideoDuration = mVParser.GetPTSByIndex(mVParser.Size() - 1);
-	mAudioDuration = mAParser.GetPTSByIndex(mAParser.Size() - 1);
+	mVideoDuration += mVParser.GetPTSByIndex(1);
+	mAudioDuration = m_pAParser->GetPTSByIndex(m_pAParser->Size() - 1);
+	mAudioDuration += m_pAParser->GetPTSByIndex(1);
 
 	bool ret = true;
 
@@ -68,30 +65,32 @@ bool FileMixer::WriteOutPutFile(const char* file,int outputtype )
 	//outputtype = OUTPUT_TYPE_MP4;
 	//============
 
-	switch(outputtype)
+	switch(mOutputType)
 	{
 	case OUTPUT_TYPE_FLV:
-		{
-			ret = WriteFileFlv();
-			break;
-		}
+		ret = WriteFileFlv();
+		break;
 	case OUTPUT_TYPE_MP4:
 		ret = WriteFileMp4();
 		break;
 	default:
-		{
-			return false;
-		}
+		ret = false;
 	}
 
 	mFile.Close();
-	unsigned int tt = time(0) - t;
+	//unsigned int tt = time(0) - t;
 
 	return ret;
 }
 
 bool FileMixer::WriteFileFlv()
 {
+	char* vconfig = mVParser.GetConfig();
+	uint8_t* aconfig = m_pAParser->GetConfig();
+	if(!vconfig || !aconfig) {
+		return false;
+	}
+
 	//flv head
 	WriteFlvHead();
 	//meta
@@ -99,45 +98,22 @@ bool FileMixer::WriteFileFlv()
 	mKeyFrames.push_back(mVParser.mKeyFrameTimes);
 	WriteFlvMeta();
 
-	//vidoeconfig
+	//video config
+	WriteFlvVideoTag(mVParser.GetConfigLength(),0,vconfig,true,true);
+	delete[] vconfig;
 	
-	char* vconfig = mVParser.GetConfig();
-	if (vconfig)
-	{
-		WriteFlvVideoTag(mVParser.GetConfigLength(),0,vconfig,true,true);
-		delete[] vconfig;
-	}
-	else
-	{
-		return false;
-	}
-	
-	//audioconfig
-	char* aconfig = mAParser.GetConfig();
-	if (aconfig)
-	{
-		WriteFlvAudioTag(mAParser.GetConfigLength(),0,aconfig,true);
-		delete[] aconfig;
-	}
-	else
-	{
-		return false;
-	}
+	//audio config
+	WriteFlvAudioTag(m_pAParser->GetConfigLength(),0,(char*)aconfig,true);
+	delete[] aconfig;
 
 	//audio & video data
 	WriteFlvData();
 
 	mFileLength = mFile.Tell();
 	mBitRate = mFileLength / mDuration / 1000 * 8; 
-
 	WriteFlvMeta();
 
-	if (mFile.Error())
-	{
-		return false;
-	}
-
-	return true;
+	return !mFile.Error();
 }
 
 void FileMixer::WriteFlvHead()
@@ -273,12 +249,12 @@ void FileMixer::WriteFlvData()
 
 	char *data = new char[1024 * 1024];
 
-	while(videoindex < mVParser.Size() || audioindex < mAParser.Size())
+	while(videoindex < mVParser.Size() || audioindex < m_pAParser->Size())
 	{
 		if (videoindex >= mVParser.Size())//video over write audio
 		{
 			unsigned int size = 1024 * 1024;
-			bool ret = mAParser.GetDataByIndex(audioindex,data,size);
+			bool ret = m_pAParser->GetDataByIndex(audioindex,data,size);
 			if (ret)
 			{
 				mFrameOffset.push_back((unsigned long long)(mFile.Tell()) + 13);
@@ -286,11 +262,11 @@ void FileMixer::WriteFlvData()
 				WriteFlvAudioTag(size,audiopts,data);
 			}
 			audioindex ++;
-			audiopts = mAParser.GetPTSByIndex(audioindex);
+			audiopts = m_pAParser->GetPTSByIndex(audioindex);
 		}
 		else
 		{
-			if (audioindex >= mAParser.Size())//audio over write video
+			if (audioindex >= m_pAParser->Size())//audio over write video
 			{
 				unsigned int size = 1024 * 1024;
 				bool ret = mVParser.GetDataByIndex(videoindex,data,size);
@@ -337,7 +313,7 @@ void FileMixer::WriteFlvData()
 				else//write audio
 				{
 					unsigned int size = 1024 * 1024;
-					bool ret = mAParser.GetDataByIndex(audioindex,data,size);
+					bool ret = m_pAParser->GetDataByIndex(audioindex,data,size);
 					if (ret)
 					{
 						mFrameOffset.push_back((unsigned long long)(mFile.Tell()) + 13);
@@ -345,7 +321,7 @@ void FileMixer::WriteFlvData()
 						WriteFlvAudioTag(size,audiopts,data);
 					}
 					audioindex ++;
-					audiopts = mAParser.GetPTSByIndex(audioindex);
+					audiopts = m_pAParser->GetPTSByIndex(audioindex);
 				}
 			}
 		}
@@ -387,7 +363,7 @@ double FileMixer::GetVideoPtsByFilePos( unsigned long long pos )
 
 bool FileMixer::WriteFileMp4()
 {
-	if (mVParser.Size() < 40 || mAParser.Size() < 40)
+	if (mVParser.Size() < 40 || m_pAParser->Size() < 40)
 	{
 		return false;
 	}
@@ -421,7 +397,7 @@ bool FileMixer::WriteFileMp4()
 void FileMixer::GenerateChunkList()
 {
 	unsigned int videocount = mVParser.Size();
-	unsigned int audiocount = mAParser.Size();
+	unsigned int audiocount = m_pAParser->Size();
 
 	Mp4Chunk videofirstchunk;
 	videofirstchunk.mIndex = 1;
@@ -502,7 +478,8 @@ void FileMixer::WriteMp4BoxMvhd()
 	int maxTrackID = 1;
 	unsigned long long maxTrackLenTemp,maxTrackLen = 0;
 
-	maxTrackLen = mAudioDuration > mVideoDuration ? mAudioDuration / 1000 * 600 : mVideoDuration / 1000 * 600;
+	maxTrackLen = mAudioDuration > mVideoDuration ? mAudioDuration : mVideoDuration;
+	maxTrackLen = maxTrackLen * 600 / 1000;
 	mHighVersion = maxTrackLen < 0xffffff ? false : true;
 	if (mHighVersion)
 	{
@@ -690,53 +667,32 @@ void FileMixer::WriteMp4BoxMdhd( bool video )
 		mFile.Write32(32);
 	}
 	WriteBoxType("mdhd");
-	if (mHighVersion)
-	{
-		mFile.Write8(1);
-	}
-	else
-	{
-		mFile.Write8(0);
-	}
+	mFile.Write8(mHighVersion ? 1 : 0);
 	mFile.Write24(0);
-	if (mHighVersion)
-	{
+
+	if (mHighVersion) {
 		mFile.Write64(time(0));
 		mFile.Write64(time(0));
-	}
-	else
-	{
+	} else {
 		mFile.Write32(time(0));
 		mFile.Write32(time(0));
 	}
-	if (video)
-	{
+	if (video) {
 		mFile.Write32(mVParser.GetFrameRate() * 1000);
+	} else {
+		mFile.Write32(m_pAParser->GetSampleRate());
 	}
-	else
-	{
-		mFile.Write32(mAParser.GetSampleRate());
-	}
-	if (mHighVersion)
-	{
-		if(video)
-		{
+	if (mHighVersion) {
+		if(video) {
 			mFile.Write64(mVParser.Size() * 1000);
+		} else {
+			mFile.Write64(m_pAParser->Size() * m_pAParser->GetFrameLength());	// 1024
 		}
-		else
-		{
-			mFile.Write64(mAParser.Size() * 1024);
-		}
-	}
-	else
-	{
-		if (video)
-		{
+	} else {
+		if (video) {
 			mFile.Write32(mVParser.Size() * 1000);
-		}
-		else
-		{
-			mFile.Write32(mAParser.Size() * 1024);
+		} else {
+			mFile.Write32(m_pAParser->Size() * m_pAParser->GetFrameLength());
 		}
 	}
 	mFile.Write16(21956);
@@ -927,29 +883,49 @@ void FileMixer::WriteMp4BoxStsdAudio()
 {
 	unsigned long long boxhead = mFile.Tell();
 	mFile.Write32(0);
-	WriteBoxType("mp4a");
+	WriteBoxType(m_pAParser->GetAudioType());
 
 	mFile.Write32( 0); /* Reserved */
 	mFile.Write16( 0); /* Reserved */
 	mFile.Write16( 1); /* Data-reference index, XXX  == 1 */
 
-	/* SoundDescription */
 	mFile.Write16( 0); /* Version */
 	mFile.Write16( 0); /* Revision level */
 	mFile.Write32( 0); /* Reserved */
 
-
-
-	mFile.Write16( 2);
+	/* SoundDescription */
+	mFile.Write16(m_pAParser->GetChannelCount());
 	mFile.Write16( 16);
 	mFile.Write16( 0);
 
 
 	mFile.Write16( 0); /* packet size (= 0) */
-	mFile.Write16( mAParser.GetSampleRate()); /* Time scale */
+	mFile.Write16( m_pAParser->GetSampleRate()); /* Time scale */
 	mFile.Write16( 0); /* Reserved */
 
-	WriteMp4BoxEsds();
+	uint8_t audioOTI = m_pAParser->GetObjectTypeIndication();
+	if(audioOTI == AUDIO_OTI_MP4A) {
+		WriteMp4BoxEsds();
+	} else {	// AC3 or EC3
+		const char* dtype = "dac3";
+		if(audioOTI == AUDIO_OTI_EC3) {
+			dtype = "dec3";
+		}
+		WriteAC3ConfigBox(dtype);
+	}
+
+	WriteBoxSize(boxhead);
+}
+
+void FileMixer::WriteAC3ConfigBox(const char* boxType)
+{
+	unsigned long long boxhead = mFile.Tell();
+	mFile.Write32(0);
+	WriteBoxType(boxType);
+	
+	// AC3 config
+	uint8_t *config = m_pAParser->GetConfig();
+	mFile.WriteBytes((const char*)config, m_pAParser->GetConfigLength());
 
 	WriteBoxSize(boxhead);
 }
@@ -961,34 +937,38 @@ void FileMixer::WriteMp4BoxEsds()
 	WriteBoxType("esds");
 	mFile.Write32(0);
 
+	uint32_t configLen = m_pAParser->GetConfigLength();
 	// ES descriptor
-	putDescr( 0x03, 3 + descrLength(13 + mAParser.GetConfigLength()) + descrLength(1));
+	putDescr( 0x03, 3 + descrLength(13 + configLen) + descrLength(1));
+	//putDescr( 0x03, 28/*3+5+13+configLen+5+1*/);
 	mFile.Write16(2);
 	mFile.Write8(0);
 
 	// DecoderConfig descriptor
-	putDescr(0x04, 13 + mAParser.GetConfigLength());
+	putDescr(0x04, 13 + configLen);
 
 	// Object type indication
-	mFile.Write8(0x40);
+	mFile.Write8(m_pAParser->GetObjectTypeIndication());
 
 	mFile.Write8(0x15);
 
+	// Buffer size DB
+	//mFile.Write24(375);
 	mFile.Write8(mVParser.mKeyFrameLocation.size() >> (3 + 16));
 	mFile.Write16((mVParser.mKeyFrameLocation.size() >> 3) & 0xffff);
 
-	//??
+	// Max bitrate & average bitrate
 	mFile.Write32(0);
-	mFile.Write32(0);
+	uint32_t averageBr = m_pAParser->GetFileLength()*8*1000/mAudioDuration;	// kbps
+	mFile.Write32(averageBr);
 
 	//config
-	putDescr(0x05,mAParser.GetConfigLength());
-	char *config = mAParser.GetConfig();
-	mFile.WriteBytes(config,2);
-	delete[] config;
-
+	putDescr(0x05, configLen);
+	uint8_t *config = m_pAParser->GetConfig();
+	mFile.WriteBytes((const char*)config, configLen);
+	
 	//SL descriptor
-	putDescr(0x06,1);
+	putDescr(0x06, 1);
 	mFile.Write8(0x02);
 
 	WriteBoxSize(boxhead);
@@ -1008,8 +988,8 @@ void FileMixer::WriteMp4BoxStts( bool video )
 	}
 	else
 	{
-		mFile.Write32(mAParser.Size());
-		mFile.Write32(1024);
+		mFile.Write32(m_pAParser->Size());
+		mFile.Write32(m_pAParser->GetFrameLength());
 	}
 
 	WriteBoxSize(boxhead);
@@ -1101,11 +1081,11 @@ void FileMixer::WriteMp4BoxStsz( bool video )
 	}
 	else
 	{
-		samplecount = mAParser.Size();
+		samplecount = m_pAParser->Size();
 		mFile.Write32(samplecount);
 		for (int i = 0; i < samplecount; i ++)
 		{
-			mFile.Write32(mAParser.GetSizeByIndex(i));
+			mFile.Write32(m_pAParser->GetSizeByIndex(i));
 		}
 	}
 
@@ -1123,7 +1103,7 @@ void FileMixer::WriteMp4BoxStco( bool video )
 	{
 		mAudioStcoPos = boxhead;
 	}
-	unsigned long long length = mVParser.GetFileLength() + mAParser.GetFileLength() + 10 * 1024 * 1024;
+	unsigned long long length = mVParser.GetFileLength() + m_pAParser->GetFileLength() + 10 * 1024 * 1024;
 	bool mode64 = false;
 	if (length > (unsigned long long)(0xffffffff))
 	{
@@ -1203,7 +1183,7 @@ void FileMixer::WriteMp4BoxMdat()
 		for (int j = 0; j < mAudioChunk[i].mSamples; j ++)
 		{
 			unsigned int size = 1024 * 1024;
-			bool ret = mAParser.GetDataByIndex(audioindex ++,data,size);
+			bool ret = m_pAParser->GetDataByIndex(audioindex ++,data,size);
 			if (ret)
 			{
 				mFile.WriteBytes(data,size);
@@ -1222,12 +1202,12 @@ void FileMixer::WriteMp4BoxFree()
 	mFile.Write32(0);
 	WriteBoxType("free");
 
-	mFile.WriteBytes("File Producer:DJQ",17);
+	mFile.WriteBytes("File Producer:PPTV",18);
 
 	WriteBoxSize(boxhead);
 }
 
-void FileMixer::WriteBoxType( char* type )
+void FileMixer::WriteBoxType(const char* type )
 {
 	mFile.WriteBytes(type,4);
 }
@@ -1249,7 +1229,11 @@ unsigned int FileMixer::descrLength( unsigned int len )
 
 void FileMixer::putDescr( int tag,unsigned int size )
 {
-	int i= descrLength(size) - size - 2;
+	uint32_t writeLen = descrLength(size);
+	int i = (int)(writeLen - size - 2);
+	/*int i=1;
+	for(; size >> (7*i); ++i);
+	i -= 1;*/
 	mFile.Write8(tag);
 	for(; i>0; i--)
 		mFile.Write8((size>>(7*i)) | 0x80);

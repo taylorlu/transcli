@@ -206,6 +206,8 @@
     <ClCompile Include="fdkAacEncode.cpp" />
     <ClCompile Include="FileQueue.cpp" />
     <ClCompile Include="flvmuxer\AACParse.cpp" />
+    <ClCompile Include="flvmuxer\AC3Parse.cpp" />
+    <ClCompile Include="flvmuxer\AudioParse.cpp" />
     <ClCompile Include="flvmuxer\AudioSourceData.cpp" />
     <ClCompile Include="flvmuxer\Box.cpp" />
     <ClCompile Include="flvmuxer\ComDef.cpp" />
@@ -249,6 +251,8 @@
     <ClInclude Include="fdkAacEncode.h" />
     <ClInclude Include="FileQueue.h" />
     <ClInclude Include="flvmuxer\AACParse.h" />
+    <ClInclude Include="flvmuxer\AC3Parse.h" />
+    <ClInclude Include="flvmuxer\AudioParse.h" />
     <ClInclude Include="flvmuxer\AudioSourceData.h" />
     <ClInclude Include="flvmuxer\Box.h" />
     <ClInclude Include="flvmuxer\ComDef.h" />

@@ -18,6 +18,7 @@ using namespace std;
 #define fell ftello64
 #endif
 
+//unsigned int ReadBit(FILE *pf);
 unsigned int Read8(FILE *pf);
 
 unsigned int Read16(FILE *pf);
@@ -33,6 +34,8 @@ unsigned int ReadL32(FILE *pf);
 string ReadLine(FILE *pf);
 
 string ReadBytes(FILE *pf, const unsigned int length);
+
+void Skip(FILE *pf, unsigned long long bytesOffset);
 
 void Write8(FILE *pf,unsigned char temp);
 

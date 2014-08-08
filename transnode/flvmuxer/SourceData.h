@@ -25,7 +25,6 @@ enum SrcDatType
 class SourceData
 {
 public:
-	SourceData(void);
 	SourceData(unsigned int type,unsigned int datasize = 0,double timstamp = 0,unsigned long long datapos = 0,unsigned int dts = 0);
 	~SourceData(void);
 
