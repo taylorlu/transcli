@@ -52,7 +52,9 @@ SOURCES += \
     flvmuxer/ComDef.cpp \
     flvmuxer/crc32.cpp \
     flvmuxer/Mp4Chunk.cpp \
-    flvmuxer/mp4headInterface.cpp
+    flvmuxer/mp4headInterface.cpp \
+    flvmuxer/AC3Parse.cpp \
+    flvmuxer/AudioParse.cpp
 
 HEADERS += \
     AudioEncode.h \
@@ -98,7 +100,9 @@ HEADERS += \
     flvmuxer/ComDef.h \
     flvmuxer/crc32.h \
     flvmuxer/Mp4Chunk.h \
-    flvmuxer/mp4headInterface.h
+    flvmuxer/mp4headInterface.h \
+    flvmuxer/AC3Parse.h \
+    flvmuxer/AudioParse.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

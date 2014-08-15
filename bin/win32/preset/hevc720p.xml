@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0"?>
 <TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <source>
-    <audio stream="0" channel="original" />
+    <audio stream="0" channel="both" />
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
     <clip start="00:00:00.0" end="00:10:0.0"/>  
   </source>
   <target>
     <mux format="mp4" />
     <audio>
-      <codec format="aac" bitrate="288k" samplerate="48000" timeshift="0s" />
+      <codec format="aac" bitrate="128k" samplerate="48000" timeshift="0s" />
 	  <volgain mode="manual"/>
     </audio>
     <video>
 	  <rcmode>1</rcmode>
 	  <videoenhance>0</videoenhance>
-      <codec format="hevc" bitrate="1700k" rectangle="{0,0,1920,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
+      <codec format="hevc" bitrate="1000k" rectangle="{0,0,1280,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
     </video>
     <subtitle timeshift="0s">
       <Files />

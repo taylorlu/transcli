@@ -74,6 +74,13 @@ bool CX265Encode::Initialize()
 		m_x265Param.fpsDenom = 1;
 	}
 
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.levelIdc")) {
+		int levelIdc = m_pXmlPrefs->GetInt("videoenc.x265.levelIdc");
+		if(levelIdc == -1 || (levelIdc >= 10 && levelIdc <= 51)) {
+			m_x265Param.levelIdc = levelIdc;
+		}
+	}
+
 	/*
 	if(m_vInfo.dest_par.den > 0) {
 		m_x265Param.vui.bEnableAspectRatioIdc = 1;
@@ -203,6 +210,28 @@ bool CX265Encode::Initialize()
 		}
 	}
 
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.lossless")) {
+		bool bEnableLossless = m_pXmlPrefs->GetBoolean("videoenc.x265.lossless");
+		if(bEnableLossless) {
+			m_x265Param.bLossless = 1;
+			x265Cmd << " --lossless";
+		} else {
+			m_x265Param.bLossless = 0;
+			x265Cmd << " --no-lossless";
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.cuLossless")) {
+		bool bCuLossless = m_pXmlPrefs->GetBoolean("videoenc.x265.cuLossless");
+		if(bCuLossless) {
+			m_x265Param.bCULossless = 1;
+			x265Cmd << " --cu-lossless";
+		} else {
+			m_x265Param.bCULossless = 0;
+			x265Cmd << " --no-cu-lossless";
+		}
+	}
+	
 	if(m_pXmlPrefs->ExistKey("videoenc.x265.maxMerge")) {
 		int maxMerge = m_pXmlPrefs->GetInt("videoenc.x265.maxMerge");
 		if(maxMerge > 0 && maxMerge <= 5) {
@@ -366,9 +395,16 @@ bool CX265Encode::Initialize()
 
 	if(m_pXmlPrefs->ExistKey("videoenc.x265.rdLevel")) {
 		int rdLevel = m_pXmlPrefs->GetInt("videoenc.x265.rdLevel");
-		if(rdLevel > 0) {
+		if(rdLevel >= 0 && rdLevel <= 6) {
 			m_x265Param.rdLevel = rdLevel;
 			x265Cmd << " --rd " << rdLevel;
+		}
+	}
+
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.psyRd")) {
+		float psyrd = m_pXmlPrefs->GetFloat("videoenc.x265.psyRd");
+		if(psyrd > -0.00001 && psyrd <= 2.f) {
+			m_x265Param.psyRd = psyrd;
 		}
 	}
 

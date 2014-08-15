@@ -14,7 +14,6 @@
 class CStreamOutput;
 //struct cli_pulldown_t;
 
-/* init with default values */
 class CX265Encode : public CVideoEncoder
 {
 public:

@@ -1711,6 +1711,10 @@
         <enum sel="1">ssim</enum>
         <enum>zero-latency</enum>
       </node>
+      <node key="levelIdc" type="int" text="LevelIdc">
+        <desc>Bit stream level. 31 stands for level 3.1, 51 for 5.1 etc. Default is -1, auto level.</desc>
+        <value>-1</value>
+      </node>
       <node key="wpp" type="bool" text="Wavefront parallel processing">
         <desc>Enable or disable wavefront parallel processing</desc>
         <value>true</value>
@@ -1732,10 +1736,21 @@
       <node key="ctuIntra" type="int" text="Intra PU depth" min="1">
         <value>3</value>
       </node>
-      <node key="rdLevel" type="enum" text="Motion estimation search algorithm">
-        <enum>None</enum>
-        <enum>No RDO</enum>
-        <enum sel="1">Full RDO</enum>
+      <node key="rdLevel" type="int" text="RDO level">
+        <desc>Range:0~6, 0 means NO RDO, 6 means Full RDO.</desc>
+        <value>1</value>
+      </node>
+      <node key="psyRd" type="float" text="Psycho-visual rate-distortion strength">
+        <desc>Only has an effect in presets which use RDO. It makes mode decision favor options which preserve the energy of the source, at the cost of lost compression.</desc>
+        <value>0.0</value>
+      </node>
+      <node key="lossless" type="bool" text="Enable lossless">
+        <desc>Enable lossless: bypass transform, quant and loop filters globally.</desc>
+        <value>false</value>
+      </node>
+      <node key="cuLossless" type="bool" text="Enable CU lossless">
+        <desc>Consider lossless mode in CU RDO decisions.</desc>
+        <value>false</value>
       </node>
       <node key="amp" type="bool" text="Enable asymmetrical motion predictions">
         <value>true</value>
@@ -1771,7 +1786,7 @@
       </node>
       <node key="reframes" type="int" text="Frames used as predictors in B and P frames" min="1" max="16">
         <desc>Number of previous frames used as predictors in B- and P-frames. This is effective in anime, but in live-action material the improvements usually drop off very rapidly above 6 or so reference frames. This has no effect on decoding speed, but does increase the memory needed for decoding. Some decoders can only handle a maximum of 15 reference frames.</desc>
-        <value>3</value>
+        <value>2</value>
       </node>
       <node key="bframes" type="int" text="Maximum B frames between I and P frames" max="16">
         <value>4</value>
