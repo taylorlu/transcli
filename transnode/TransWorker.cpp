@@ -135,6 +135,9 @@ bool CTransWorker::parseDurationInfo(CXMLPref* pTaskPref, StrPro::CXML2* pMediaP
 			}
 		}
 		totalDur = pMediaPref->getChildNodeValueInt("duration");
+		if(totalDur <= 0) {
+			totalDur = INT_MAX;
+		}
 	}
 
 	if(totalDur > 0 && totalDur <= decodeStart ||

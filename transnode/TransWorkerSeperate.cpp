@@ -344,7 +344,7 @@ bool CTransWorkerSeperate::setSourceAVInfo(StrPro::CXML2* mediaInfo)
 		if(pFirstPref->GetBoolean("overall.audio.insertBlank")) {
 			// If insert blank audio, then lower audio bitrate, mono channel
 			pFirstPref->SetInt("audioenc.ffmpeg.bitrate", 16);
-		    	pFirstPref->SetInt("audioenc.faac.bitrate", 16);
+		    pFirstPref->SetInt("audioenc.faac.bitrate", 16);
 			pFirstPref->SetInt("audioenc.nero.bitrate", 16);
 			pFirstPref->SetInt("audioenc.lame.bitrate", 16);
 			pFirstPref->SetInt("audioenc.fdkaac.bitrate", 16);
