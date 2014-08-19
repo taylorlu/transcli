@@ -347,6 +347,7 @@ bool CTransWorkerSeperate::setSourceAVInfo(StrPro::CXML2* mediaInfo)
 		    	pFirstPref->SetInt("audioenc.faac.bitrate", 16);
 			pFirstPref->SetInt("audioenc.nero.bitrate", 16);
 			pFirstPref->SetInt("audioenc.lame.bitrate", 16);
+			pFirstPref->SetInt("audioenc.fdkaac.bitrate", 16);
 			audio_info_t* pFirstAudioInfo = pFirstAudio->GetAudioInfo();
 			pFirstAudioInfo->in_channels = pFirstAudioInfo->out_channels = 1;
 			pFirstAudioInfo->in_srate = pFirstAudioInfo->out_srate = 44100;
