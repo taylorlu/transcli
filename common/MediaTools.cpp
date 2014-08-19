@@ -31,7 +31,7 @@ static int GetSizeKB(const char *s)
 static int GetDuration(const char* timestr)
 {
 	if(!timestr || !(*timestr)) return 0;
-	int dur = (int)(atoi(timestr) * 1000);	// To ms
+	int dur = (int)(atof(timestr) * 1000);	// To ms
 	return dur;
 }
 
@@ -127,7 +127,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	std::string cmdStr = FFPROBE" -analyzeduration 20000000 -i \"";
 	cmdStr += mediaPath;
 	cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
-	
+	cmdStr += " -show_entries format=duration,size,bit_rate,format_name:format_tags=encoder:stream_tags=language,rotate";
 #ifdef DEBUG_EXTERNAL_CMD
 	printf("%s\n", cmdStr.c_str());
 #endif
@@ -154,7 +154,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	//}
 
 	// Remove <Movie> and <Preformer> node, to avoid messy code string
-	const char* uselessTags[] = {"disposition", "tag"};
+	/*const char* uselessTags[] = {"disposition", "tag"};
 	for(int i=0; i<sizeof(uselessTags)/sizeof(uselessTags[0]); ++i) {
 		// Remove all tags except language tag
 		std::vector<const char*> exceptKeys;
@@ -162,7 +162,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 		exceptKeys.push_back("title");
 		exceptKeys.push_back("rotate");
 		removeTagContent(strResult, uselessTags[i], exceptKeys);
-	}
+	}*/
 	// Normalize language tag(remove messy code in language)
 	normalizeTagValue(strResult, "language");
 

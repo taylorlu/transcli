@@ -330,7 +330,23 @@ public:
 					audioTitle = "Audio";
 					audioTitle += idxStr;
 					if(*(item->ainfo->lang)) {
-						audioTitle += item->ainfo->lang;
+						if(!_stricmp(item->ainfo->lang, "chi") || !_stricmp(item->ainfo->lang, "cht")) {
+							audioTitle += "Chinese";
+						} else if(!_stricmp(item->ainfo->lang, "eng")) {
+							audioTitle += "English";
+						} else if(!_stricmp(item->ainfo->lang, "fre") || !_stricmp(item->ainfo->lang, "fra")) {
+							audioTitle += "French";
+						} else if(!_stricmp(item->ainfo->lang, "jpn")) {
+							audioTitle += "Japanese";
+						} else if(!_stricmp(item->ainfo->lang, "kor")) {
+							audioTitle += "Korean";
+						} else if(!_stricmp(item->ainfo->lang, "ger") || !_stricmp(item->ainfo->lang, "deu")) {
+							audioTitle += "German";
+						} else if(!_stricmp(item->ainfo->lang, "lat")) {
+							audioTitle += "Latin";
+						} else {
+							audioTitle += item->ainfo->lang;
+						}
 					}
 				}
 				audioTrackStr << " -add \"" << item->fileName << "\"#audio:name=\""
