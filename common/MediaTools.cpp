@@ -342,7 +342,9 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 		if(realNum != avgNum || realDen != avgDen) {
 			// If real fps is equal to avg fps and it's progressive, it's vfr
 			if(interlaced == VID_PROGRESSIVE || realNum != avgNum*2) {
-				isVfr = true;
+				if(!isQiyiFlv) {
+					isVfr = true;
+				}
 			}
 			if(avgNum == 0 || avgDen == 0) {
 				avgNum = realNum;
@@ -352,15 +354,18 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 		}
 
 		double fps = double(avgNum)/avgDen;
+		if(isQiyiFlv && realDen > 0 && realNum > 0) {
+			fps = double(realNum)/realDen;
+		}
 		GetFraction(fps, &avgNum, &avgDen);
-		/*if(fps > 32 && fps < 60) {
+		if(fps > 32 && fps < 60) {
 			GetFraction(fps/2, &avgNum, &avgDen);
 			isVfr = true;
 		} else if(fps > 60) {
 			avgNum = 24;
 			avgDen = 1;
 			isVfr = true;
-		} else if(avgNum > 60000 || avgDen > 60000) {
+		} /*else if(avgNum > 60000 || avgDen > 60000) {
 		}*/
 		
 		mediaInfo->addChild("fps_num", avgNum); 

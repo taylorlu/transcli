@@ -370,9 +370,9 @@ void CTransWorker::parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_
 		if(isVfr >= 0) pVideoAttrib->is_vfr = isVfr;
 		pVideoAttrib->rotate = mediaInfo->getChildNodeValueInt("rotate");
 		pVideoAttrib->is_video_passthrough = mediaInfo->getChildNodeValueInt("passthrough");
-		if(isVfr) {		// If it's vfr, then don't pass through
-			pVideoAttrib->is_video_passthrough = 0;
-		}
+		//if(isVfr) {		// If it's vfr, then don't pass through
+		//	pVideoAttrib->is_video_passthrough = 0;
+		//}
 	}
 }
 
