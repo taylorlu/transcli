@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0"?>
 <TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <source>
-    <audio stream="0" channel="both" track="2"/>
+    <audio stream="0" channel="both" track="0"/>
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
-    <clip start="00:00:00.0" end="00:0:00.0"/>  
+    <clip start="00:00:00.0" end="00:00:00.0"/>  
   </source>
   <target>
     <mux format="mp4" />

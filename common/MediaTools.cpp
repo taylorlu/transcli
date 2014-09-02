@@ -111,7 +111,7 @@ static void normalizeTagValue(std::string& infoXml, const char* tagName)
 	}
 }
 
-//static bool isQiyiVbr = false;
+static bool isQiyiFlv = false;
 
 static std::string GetMediaInfoXML(const char *mediaPath)
 {
@@ -127,7 +127,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	std::string cmdStr = FFPROBE" -analyzeduration 20000000 -i \"";
 	cmdStr += mediaPath;
 	cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
-	cmdStr += " -show_entries format=duration,size,bit_rate,format_name:format_tags=encoder:stream_tags=language,rotate";
+	cmdStr += " -show_entries format=duration,size,bit_rate,format_name:format_tags=encoder,metadatacreator:stream_tags=language,rotate";
 #ifdef DEBUG_EXTERNAL_CMD
 	printf("%s\n", cmdStr.c_str());
 #endif
@@ -148,10 +148,10 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	}
 	strResult = p;
 
-	//if(strResult.find("metadatacreator") != std::string::npos &&
-	//	strResult.find("Moyea FLV Lib") != std::string::npos) {
-	//	isQiyiVbr = true;
-	//}
+	if(strResult.find("metadatacreator") != std::string::npos &&
+		strResult.find("Moyea FLV Lib") != std::string::npos) {
+		isQiyiFlv = true;
+	}
 
 	// Remove <Movie> and <Preformer> node, to avoid messy code string
 	/*const char* uselessTags[] = {"disposition", "tag"};
@@ -352,7 +352,8 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 		}
 
 		double fps = double(avgNum)/avgDen;
-		if(fps > 30 && fps < 60) {
+		GetFraction(fps, &avgNum, &avgDen);
+		/*if(fps > 32 && fps < 60) {
 			GetFraction(fps/2, &avgNum, &avgDen);
 			isVfr = true;
 		} else if(fps > 60) {
@@ -360,13 +361,16 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 			avgDen = 1;
 			isVfr = true;
 		} else if(avgNum > 60000 || avgDen > 60000) {
-			GetFraction(fps, &avgNum, &avgDen);
-		}
+		}*/
 		
-		//if(isQiyiVbr) isVfr = true;
 		mediaInfo->addChild("fps_num", avgNum); 
 		mediaInfo->addChild("fps_den", avgDen);
 		mediaInfo->addChild("is_vfr", isVfr ? 1 : 0);
+	}
+
+	// Video sync method: use pass through
+	if(isQiyiFlv) {
+		mediaInfo->addChild("passthrough", 1);
 	}
 
 	const char* darStr = xml.getAttribute("display_aspect_ratio");

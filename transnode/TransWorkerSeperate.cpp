@@ -244,7 +244,7 @@ bool CTransWorkerSeperate::setVideoPref(CXMLPref* prefs)
 	}
 
 	video_info_t videoInfo = {{0}, CF_DEFAULT, encType, encFormat, vfType, outSize, {0, 0}, outFps, {0, 0},
-		outPar, {0,0}, outDar, 0, 0, rawFormat, videoBits, 0, 0, 0};
+		outPar, {0,0}, outDar, 0, 0, rawFormat, videoBits, 0, 0, 0, 0, 0};
 	
 	CVideoEncoder* pEncoder = createVideoEncoder(encType, encFormat, vfType);
 	if(!pEncoder) {
@@ -953,8 +953,8 @@ bool CTransWorkerSeperate::initVideoEncoders()
 			int coreNum = CWorkManager::GetInstance()->GetCPUCoreNum();
 			if(pVInfo->encoder_type == VE_X264) {
 				if(m_encoderPass > 1) {		// First pass
-					if(coreNum >= 8) {		// First pass is fast preset, when threads is 6, better
-						coreNum = 8;
+					if(coreNum < 8) {		// First pass is fast preset, when threads is 6, better
+						coreNum = coreNum*3/2;
 					} 
 				} else {	// One pass or second pass
 					if(coreNum < 12) {

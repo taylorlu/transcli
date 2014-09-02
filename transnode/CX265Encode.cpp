@@ -102,6 +102,7 @@ bool CX265Encode::Initialize()
 	int rateMode = m_pXmlPrefs->GetInt("overall.video.mode");
 	switch (rateMode) {
 		case RC_MODE_ABR:
+		case RC_MODE_2PASS:
 			m_x265Param.rc.bitrate = m_vInfo.bitrate;
 			m_x265Param.rc.rateControlMode = X265_RC_ABR; 
 			x265Cmd << " --bitrate " << m_vInfo.bitrate;
@@ -532,6 +533,16 @@ bool CX265Encode::Initialize()
 		}
 	}
 
+	// 2Pass control
+	if(m_bMultiPass) {
+		if(m_encodePass == 2) {
+			m_x265Param.rc.bStatWrite = 1;
+		} else {
+			m_x265Param.rc.bStatRead = 1;
+		}
+		m_x265Param.rc.statFileName = m_pPassLogFile;
+	}
+
 	x265_setup_primitives(&m_x265Param, -1);
 
 	m_pX265Ctx = x265_encoder_open(&m_x265Param);
@@ -551,7 +562,7 @@ bool CX265Encode::Initialize()
 
 	x265_picture_init(&m_x265Param, &m_x265Pic);
 
-	logger_status( LOGM_TS_VE_H265, "HEVC encoder is initialized successfully\n");
+	logger_status( LOGM_TS_VE_H265, "HEVC encoder is initialized successfully.\n");
 	return true;
 }
 

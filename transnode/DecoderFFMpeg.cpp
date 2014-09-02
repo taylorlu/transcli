@@ -144,7 +144,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		if(m_pVInfo->src_container != CF_MPEG2) {
 			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input
 		} 
-		if(!pPref->GetBoolean("overall.audio.insertBlank")) {
+		if(!pPref->GetBoolean("overall.audio.insertBlank") && !m_pVInfo->is_video_passthrough) {
 			audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
 		}
 	}
@@ -156,6 +156,9 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		cmd << " -f lavfi -i aevalsrc=0 -shortest";
 	}
 	cmd << " -v error";
+	if(m_bDecVideo && m_pVInfo->is_video_passthrough) {
+		cmd << " -vsync passthrough";
+	}
 
 	if(m_bDecAudio) {
 		if(!m_bDecVideo) cmd << " -vn";

@@ -369,6 +369,10 @@ void CTransWorker::parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_
 		int isVfr = mediaInfo->getChildNodeValueInt("is_vfr");
 		if(isVfr >= 0) pVideoAttrib->is_vfr = isVfr;
 		pVideoAttrib->rotate = mediaInfo->getChildNodeValueInt("rotate");
+		pVideoAttrib->is_video_passthrough = mediaInfo->getChildNodeValueInt("passthrough");
+		if(isVfr) {		// If it's vfr, then don't pass through
+			pVideoAttrib->is_video_passthrough = 0;
+		}
 	}
 }
 
@@ -542,7 +546,7 @@ bool CTransWorker::setVideoEncAttrib(video_info_t* pVInfo,CXMLPref* videoPref,at
 	pVInfo->index = pVideoAttrib->id;
 	pVInfo->rotate = pVideoAttrib->rotate;
 	pVInfo->duration = m_tmpBenchData.mainDur;
-
+	pVInfo->is_video_passthrough = pVideoAttrib->is_video_passthrough;
 	if(pVInfo->fps_in.num <= 0 || pVInfo->fps_in.den <= 0) {
 		pVInfo->fps_in.num = 24;
 		pVInfo->fps_in.den = 1;

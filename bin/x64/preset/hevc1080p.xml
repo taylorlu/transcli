@@ -41,3 +41,5 @@
     </additon>
   </target>
 </TranscodeArgsXml>
+
+select st.inventory_id, st.id, vi.title, vsi.id,st.error_message, vsi.source_storage_path from suppress_task st, video_source_item vsi, video_inventory vi where st.inventory_id = vi.id and vi.vpc_id = 1001 and st.source_item_ids = vsi.id and st.error_message !='素材码率过低' and st.error_message!='视频md5校验错误' and st.error_message!='视频下载失败' and st.status = 13 and st.last_modified_time > "2014-08-19" and st.is_deleted = 0 and vsi.is_deleted = 0

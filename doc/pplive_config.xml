@@ -71,7 +71,7 @@
     <thumbnail start="5" end="0" interval="6" row="10" col="10" width="180" height="0" type="2" count="0" quality="85" stitch="true" pack="true" postfix="_shot"/> <!--postfix:postfix of thumbnail's file name-->
     <!--ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)-->
     <errorignore>0</errorignore>
-    
+    阱
     <additon>
       <x264 option="-level=4.1,-fourcc=H.264,-profile=Baseline/Main/High">
         <zone start="00:00:02.0" end="00:01:10.0" ratio="0.6"/>    <!--Lower bitrate of the zone-->

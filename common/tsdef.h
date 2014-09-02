@@ -426,6 +426,7 @@ typedef struct {
 	float originFps;				// original FPS, get from video stream, may not same with dar_num/dar_den
 	int has_origin_res;				// If has original resolution (mov decoder select)
 	int rotate;
+	int is_video_passthrough;		// video sync method: pass through (if it's true, else use CFR)
 } attr_video_t;
 
 typedef struct {
@@ -449,6 +450,7 @@ typedef struct {
 	int is_vfr;						// 0: constant fps, 1: variable fps
 	int index;
 	int rotate;
+	int is_video_passthrough;		// video sync method: pass through
 } video_info_t;
 
 typedef struct {

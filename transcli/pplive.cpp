@@ -1943,9 +1943,10 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	}
 
 	// rate control mode
-	if(strcmp(conf.target.vcodec.name, "h264") != 0) {	
+	if(strcmp(conf.target.vcodec.name, "h264") != 0 && strcmp(conf.target.vcodec.name, "hevc") != 0) {	
 		conf.target.vcodec.rcmode = 1;
 	}
+
 	if(conf.target.vcodec.rcmode >= 1) {
 		prefs.SetStreamPref("overall.video.mode", conf.target.vcodec.rcmode-1, STVIDEO);
 	}
@@ -2302,7 +2303,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 
 	// Thumbnail 1
 	const thumbnail_t& thumbNail1 = conf.target.thumbnails[1];
-	if(thumbNail.count > 0 || thumbNail.interval > 0) {
+	if(thumbNail1.count > 0 || thumbNail1.interval > 0) {
 		prefs.SetStreamPref("videofilter.thumb1.enabled", true, STVIDEO);
 		prefs.SetStreamPref("videofilter.thumb1.align", 3, STVIDEO);	// User grid alignment
 		prefs.SetStreamPref("videofilter.thumb1.start", thumbNail1.start, STVIDEO);
