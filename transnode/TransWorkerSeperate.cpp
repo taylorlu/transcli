@@ -3047,6 +3047,9 @@ bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 	
 	bool srcHasMultiAudioTrack = (audioIdx > 1);
 
+	if(m_audioEncs.empty()) {
+		return true;
+	}
 	CAudioEncoder* pFirstAudio = m_audioEncs[0];
 	CXMLPref* pFirstPref = pFirstAudio->GetAudioPref();
 	audio_info_t* pFirstAudioInfo = pFirstAudio->GetAudioInfo();
