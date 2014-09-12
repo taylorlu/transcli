@@ -127,7 +127,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	std::string cmdStr = FFPROBE" -analyzeduration 20000000 -i \"";
 	cmdStr += mediaPath;
 	cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
-	cmdStr += " -show_entries format=duration,size,bit_rate,format_name:format_tags=encoder,metadatacreator:stream_tags=language,rotate";
+	cmdStr += " -show_entries format=duration,size,bit_rate,format_name,probe_score:format_tags=encoder,metadatacreator:stream_tags=language,rotate";
 #ifdef DEBUG_EXTERNAL_CMD
 	printf("%s\n", cmdStr.c_str());
 #endif
@@ -462,6 +462,15 @@ bool GetMediaInfo(const char *mediaPath /*IN*/, StrPro::CXML2 *mediaInfo/*OUT*/)
 
 	// Check if audio parameter is normal(Mediainfo detect AAC-LTP/Main has problem)
 	if(probeDoc.goRoot()) {
+		if(probeDoc.findChildNode("format")) {
+			if(probeDoc.getAttributeInt("probe_score") < 50) {
+				printf("Probe score is low, unknown format.\n");
+				return false;
+			}
+			parseGeneralInfo(probeDoc, mediaInfo);
+		}
+		probeDoc.goRoot();
+
 		if(probeDoc.findChildNode("streams") && probeDoc.goChild()) {
 			int audioIdx = 0, videoIdx = 0, subIdx = 0;
 			do {
@@ -481,11 +490,6 @@ bool GetMediaInfo(const char *mediaPath /*IN*/, StrPro::CXML2 *mediaInfo/*OUT*/)
 					}
 				}
 			} while(probeDoc.goNext());
-		}
-
-		probeDoc.goRoot();
-		if(probeDoc.findChildNode("format")) {
-			parseGeneralInfo(probeDoc, mediaInfo);
 		}
 	}
 

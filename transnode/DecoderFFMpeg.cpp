@@ -155,8 +155,8 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	if(pPref->GetBoolean("overall.audio.insertBlank")) {	
 		cmd << " -f lavfi -i aevalsrc=0 -shortest";
 	}
-	cmd << " -v error";
-	if(m_bDecVideo && m_pVInfo->is_video_passthrough) {
+	cmd << " -v error";	//verbose
+	if(m_bDecVideo && !bSpecifyFps && m_pVInfo->is_video_passthrough ) {
 		cmd << " -vsync passthrough";
 	}
 
