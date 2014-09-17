@@ -374,9 +374,9 @@ static void parseVideoInfo(StrPro::CXML2& xml, StrPro::CXML2 *mediaInfo, int vid
 	}
 
 	// Video sync method: use pass through
-	if(isQiyiFlv) {
-		mediaInfo->addChild("passthrough", 1);
-	}
+	//if(isQiyiFlv) {
+	//	mediaInfo->addChild("passthrough", 1);
+	//}
 
 	const char* darStr = xml.getAttribute("display_aspect_ratio");
 	if(darStr && *darStr) {

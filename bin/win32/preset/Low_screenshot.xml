@@ -30,6 +30,7 @@
     <!--delogo>
       <pos position="{62,33,120,113}" start="00:00:00" end="23:00:00" />
     </delogo-->
+	<thumbnail start="5" end="0" interval="0" width="1024" height="0" type="2" count="5" quality="85" postfix="_shot"/>
     <filter>
       <color red="0%" blue="0%" green="0%" bright="0%" />
       <noise depth="0" mask="0x0" />

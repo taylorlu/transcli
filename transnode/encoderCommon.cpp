@@ -304,17 +304,23 @@ bool parseThumbnailInfo(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
 	}
 	pThumbnail->SetThumbnailSize(thumbW, thumbH);
 	pThumbnail->SetImageFormat(thumbFormat);
-	pThumbnail->SetStartTime(startTime);
-	pThumbnail->SetEndTime(endTime);
 	pThumbnail->SetYUVFrameSize(pVinfo->res_out.width, pVinfo->res_out.height);
 	pThumbnail->SetFps((float)pVinfo->fps_out.num/pVinfo->fps_out.den);
-	int vdur = pVinfo->duration/1000;
+	float vdur = pVinfo->duration/1000.f;
 	if(vdur <= 0) {
-		vdur = 3600*6;		// 6 hour
+		vdur = 3600.f*6;		// 6 hour
+	} else if(vdur < 1) {
+		vdur = 1;
 	} else if(vdur > 3600*12) {
-		vdur = 3600*12;		// 12 hour
+		vdur = 3600.f*12;		// 12 hour
 	}
-	pThumbnail->SetDuration(vdur);
+	
+	if(vdur < 20) {
+		startTime = 1;
+	}
+	pThumbnail->SetDuration((int)vdur);
+	pThumbnail->SetStartTime(startTime);
+	pThumbnail->SetEndTime(endTime);
 	if(imageQuality > 0 && imageQuality < 100) {
 		pThumbnail->SetImageQuality((unsigned int)imageQuality);
 	}
@@ -436,19 +442,27 @@ bool parseThumbnailInfo1(CThumbnailFilter*& pThumbnail, CXMLPref* videoPref,
 		pThumbnail->SetVideoDar((float)dar.num/dar.den);
 		NormalizeResolution(thumbW, thumbH, dar.num, dar.den);
 	}
+
 	pThumbnail->SetThumbnailSize(thumbW, thumbH);
 	pThumbnail->SetImageFormat(thumbFormat);
-	pThumbnail->SetStartTime(startTime);
-	pThumbnail->SetEndTime(endTime);
 	pThumbnail->SetYUVFrameSize(pVinfo->res_out.width, pVinfo->res_out.height);
 	pThumbnail->SetFps((float)pVinfo->fps_out.num/pVinfo->fps_out.den);
-	int vdur = pVinfo->duration/1000;
+	float vdur = pVinfo->duration/1000.f;
 	if(vdur <= 0) {
-		vdur = 50;		// 50 s
+		vdur = 3600.f*6;		// 6 hour
+	} else if(vdur < 1) {
+		vdur = 1;
 	} else if(vdur > 3600*12) {
-		vdur = 200;		// 200 s
+		vdur = 3600.f*12;		// 12 hour
 	}
-	pThumbnail->SetDuration(vdur);
+
+	if(vdur < 20) {
+		startTime = 1;
+	}
+	pThumbnail->SetDuration((int)vdur);
+	pThumbnail->SetStartTime(startTime);
+	pThumbnail->SetEndTime(endTime);
+
 	if(imageQuality > 0 && imageQuality < 100) {
 		pThumbnail->SetImageQuality((unsigned int)imageQuality);
 	}
