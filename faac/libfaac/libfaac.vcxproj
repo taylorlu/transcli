@@ -65,7 +65,7 @@
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)lib\$(Platform)\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)lib</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\lib\$(Platform)</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(TEMP)\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\Debug\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)lib\$(Platform)\</OutDir>
@@ -87,6 +87,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">faac</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">faac</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">faac</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">faac</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

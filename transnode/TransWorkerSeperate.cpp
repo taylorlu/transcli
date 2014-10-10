@@ -113,6 +113,9 @@ CTransWorkerSeperate::CTransWorkerSeperate():
 	m_pCopyVideoInfo = NULL;
 	m_bEnableVideoEncode = true;
 	m_bEnableMuxing = true;
+	m_bEnableAlignAVData = false;
+	m_audioEncodeThreadEnd = 1;
+	m_videoEncodeThreadEnd = 1;
 }
 
 
@@ -318,66 +321,24 @@ bool CTransWorkerSeperate::setMuxerPref(CXMLPref* prefs)
 	return true;
 }
 
-bool CTransWorkerSeperate::setSourceAVInfo(StrPro::CXML2* mediaInfo)
+bool CTransWorkerSeperate::adjustEncodeSetting(StrPro::CXML2* mediaInfo)
 {
-	if(!initAVSrcAttrib(mediaInfo)) {
-		return false;
-	}
-	
 	const char* srcFile = m_streamFiles.GetFirstSrcFile();
 	if(srcFile && strstr(srcFile, "://")) return true;
 	if(m_srcAudioAttribs.empty() && !m_srcVideoAttrib) {
-		/*const char* ext = strrchr(srcFile, '.');
-		if(ext && (_stricmp(ext, ".mpg") == 0 ||		// Hik format, media info can't recognize
-			_stricmp(ext, ".264") == 0 || _stricmp(ext, ".mp4") == 0 ||
-			_stricmp(ext, ".iso") == 0 || _stricmp(ext, ".rmvb") == 0 ||
-			_stricmp(ext, ".rm") == 0) ) {
-			return true; 
-		}*/
 		return false;
 	}
 
-	// There is no audio track in souce file, and generate one empty track
-	if(m_srcAudioAttribs.empty() && !m_audioEncs.empty()) {
-		CAudioEncoder* pFirstAudio = m_audioEncs[0];
-		CXMLPref* pFirstPref = pFirstAudio->GetAudioPref();
-		if(pFirstPref->GetBoolean("overall.audio.insertBlank")) {
-			// If insert blank audio, then lower audio bitrate, mono channel
-			pFirstPref->SetInt("audioenc.ffmpeg.bitrate", 16);
-		    pFirstPref->SetInt("audioenc.faac.bitrate", 16);
-			pFirstPref->SetInt("audioenc.nero.bitrate", 16);
-			pFirstPref->SetInt("audioenc.lame.bitrate", 16);
-			pFirstPref->SetInt("audioenc.fdkaac.bitrate", 16);
-			audio_info_t* pFirstAudioInfo = pFirstAudio->GetAudioInfo();
-			pFirstAudioInfo->in_channels = pFirstAudioInfo->out_channels = 1;
-			pFirstAudioInfo->in_srate = pFirstAudioInfo->out_srate = 44100;
-			m_bAutoVolumeGain = false;
-			return true;
-		}
+	if(!adjustAudioEncodeSetting()) {
+		return false;
 	}
 
-	bool invalidAudio = false;
-	bool invalidVideo = false;
-	attr_audio_t* audioAttrib = NULL;
-	if(!m_srcAudioAttribs.empty()) audioAttrib = m_srcAudioAttribs[0];
-	if(!audioAttrib || (audioAttrib->id < 0 && audioAttrib->duration <= 0 && 
-	audioAttrib->samplerate <= 0 && audioAttrib->channels <= 0 && audioAttrib->bitrate <= 0)) {
-		logger_err(m_logType, "Invalid Audio Attrib, Clean up all audio encoder!\n");
-		cleanAudioEncoders();
-		m_streamFiles.ClearAudioFiles();
-		invalidAudio = true;
+	// Set video encode setting
+	if(m_srcVideoAttrib && m_videoEncs.size() > 0) {
+		CVideoEncoder* pVideoEnc = m_videoEncs[0];
+		setVideoEncAttrib(pVideoEnc->GetVideoInfo(), pVideoEnc->GetVideoPref(), m_srcVideoAttrib);
+		adjustSubtitleAttrib(mediaInfo, pVideoEnc->GetVideoPref());
 	}
-	
-	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
-		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) {
-		logger_err(m_logType, "Invalid Video Attrib, Clean up all video encoder!\n");
-		cleanVideoEncoders();
-		m_streamFiles.ClearVideoFiles();
-		invalidVideo = true;
-	}
-
-	if(invalidAudio && invalidVideo) return false;
-	
 	return true;
 }
 
@@ -1234,15 +1195,8 @@ bool CTransWorkerSeperate::firstPassAnalyse()
 		m_hVideoThread = NULL;
 		m_hAudioThread = NULL;
 
-		closeDecoders();
-
+		int decoderExitCode = closeDecoders();
 		// Validate if transcode is complete 
-		int decoderExitCode = -1;
-		CDecoder* pDecoder = m_pVideoDec;
-		if(!pDecoder) pDecoder = m_pAudioDec;
-		if(pDecoder) {
-			decoderExitCode = pDecoder->GetExitCode();
-		}
 		if(!validateTranscode(decoderExitCode)) {
 			break;
 		}
@@ -1403,19 +1357,12 @@ THREAD_RET_T CTransWorkerSeperate::mainFunc()
 		
 		// Wait for audio/video copy finish
 		waitForCopyStreams();
-		closeDecoders();
-		
 		if(GetState() == TASK_CANCELLED) {
 			FAIL_INFO("User canceled transcoding.\n");
 		}
 
+		int decoderExitCode = closeDecoders();
 		// Validate transcoding, check if error exists
-		int decoderExitCode = -1;
-		CDecoder* pDecoder = m_pVideoDec;
-		if(!pDecoder) pDecoder = m_pAudioDec;
-		if(pDecoder) {
-			decoderExitCode = pDecoder->GetExitCode();
-		}
 		if(!validateTranscode(decoderExitCode)) {
 			ret = -1;  break;
 		}
@@ -1491,6 +1438,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeVideo()
 	
 	THREAD_RET_T ret = 0;
 	size_t videoNum = m_videoEncs.size();
+	m_videoEncodeThreadEnd = 0;
 	// Select transcode methods according to conditions
 	if(videoNum == 1) {		// Single video stream encoding
 		if(m_bDecodeNext || m_pSplitter || !m_clipStartSet.empty()) {	// Complex mode (join or split mode)
@@ -1503,9 +1451,11 @@ THREAD_RET_T CTransWorkerSeperate::transcodeVideo()
 			ret = transcodeMbrVideo();
 		} else {
 			ret = -1;
+			m_videoEncodeThreadEnd = 1;
 			logger_err(m_logType, "Splitting video doesn't support in Mbr mode.\n");
 		}
 	} else {
+		m_videoEncodeThreadEnd = 1;
 		logger_info(m_logType, "No video to transcode, only transcode audio.\n"); 
 	}
 
@@ -1534,47 +1484,73 @@ bool CTransWorkerSeperate::addImageTailToVideoStream(CVideoEncoder* pEncoder)
 #define AV_DUR_DIFF_ALLOW 5
 bool CTransWorkerSeperate::appendBlankAudio(CAudioEncoder* pEncoder)
 {
-	int ignoreErrIdx = CWorkManager::GetInstance()->GetIgnoreErrorCode();
-	if(ignoreErrIdx < 2) return true;
+	if(m_videoEncs.empty()) return true;
+	if(!m_bEnableAlignAVData) return true;
+	if((int)(m_tmpBenchData.audioEncTime) <= 0 || (int)(m_tmpBenchData.videoEncTime) <= 0) {
+		return true;
+	}
 
 	uint32_t bytesPerSec = m_pAudioDec->GetWavInfo()->bytes_per_second;
 	if(bytesPerSec > INT_MAX) return false;
-	if(m_tmpBenchData.audioEncTime > 0 && m_tmpBenchData.videoEncTime > 0) {
+	float secsPerFrame = (float)m_pcmBufSize/bytesPerSec;
+	memset(m_pcmBuf, 0, m_pcmBufSize);
+	while(!m_videoEncodeThreadEnd) {
 		int audioShortSec = (int)(m_tmpBenchData.videoEncTime - m_tmpBenchData.audioEncTime);
-		if(audioShortSec > AV_DUR_DIFF_ALLOW) {
-			uint8_t* buf = (uint8_t*)malloc(bytesPerSec);
-			memset(buf, 0, bytesPerSec);
-			for(int i=audioShortSec-1; i>=0; --i) {
-				pEncoder->EncodeBuffer(buf, bytesPerSec);
-			}
-			free(buf);
+		if(audioShortSec > secsPerFrame) {
+			pEncoder->EncodeBuffer(m_pcmBuf, m_pcmBufSize);
+			m_encAudioBytes += m_pcmBufSize;
+			m_tmpBenchData.audioEncTime = (float)(m_encAudioBytes/(double)bytesPerSec);
+		} else {
+			Sleep(10);
 		}
 	}
+
+	float audioShortSec = m_tmpBenchData.videoEncTime - m_tmpBenchData.audioEncTime;
+	int audioFrameCount = (int)(bytesPerSec*audioShortSec/m_pcmBufSize);
+	if(audioShortSec > AV_DUR_DIFF_ALLOW) {
+		for(int i=audioFrameCount-1; i>=0; --i) {
+			pEncoder->EncodeBuffer(m_pcmBuf, m_pcmBufSize);
+			m_encAudioBytes += m_pcmBufSize;
+			m_tmpBenchData.audioEncTime = (float)(m_encAudioBytes/(double)bytesPerSec);
+		}
+	}
+
 	return true;
 }
 
 bool CTransWorkerSeperate::appendBlankVideo(CVideoEncoder* pEncoder)
 {
-	int ignoreErrIdx = CWorkManager::GetInstance()->GetIgnoreErrorCode();
-	if(ignoreErrIdx < 2) return true;
+	if(m_audioEncs.empty()) return true;
+	if(!m_bEnableAlignAVData) return true;
+	if((int)(m_tmpBenchData.audioEncTime) <= 0 || (int)(m_tmpBenchData.videoEncTime) <= 0) {
+		return true;
+	}
 
-	if(m_tmpBenchData.audioEncTime > 0 && m_tmpBenchData.videoEncTime > 0) {
-		int videoShortSec = (int)(m_tmpBenchData.audioEncTime - m_tmpBenchData.videoEncTime);
-		if(videoShortSec > AV_DUR_DIFF_ALLOW) {
-			int totalFrames = videoShortSec*m_tmpBenchData.fpsNum/m_tmpBenchData.fpsDen;
-			int bufSize = pEncoder->GetFrameSize();
-			resolution_t videoRes = pEncoder->GetVideoInfo()->res_out;
-			int planeSize = videoRes.width*videoRes.height;
-			uint8_t* buf = (uint8_t*)malloc(bufSize);
-			// YUV 为黑色的值为(0, 128, 128)
-			memset(buf, 128, bufSize);
-			memset(buf, 0, planeSize);
-			for(int i=totalFrames-1; i>=0; --i) {
-				pEncoder->EncodeFrame(buf, bufSize);
-			}
-			free(buf);
+	// YUV 为黑色的值为(0, 128, 128)
+	memset(m_yuvBuf, 128, m_frameBufSize);
+	memset(m_yuvBuf, 0, m_frameBufSize/3*2);
+	float eachFrameSec = m_tmpBenchData.fpsDen/(float)m_tmpBenchData.fpsNum;
+	while(!m_audioEncodeThreadEnd) {
+		float videoShortSec = m_tmpBenchData.audioEncTime - m_tmpBenchData.videoEncTime;
+		if(videoShortSec > eachFrameSec) {
+			pEncoder->EncodeFrame(m_yuvBuf, m_frameBufSize);
+			m_encodedFrames++;
+			m_tmpBenchData.videoEncTime = (float)(m_encodedFrames*eachFrameSec);
+		} else {
+			Sleep(10);
 		}
 	}
+
+	float videoShortSec = m_tmpBenchData.audioEncTime - m_tmpBenchData.videoEncTime;
+	if(videoShortSec > AV_DUR_DIFF_ALLOW) {
+		int totalFrames = (int)(videoShortSec*m_tmpBenchData.fpsNum/m_tmpBenchData.fpsDen);
+		for(int i=totalFrames-1; i>=0; --i) {
+			pEncoder->EncodeFrame(m_yuvBuf, m_frameBufSize);
+			m_encodedFrames++;
+			m_tmpBenchData.videoEncTime = (float)(m_encodedFrames*eachFrameSec);
+		}
+	}
+	
 	return true;
 }
 
@@ -1633,7 +1609,14 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 		//SetErrorCode(EC_GEN_THUMBNAIL_ERROR);
 	}
 
-	appendBlankVideo(pSingleEncoder);
+	m_videoEncodeThreadEnd = 1;
+	if(m_tmpBenchData.audioEncTime < 0.0001f) {
+		ret = -1;
+		SetErrorCode(EC_VIDEO_SOURCE_ERROR);
+		logger_err(m_logType, "Audio source may be corrupt.\n");
+	} else {
+		appendBlankVideo(pSingleEncoder);
+	}
 
 	pSingleEncoder->Stop();
 	
@@ -1860,8 +1843,15 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideoComplex()
 		//SetErrorCode(EC_GEN_THUMBNAIL_ERROR);
 	}
 
-	appendBlankVideo(pSingleEncoder);
-
+	m_videoEncodeThreadEnd = 1;
+	if(m_tmpBenchData.audioEncTime < 0.0001f) {
+		ret = -1;
+		SetErrorCode(EC_VIDEO_SOURCE_ERROR);
+		logger_err(m_logType, "Audio source may be corrupt.\n");
+	} else {
+		appendBlankVideo(pSingleEncoder);
+	}
+	
 	pSingleEncoder->Stop();
 
 	if(ret < 0) {
@@ -2006,6 +1996,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeAudio()
 	size_t audioNum = m_audioEncs.size();
 
 	// Select transcode methods according to conditions
+	m_audioEncodeThreadEnd = 0;
 	if(audioNum == 1) {		// Single audio stream encoding
 		if(m_bDecodeNext || m_pSplitter || !m_clipStartSet.empty()) {	// Complex mode (join or split mode)
 			ret = transcodeSingleAudioComplex();
@@ -2017,9 +2008,11 @@ THREAD_RET_T CTransWorkerSeperate::transcodeAudio()
 			ret = transcodeMbrAudio();
 		} else {
 			ret = -1;
+			m_audioEncodeThreadEnd = 1;
 			logger_err(m_logType, "Splitting audio doesn't support in Mbr mode.\n");
 		}
 	} else {
+		m_audioEncodeThreadEnd = 1;
 		logger_info(m_logType, "No audio to transcode, only transcode video.\n"); 
 	}
 
@@ -2272,8 +2265,16 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudio()
 		}
 	}
 	
-	// Judge if need append blank audio samples to the end
-	appendBlankAudio(pSingleEncoder);
+	m_audioEncodeThreadEnd = 1;
+
+	if(m_tmpBenchData.audioEncTime < 0.0001f) {
+		ret = -1;
+		SetErrorCode(EC_AUDIO_SOURCE_ERROR);
+		logger_err(m_logType, "Audio source may be corrupt.\n");
+	} else {
+		// Judge if need append blank audio samples to the end
+		appendBlankAudio(pSingleEncoder);
+	}
 
 	//Finshed or failed now
 	//m_pAudioDec->CloseAudioReadHandle();
@@ -2388,13 +2389,23 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudioComplex()
 		}
 	}
 	
-	// Judge if need append blank audio samples to the end
-	appendBlankAudio(pSingleEncoder);
+	if(clipsCount > 0) m_audioClipEnd = 1;
+
+	m_audioEncodeThreadEnd = 1;
+	if(m_tmpBenchData.audioEncTime < 0.0001f) {
+		ret = -1;
+		SetErrorCode(EC_AUDIO_SOURCE_ERROR);
+		logger_err(m_logType, "Audio source may be corrupt.\n");
+	} else {
+		// Judge if need append blank audio samples to the end
+		appendBlankAudio(pSingleEncoder);
+	}
+	
+	
 	//Finshed or failed now
 	//m_pAudioDec->CloseAudioReadHandle();
 	pSingleEncoder->Stop();
-	if(clipsCount > 0) m_audioClipEnd = 1;
-
+	
 	if(ret < 0) {
 		SetErrorCode(EC_AUDIO_ENCODER_ERROR);
 		//m_pAudioDec->Cleanup();
@@ -2864,7 +2875,7 @@ void CTransWorkerSeperate::uninitVideoFilter(CVideoEncoder* pVideoEncode)
 		pEnc = m_audioEncs[idx]; \
 	}   pEnc->SetSourceIndex(idx); 
 
-bool CTransWorkerSeperate::initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLPref* pVideoPref)
+bool CTransWorkerSeperate::adjustSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLPref* pVideoPref)
 {
 	mediaInfo->goRoot();
 	bool findSuitableSub = false;
@@ -3044,15 +3055,44 @@ bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 		audioNode = mediaInfo->findNextNode("audio");
 		audioIdx++;
     }
-	
-	bool srcHasMultiAudioTrack = (audioIdx > 1);
+	return true;
+}
 
+bool CTransWorkerSeperate::adjustAudioEncodeSetting()
+{
+	int srcAudioTracksNum = m_srcAudioAttribs.size();
+	if(srcAudioTracksNum < 1) return true;
+
+	bool srcHasMultiAudioTrack = (srcAudioTracksNum > 1);
 	if(m_audioEncs.empty()) {
 		return true;
 	}
 	CAudioEncoder* pFirstAudio = m_audioEncs[0];
 	CXMLPref* pFirstPref = pFirstAudio->GetAudioPref();
 	audio_info_t* pFirstAudioInfo = pFirstAudio->GetAudioInfo();
+	attr_audio_t* pFirstAudioAttrib = m_srcAudioAttribs.at(0);
+
+	// There is no audio track in souce file, and generate one empty track
+	if(m_srcAudioAttribs.empty() && !m_audioEncs.empty()) {
+		CAudioEncoder* pFirstAudio = m_audioEncs[0];
+		CXMLPref* pFirstPref = pFirstAudio->GetAudioPref();
+		if(pFirstPref->GetBoolean("overall.audio.insertBlank")) {
+			// If insert blank audio, then lower audio bitrate, mono channel
+			pFirstPref->SetInt("audioenc.ffmpeg.bitrate", 8);
+			pFirstPref->SetInt("audioenc.faac.bitrate", 8);
+			pFirstPref->SetInt("audioenc.nero.bitrate", 8);
+			pFirstPref->SetInt("audioenc.lame.bitrate", 8);
+			pFirstPref->SetInt("audioenc.fdkaac.bitrate", 8);
+			audio_info_t* pFirstAudioInfo = pFirstAudio->GetAudioInfo();
+			pFirstAudioInfo->in_channels = pFirstAudioInfo->out_channels = 1;
+			pFirstAudioInfo->in_srate = pFirstAudioInfo->out_srate = 44100;
+			m_bAutoVolumeGain = false;
+		} else {	// No audio track to be encoded
+			cleanAudioEncoders();
+			m_streamFiles.ClearAudioFiles();
+			return true;
+		}
+	}
 
 	// Get output audio track setting
 	int outAudioTrackNum = pFirstPref->GetInt("extension.audio.tracknum");
@@ -3071,14 +3111,14 @@ bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 	if(outAudioTrackNum == 0) {				// Single audio track output
 		outAudioTrackNum = 1;
 		bMapCh2Track = false;
-	} else if (outAudioTrackNum == 1) {		// Maintain source audio track output
-		outAudioTrackNum = audioIdx;		// Original audio track num
+	} else if (outAudioTrackNum == 1) {				// Maintain source audio track output
+		outAudioTrackNum = srcAudioTracksNum;		// Original audio track num
 		bMapCh2Track = false;
 	} //else if (outAudioTrackNum == 2) {	// Dual audio track output
 
 	if(srcHasMultiAudioTrack) {
 		bMapCh2Track = false;		// If has multi audio track, disable mapCh2Track
-	} else if(pAudioAttrib && pAudioAttrib->channels < 2){
+	} else if(pFirstAudioAttrib && pFirstAudioAttrib->channels < 2){
 		bMapCh2Track = false;		// If audio track channels < 2, disable mapCh2Track
 	}
 
@@ -3105,7 +3145,7 @@ bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 		bool bCreateAudioEnc = m_audioEncs.size() < 2;
 		for(int aIdx = 1; aIdx < outAudioTrackNum; ++aIdx) {
 			CREATE_AUX_AUDIO_ENCODER(bCreateAudioEnc, aIdx);
-			
+
 			if (bMapCh2Track) {	// Process channels mapping to track 2
 				CXMLPref* pPref = pEnc->GetAudioPref();
 				audio_info_t* pinfo = pEnc->GetAudioInfo();
@@ -3163,9 +3203,9 @@ bool CTransWorkerSeperate::initSrcAudioAttrib(StrPro::CXML2* mediaInfo)
 			}
 		}
 	}
-
 	return true;
 }
+
 #undef CREATE_AUX_AUDIO_ENCODER
 
 bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
@@ -3196,29 +3236,35 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 		memset(m_srcVideoAttrib->fileFormat, 0, CODEC_NAME_LEN);
 		strncpy(m_srcVideoAttrib->fileFormat, SAFESTRING(mediaInfo->getChildNodeValue("container")), CODEC_NAME_LEN);
 	}
-
-	// Set video source param
-	if(m_srcVideoAttrib) {
-		for(size_t i=0; i<m_videoEncs.size(); ++i) {
-			CVideoEncoder* pVideoEnc = m_videoEncs[i];
-			if(!pVideoEnc) continue;
-			setVideoEncAttrib(pVideoEnc->GetVideoInfo(), pVideoEnc->GetVideoPref(), m_srcVideoAttrib);
-		}
-	}
 	return true;
 }
 
 bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo)
 {
-	if(!m_audioEncs.empty() || m_bCopyAudio) {
-		if(!initSrcAudioAttrib(mediaInfo)) return false;
+	if(!initSrcAudioAttrib(mediaInfo)) return false;
+	if(!initSrcVideoAttrib(mediaInfo)) return false;
+	bool invalidAudio = false;
+	bool invalidVideo = false;
+
+	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
+		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) {
+			logger_err(m_logType, "Invalid Video Attrib, Clean up all video encoder!\n");
+			cleanVideoEncoders();
+			m_streamFiles.ClearVideoFiles();
+			invalidVideo = true;
 	}
-	if(!m_videoEncs.empty() || m_bCopyVideo) {
-		if(!initSrcVideoAttrib(mediaInfo)) return false;
+
+	attr_audio_t* audioAttrib = NULL;
+	if(!m_srcAudioAttribs.empty()) audioAttrib = m_srcAudioAttribs[0];
+	if(!audioAttrib || (audioAttrib->id < 0 && audioAttrib->duration <= 0 && 
+		audioAttrib->samplerate <= 0 && audioAttrib->channels <= 0 && audioAttrib->bitrate <= 0)) {
+			logger_err(m_logType, "Invalid Audio Attrib, Clean up all audio encoder!\n");
+			//cleanAudioEncoders();
+			//m_streamFiles.ClearAudioFiles();
+			invalidAudio = true;
 	}
-	if(!m_videoEncs.empty()) {
-		if(!initSrcSubtitleAttrib(mediaInfo, m_videoEncs[0]->GetVideoPref())) return false;
-	}
+
+	if(invalidAudio && invalidVideo) return false;
 	return true;
 }
 
@@ -3431,7 +3477,13 @@ bool CTransWorkerSeperate::ParseSetting()
 
 		// Clear relative dir for current task
 		m_streamFiles.SetRelativeDir("");
-		
+
+		// Init video source attribute
+		StrPro::CXML2* pMediaPref = m_pRootPref->GetSrcMediaInfoDoc();
+		if(!initAVSrcAttrib(pMediaPref)) {
+			FAIL_INFO("Initialize source video attribute failed.\n");
+		}
+
 		//char* tmpStr = NULL;
 		CXMLPref* pTaskPref = NULL;
 		for(i = 0; i < pStreamPref->GetAudioCount(); ++i) {
@@ -3515,13 +3567,12 @@ bool CTransWorkerSeperate::ParseSetting()
 		parseClipConfig(pTaskPref);
 		
 		// Parse media info and get duration
-		StrPro::CXML2* pMediaPref = m_pRootPref->GetSrcMediaInfoDoc();
 		if(!parseDurationInfo(pTaskPref, pMediaPref)) {
 			ret = false;  break;
 		}
 
 		// Init audio and video info according to mediainfo
-		if(!pMediaPref || !setSourceAVInfo(pMediaPref)) {
+		if(!pMediaPref || !adjustEncodeSetting(pMediaPref)) {
 			SetErrorCode(EC_INVILID_VIDEO_ATTRIB);
 			ret = false;  break;
 		}
@@ -3547,11 +3598,18 @@ bool CTransWorkerSeperate::ParseSetting()
 		// Parsing image tail
 		parseImageTailConfig(pTaskPref);
 
-		// Ignore error code (if the task pref set it then use the value from taks preset
+		// Ignore error code (if the task pref set it then use the value from task preset
 		//  else use config value)
 		int ignoreErrIdx = pTaskPref->GetInt("overall.task.ignoreError");
 		if(ignoreErrIdx >= 0) {
 			CWorkManager::GetInstance()->SetIgnoreErrorCode(ignoreErrIdx);
+		}
+
+		// Align a/v data(time)
+		if(!pTaskPref->GetBoolean("overall.audio.insertBlank")) {	// When insert blank audio, no need to align a/v data
+			if(pTaskPref->GetBoolean("overall.task.alignAVData")) {
+				m_bEnableAlignAVData = true;
+			}
 		}
 	} while (false);
 	
@@ -3732,13 +3790,7 @@ bool CTransWorkerSeperate::parseClipConfig(CXMLPref* prefs)
 		memset(clipKey, 0, 32);
 		sprintf(clipKey, "overall.clips.end%d", i+1);
 		int endMs = prefs->GetInt(clipKey);		
-		//endMs -= (endMs%200);		// 200ms tolerance
 		
-		// Transcoding time limit
-		/*if(endMs > 5*60*1000) {
-			endMs = 5*60*1000;
-			i = clipsCount + 1;
-		}*/
 		m_clipStartSet.push_back(startMs);
 		m_clipEndSet.push_back(endMs);
 	}
@@ -3750,10 +3802,6 @@ bool CTransWorkerSeperate::parseClipConfig(CXMLPref* prefs)
 			clipFile += "_clip.txt";
 			ReadExtraClipConfig(clipFile.c_str(), m_clipStartSet, m_clipEndSet);
 		}
-
-		// Transcoding time limit
-		//m_clipStartSet.push_back(0);
-		//m_clipEndSet.push_back(5*60*1000);
 	}
 	return true;
 }
@@ -3890,7 +3938,10 @@ bool CTransWorkerSeperate::decodeNext()
 	if(srcFile && *srcFile != '\0') {
 		std::map<std::string, StrPro::CXML2*>& subMediaInfos = m_pRootPref->GetSubMediaInfoNodes();
 		StrPro::CXML2* pxml = subMediaInfos[std::string(srcFile)];
-		if(pxml) initAVSrcAttrib(pxml);
+		if(pxml) {
+			initAVSrcAttrib(pxml);
+			adjustEncodeSetting(pxml);
+		}
 		
 		startDecoder(srcFile);
 		startAuxDecoders(srcFile);
@@ -4017,8 +4068,15 @@ bool CTransWorkerSeperate::copyStream(const char* srcFile, bool isAudio)
 }
 
 // Prevent avsinput crash when force it to end(Transcode part of media file)
-void CTransWorkerSeperate::closeDecoders()
+int CTransWorkerSeperate::closeDecoders()
 {
+	int decoderExitCode = -1;
+	CDecoder* pDecoder = m_pVideoDec;
+	if(!pDecoder) pDecoder = m_pAudioDec;
+	if(pDecoder) {
+		decoderExitCode = pDecoder->GetExitCode();
+	}
+
 	if(m_pAudioDec == m_pVideoDec) {
 		if(m_pAudioDec) m_pAudioDec->Cleanup();
 	} else {
@@ -4030,6 +4088,8 @@ void CTransWorkerSeperate::closeDecoders()
 			m_auxDecoders[i]->Cleanup();
 		}
 	}
+
+	return decoderExitCode;
 }
 
 void CTransWorkerSeperate::deleteDecoders()

@@ -111,7 +111,7 @@ protected:
 	static THREAD_RET_T WINAPI transcodeVideoEntry(void* worker);		// Entry for video encoding
 	virtual THREAD_RET_T transcodeVideo() {return 0;}
 	
-	virtual void closeDecoders() {}
+	virtual int closeDecoders() {return 0;}
 
 	// Auto-detection of black band
 	void performBlackBandAutoDetect(const char* srcFile, CVideoEncoder* pVideoEnc);

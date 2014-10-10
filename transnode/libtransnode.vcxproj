@@ -65,7 +65,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(TEMP)\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(TEMP)\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)lib\$(Platform)</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\lib\$(Platform)</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(TEMP)\$(Platform)\$(ProjectName)\$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)\$(Configuration)\</IntDir>
     <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
@@ -83,6 +83,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">transnode</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">transnode</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">transnode</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">transnode</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -178,9 +179,9 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>libmp3lame.lib;xvidcore.lib;libsamplerate.lib;frameproc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>lame.lib;xvidcore.lib;samplerate.lib;watermark.lib;faac.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <PostBuildEvent>
       <Command>

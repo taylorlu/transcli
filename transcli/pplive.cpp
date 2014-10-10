@@ -61,6 +61,7 @@ const char *prefsTemplate =
 <stream type=\"muxer\" aid=\"1\" vid=\"1\" pid=\"1\"/>\n\
 <presets>\n\
     <MediaCoderPrefs name=\"PPTV-Mp4-Template\" id=\"1\">\n\
+		<node key=\"overall.task.alignAVData\">true</node>\n\
 		<node key=\"overall.audio.enabled\">true</node>\n\
 		<node key=\"overall.audio.format\">LC-AAC</node>\n\
 		<node key=\"overall.audio.encoder\">FAAC</node>\n\
@@ -449,6 +450,8 @@ struct target_config_t {
 	int disable_audio;	
 	int disable_video;
 	int disable_muxer;
+	int disable_insert_blank_audio;
+	int disable_padding_avdata;
 };
 
 typedef struct {
@@ -1261,6 +1264,18 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			xmlConfig.goParent();
 		}
 		
+		// A/V align setting
+		if (xmlConfig.findChildNode("avalign") != NULL) {
+			const char* strEnableInsertBlank = xmlConfig.getAttribute("blankaudio");
+			const char* strEnablePadding = xmlConfig.getAttribute("padding");
+			if(strEnableInsertBlank && !_stricmp(strEnableInsertBlank, "false")) {
+				config->target.disable_insert_blank_audio = 1;
+			}
+			if(strEnablePadding && !_stricmp(strEnablePadding, "false")) {
+				config->target.disable_padding_avdata = 1;
+			}
+			xmlConfig.goParent();
+		}
 
 		//addition (compatible with misspelling)
 		if (xmlConfig.findChildNode("addition") != NULL || xmlConfig.findChildNode("additon") != NULL) {
@@ -2330,6 +2345,16 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		prefs.SetStreamPref("overall.task.ignoreError", conf.target.ignoreErrIdx, STAUDIO);
 	}
 
+	if(conf.target.disable_insert_blank_audio) {
+		prefs.SetStreamPref("overall.audio.insertBlank", false, STVIDEO);
+	} else {
+		prefs.SetStreamPref("overall.audio.insertBlank", true, STVIDEO);
+	}
+	if(conf.target.disable_padding_avdata) {
+		prefs.SetStreamPref("overall.task.alignAVData", false, STVIDEO);
+	} else {
+		prefs.SetStreamPref("overall.task.alignAVData", true, STVIDEO);
+	}
 	m_outStdPrefs = prefs.DumpXml();
 	return !m_outStdPrefs.empty();
 }

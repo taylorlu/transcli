@@ -86,7 +86,7 @@ void CFileQueue::CleanTempDir()
     if(curSysTime->tm_min < 30) return;
 #endif
 
-	const char* cleanTypes = ".264,.aac,.m4a,.mp4,.avs,.flv,.wmv,.m2v,.mp3,.m4v,.ac3,.wma,.f4v,.ffindex,.mpg,.ts";
+	const char* cleanTypes = ".264,.aac,.m4a,.mp4,.avs,.flv,.wmv,.m2v,.mp3,.m4v,.ac3,.wma,.f4v,.ffindex,.mpg,.ts,.ec3";
 	const char* fileContain = "x264stat_";
 
 	string findPath(m_tempDir);

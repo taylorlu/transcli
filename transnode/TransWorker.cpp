@@ -177,6 +177,9 @@ bool CTransWorker::parseDurationInfo(CXMLPref* pTaskPref, StrPro::CXML2* pMediaP
 		pTaskPref->SetInt("overall.decoding.duration", m_tmpBenchData.mainDur);
 	}
 	
+	if(m_tmpBenchData.mainDur < 5000) {		// If duration is too short(<5s), don't insert blank audio track
+		pTaskPref->SetBoolean("overall.audio.insertBlank", false);
+	}
 	return true;
 }
 
@@ -892,15 +895,15 @@ bool CTransWorker::validateTranscode(int decoderExitCode)
 		if((ignoreErrIdx == 0 || ignoreErrIdx == 2) && decoderExitCode != 0 &&
 			m_tmpBenchData.mainDur > 0 && m_tmpBenchData.mainDur != INT_MAX) {
 			if(m_tmpBenchData.audioEncTime > 0.001f) {
-				if(m_tmpBenchData.mainDur > m_tmpBenchData.audioEncTime*1600) {
+				if(m_tmpBenchData.mainDur > m_tmpBenchData.audioEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
-					FAIL_INFO("Decoder exit abnormally(audio encoding time is smaller).\n");
+					FAIL_INFO("Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
 				}
 			}
 			if(m_tmpBenchData.videoEncTime > 0.001f) {
-				if(m_tmpBenchData.mainDur > m_tmpBenchData.videoEncTime*1600) {
+				if(m_tmpBenchData.mainDur > m_tmpBenchData.videoEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
-					FAIL_INFO("Decoder exit abnormally(video encoding time is smaller).\n");
+					FAIL_INFO("Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
 				}
 			}
 		}

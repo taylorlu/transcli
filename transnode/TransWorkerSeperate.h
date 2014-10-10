@@ -44,16 +44,18 @@ private:
 
 	// Decide to use decoder or libresample to do audio filter
 	void decideAfType() ;
+
 	// Set audio/video info of source file(get from mediainfo)
-	bool setSourceAVInfo(StrPro::CXML2* mediaInfo);
-	
+	bool adjustAudioEncodeSetting();
+	bool adjustEncodeSetting(StrPro::CXML2* mediaInfo);
+	bool adjustSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLPref* pVideoPref);
+
 	bool initAudioEncoders();
 	bool initVideoEncoders();
 	bool initAVSrcAttrib(StrPro::CXML2* mediaInfo);
 	bool initSrcAudioAttrib(StrPro::CXML2* mediaInfo);
 	bool initSrcVideoAttrib(StrPro::CXML2* mediaInfo);
-	bool initSrcGeneralAttrib(StrPro::CXML2* mediaInfo);
-	bool initSrcSubtitleAttrib(StrPro::CXML2* mediaInfo, CXMLPref* pVideoPref);
+	
 	void extractSubtitle(StrPro::CXML2* mediaInfo, int extractId);
 	bool setDecoderParam(video_info_t* pVInfo, CXMLPref* pVideoPref, 
 		audio_info_t* pAInfo, CXMLPref* pAduioPref);
@@ -104,7 +106,7 @@ private:
 	static THREAD_RET_T WINAPI encodeVideoThread(void* encodeParam);	
 	THREAD_RET_T encodeVideo(size_t videoIdx);
 
-	void closeDecoders();
+	int closeDecoders();
 	
 	void waitForCopyStreams();
 	void cleanAudioEncoders();
@@ -172,6 +174,9 @@ private:
 	bool m_bMultiAudioTrack;
 	bool m_bEnableVideoEncode;
 	bool m_bEnableMuxing;
+	bool m_bEnableAlignAVData;
+	volatile int m_audioEncodeThreadEnd;
+	volatile int m_videoEncodeThreadEnd;
 	std::string m_playlistKey;
 };
 
