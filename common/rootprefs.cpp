@@ -706,7 +706,10 @@ CXML2* CRootPrefs::GetSrcMediaInfoDoc()
 	// Because mediainfo parsing in tsmaster is delay to user select one task in GUI
 	// For tsmaster, only parse mediainfo of first file(m_pMainUrl)
 	m_pSrcMediaInfo = createMediaInfo();
-	GetMediaInfo(m_pStrMainUrl, m_pSrcMediaInfo);
+	if(!GetMediaInfo(m_pStrMainUrl, m_pSrcMediaInfo)) {
+		delete m_pSrcMediaInfo;
+		m_pSrcMediaInfo = NULL;
+	}
 	return m_pSrcMediaInfo;
 }
 

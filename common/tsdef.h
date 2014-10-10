@@ -491,7 +491,7 @@ typedef enum {
 	EC_INVALID_SETTINGS = 13,		// invalid combination of settings
 	EC_INVALID_AUDIO_FORMAT = 14,	// invalid audio format
 	EC_INVALID_VIDEO_FORMAT = 15,	// invalid video format
-	EC_INVALID_CONTAINER = 16,		// invalid container format
+	EC_INVALID_MEDIA_FILE = 16,		// invalid media file source
 	EC_AUDIO_SOURCE_ERROR = 17,		// an audio source error occurred
 	EC_AUDIO_ENCODER_ERROR = 18,		// an audio encoder error occurred
 	EC_VIDEO_SOURCE_ERROR = 19,			// an video source error occurred

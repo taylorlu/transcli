@@ -326,6 +326,7 @@ bool CTransWorkerSeperate::adjustEncodeSetting(StrPro::CXML2* mediaInfo)
 	const char* srcFile = m_streamFiles.GetFirstSrcFile();
 	if(srcFile && strstr(srcFile, "://")) return true;
 	if(m_srcAudioAttribs.empty() && !m_srcVideoAttrib) {
+		SetErrorCode(EC_INVILID_VIDEO_ATTRIB);
 		return false;
 	}
 
@@ -3199,6 +3200,7 @@ bool CTransWorkerSeperate::adjustAudioEncodeSetting()
 			}
 			audio_info_t* pinfo = pAudioEnc->GetAudioInfo();
 			if(!setAudioEncAttrib(pinfo, pAudioEnc->GetAudioPref(), pAttrib)) {
+				SetErrorCode(EC_INVALID_SETTINGS);
 				return false;
 			}
 		}
@@ -3480,6 +3482,10 @@ bool CTransWorkerSeperate::ParseSetting()
 
 		// Init video source attribute
 		StrPro::CXML2* pMediaPref = m_pRootPref->GetSrcMediaInfoDoc();
+		if(!pMediaPref) {	// Failed to get media info
+			SetErrorCode(EC_INVALID_MEDIA_FILE);
+			FAIL_INFO("Invalid media file.\n");
+		}
 		if(!initAVSrcAttrib(pMediaPref)) {
 			FAIL_INFO("Initialize source video attribute failed.\n");
 		}
@@ -3573,7 +3579,6 @@ bool CTransWorkerSeperate::ParseSetting()
 
 		// Init audio and video info according to mediainfo
 		if(!pMediaPref || !adjustEncodeSetting(pMediaPref)) {
-			SetErrorCode(EC_INVILID_VIDEO_ATTRIB);
 			ret = false;  break;
 		}
 
