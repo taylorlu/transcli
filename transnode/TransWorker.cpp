@@ -897,13 +897,13 @@ bool CTransWorker::validateTranscode(int decoderExitCode)
 			if(m_tmpBenchData.audioEncTime > 0.001f) {
 				if(m_tmpBenchData.mainDur > m_tmpBenchData.audioEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
-					FAIL_INFO("Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
+					logger_err(m_logType, "Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
 				}
 			}
 			if(m_tmpBenchData.videoEncTime > 0.001f) {
 				if(m_tmpBenchData.mainDur > m_tmpBenchData.videoEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
-					FAIL_INFO("Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
+					logger_err(m_logType, "Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
 				}
 			}
 		}
