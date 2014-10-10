@@ -1610,10 +1610,10 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 	}
 
 	m_videoEncodeThreadEnd = 1;
-	if(m_tmpBenchData.audioEncTime < 0.0001f) {
+	if(m_tmpBenchData.videoEncTime < 0.0001f) {
 		ret = -1;
 		SetErrorCode(EC_VIDEO_SOURCE_ERROR);
-		logger_err(m_logType, "Audio source may be corrupt.\n");
+		logger_err(m_logType, "Video track of source file may be corrupt.\n");
 	} else {
 		appendBlankVideo(pSingleEncoder);
 	}
@@ -1844,10 +1844,10 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideoComplex()
 	}
 
 	m_videoEncodeThreadEnd = 1;
-	if(m_tmpBenchData.audioEncTime < 0.0001f) {
+	if(m_tmpBenchData.videoEncTime < 0.0001f) {
 		ret = -1;
 		SetErrorCode(EC_VIDEO_SOURCE_ERROR);
-		logger_err(m_logType, "Audio source may be corrupt.\n");
+		logger_err(m_logType, "Video track of source file may be corrupt.\n");
 	} else {
 		appendBlankVideo(pSingleEncoder);
 	}
@@ -2270,7 +2270,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudio()
 	if(m_tmpBenchData.audioEncTime < 0.0001f) {
 		ret = -1;
 		SetErrorCode(EC_AUDIO_SOURCE_ERROR);
-		logger_err(m_logType, "Audio source may be corrupt.\n");
+		logger_err(m_logType, "Audio track of source file may be corrupt.\n");
 	} else {
 		// Judge if need append blank audio samples to the end
 		appendBlankAudio(pSingleEncoder);
@@ -2395,7 +2395,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudioComplex()
 	if(m_tmpBenchData.audioEncTime < 0.0001f) {
 		ret = -1;
 		SetErrorCode(EC_AUDIO_SOURCE_ERROR);
-		logger_err(m_logType, "Audio source may be corrupt.\n");
+		logger_err(m_logType, "Audio track of source file may be corrupt.\n");
 	} else {
 		// Judge if need append blank audio samples to the end
 		appendBlankAudio(pSingleEncoder);
