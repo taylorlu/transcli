@@ -452,6 +452,7 @@ struct target_config_t {
 	int disable_muxer;
 	int disable_insert_blank_audio;
 	int disable_padding_avdata;
+	char ignoreErrCodeStr[BUF_LEN];
 };
 
 typedef struct {
@@ -1273,6 +1274,14 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			}
 			if(strEnablePadding && !_stricmp(strEnablePadding, "false")) {
 				config->target.disable_padding_avdata = 1;
+			}
+			xmlConfig.goParent();
+		}
+
+		if(xmlConfig.findChildNode("ignorecode") != NULL) {
+			const char* strCodes = xmlConfig.getNodeValue();
+			if(strCodes && *strCodes) {
+				strncpy(config->target.ignoreErrCodeStr, strCodes, BUF_LEN);
 			}
 			xmlConfig.goParent();
 		}
@@ -2355,6 +2364,10 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	} else {
 		prefs.SetStreamPref("overall.task.alignAVData", true, STVIDEO);
 	}
+	if(*conf.target.ignoreErrCodeStr) {
+		prefs.SetStreamPref("overall.task.ignorecode", conf.target.ignoreErrCodeStr, STVIDEO);
+	}
+
 	m_outStdPrefs = prefs.DumpXml();
 	return !m_outStdPrefs.empty();
 }

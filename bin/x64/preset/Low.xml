@@ -39,5 +39,8 @@
       <mpga option="-level=base" />
 	  <mp4 option="-sbr=1,"/>
     </additon>
+	
+	<!--39:Duration < 1s, 40:No video track-->
+	<ignorecode></ignorecode>  <!--39,40-->
   </target>
 </TranscodeArgsXml>

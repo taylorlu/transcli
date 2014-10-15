@@ -52,7 +52,7 @@ private:
 
 	bool initAudioEncoders();
 	bool initVideoEncoders();
-	bool initAVSrcAttrib(StrPro::CXML2* mediaInfo);
+	bool initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVideo, bool& hasAudio);
 	bool initSrcAudioAttrib(StrPro::CXML2* mediaInfo);
 	bool initSrcVideoAttrib(StrPro::CXML2* mediaInfo);
 	

@@ -132,6 +132,9 @@ protected:
 	bool validateTranscode(int decoderExitCode = -1);	// Validate a/v transcoding
 	bool processLosslessClip();		// Use mp4box to split and merge.
 	void ResetParams();
+
+	bool errIgnored(int errCode);
+
 protected:
 	int					m_frameBufSize;			// Original yuv frame buffer size
 	int					m_pcmBufSize;			// Original pcm buffer size
@@ -195,6 +198,7 @@ protected:
 	bool m_bAutoVolumeGain;		// Replay gain analyse
 	float m_fVolumeNormalDB;	// Set normal volume db, standard is 89 DB, can be adjusted
 	
+	std::vector<int> m_ignoreErrCodes;
 #ifdef DEBUG_DUMP_RAWVIDEO
 	CStreamOutput* m_rawvideo_output;
 #endif

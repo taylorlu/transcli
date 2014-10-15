@@ -504,11 +504,12 @@ int main( int argc, char **argv )
 
 	// Clean up
 	if (clihelper != NULL) delete clihelper;
- 	logger_uninit();
-
+ 	
     if(g_retCode == 0) {
         g_retCode = pMan->GetErrorCode(workId);
 	}
     logger_info(LOGM_GLOBAL, "Completed! Retuen code: %d\n", g_retCode);
+	logger_uninit();
+
     return g_retCode;
 }

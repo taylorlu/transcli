@@ -399,12 +399,11 @@ bool CTransWorkerSeperate::initialize()
 	do {
 		if(!m_bCopyVideo && m_videoEncs.empty()) {		// Convert music only
 			m_encoderPass = 1;		// if no video, no need to perform 2 pass
-			m_streamFiles.ClearDestFiles();
-		
+			//m_streamFiles.ClearDestFiles();
 			// Reset muxer -- Create dummy muxer(Output music)
-			if(!m_audioEncs.empty() && !resetMuxersForMusic()) {
-				FAIL_INFO("Reset dummy muxer for music failed.\n");
-			}
+			//if(!m_audioEncs.empty() && !resetMuxersForMusic()) {
+			//	FAIL_INFO("Reset dummy muxer for music failed.\n");
+			//}
 		}
 		// If there is no audio encoders, disable replay gain analyse
 		if(m_audioEncs.empty()) {
@@ -2260,7 +2259,13 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudio()
 		if(encodeBytes > 0) {
 			if(m_videoEncs.empty()) {
 				if((int)(m_tmpBenchData.audioEncTime)%4 == 0) benchmark();
-			} 
+			} else {
+				if(m_tmpBenchData.audioEncTime > 600 && m_tmpBenchData.videoEncTime < 0.0001f) {
+					ret = -1;
+					SetErrorCode(EC_VIDEO_SOURCE_ERROR);
+					m_pAudioDec->Cleanup();
+				}
+			}
 		} else {
 			ret = -1;
 		}
@@ -2368,7 +2373,16 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudioComplex()
 			}
 		}
 
-		if(m_videoEncs.empty() && (int)(m_tmpBenchData.audioEncTime)%4 == 0) benchmark();
+		if(m_videoEncs.empty()) {
+			if((int)(m_tmpBenchData.audioEncTime)%4 == 0) benchmark();
+		} else {
+			if(m_tmpBenchData.audioEncTime > 600 && m_tmpBenchData.videoEncTime < 0.0001f) {
+				ret = -1;
+				SetErrorCode(EC_VIDEO_SOURCE_ERROR);
+				m_pAudioDec->Cleanup();
+			}
+		}
+
 		if(bDiscardData) continue;	// Don't process data, just discard
 		
 		CHECK_AUDIO_ENCODER(pSingleEncoder);
@@ -3241,19 +3255,19 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 	return true;
 }
 
-bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo)
+bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVideo, bool& hasAudio)
 {
 	if(!initSrcAudioAttrib(mediaInfo)) return false;
 	if(!initSrcVideoAttrib(mediaInfo)) return false;
-	bool invalidAudio = false;
-	bool invalidVideo = false;
-
+	
 	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
 		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) {
-			logger_err(m_logType, "Invalid Video Attrib, Clean up all video encoder!\n");
-			cleanVideoEncoders();
-			m_streamFiles.ClearVideoFiles();
-			invalidVideo = true;
+			logger_err(m_logType, "Invalid video attribute, clean up all video encoder!\n");
+			hasVideo = false;
+			if(!errIgnored(EC_NO_VIDEO_TRACK)) {
+				SetErrorCode(EC_NO_VIDEO_TRACK);
+				return false;
+			}
 	}
 
 	attr_audio_t* audioAttrib = NULL;
@@ -3261,12 +3275,10 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo)
 	if(!audioAttrib || (audioAttrib->id < 0 && audioAttrib->duration <= 0 && 
 		audioAttrib->samplerate <= 0 && audioAttrib->channels <= 0 && audioAttrib->bitrate <= 0)) {
 			logger_err(m_logType, "Invalid Audio Attrib, Clean up all audio encoder!\n");
-			//cleanAudioEncoders();
-			//m_streamFiles.ClearAudioFiles();
-			invalidAudio = true;
+			hasAudio = false;
 	}
 
-	if(invalidAudio && invalidVideo) return false;
+	if(!hasAudio && !hasVideo) return false;
 	return true;
 }
 
@@ -3480,46 +3492,85 @@ bool CTransWorkerSeperate::ParseSetting()
 		// Clear relative dir for current task
 		m_streamFiles.SetRelativeDir("");
 
+		// Get valid task preset
+		CXMLPref* pTaskPref = NULL;
+		for(i = 0; i < pStreamPref->GetAudioCount(); ++i) {
+			pTaskPref = pStreamPref->GetAudioPrefs(i);
+			if(pTaskPref) break;
+		}
+		if(!pTaskPref) {
+			for(i = 0; i < pStreamPref->GetVideoCount(); ++i) {
+				pTaskPref = pStreamPref->GetVideoPrefs(i);
+				if(pTaskPref) break;
+			}
+		}
+		if(!pTaskPref) {
+			for(i = 0; i < pStreamPref->GetMuxerCount(); ++i) {
+				pTaskPref = pStreamPref->GetMuxerPrefs(i);
+				if(pTaskPref) break;
+			}
+		}
+		if(pTaskPref == NULL) {
+			FAIL_INFO("No Audio/Video/Muxer pref, bad task preset.\n");
+		}
+
+		// Ignore error code list
+		const char* ignoreErrCodeStr = pTaskPref->GetString("overall.task.ignorecode");
+		if(ignoreErrCodeStr && *ignoreErrCodeStr) {
+			StrPro::StrHelper::parseStringToNumArray(m_ignoreErrCodes, ignoreErrCodeStr);
+		}
+
 		// Init video source attribute
 		StrPro::CXML2* pMediaPref = m_pRootPref->GetSrcMediaInfoDoc();
 		if(!pMediaPref) {	// Failed to get media info
 			SetErrorCode(EC_INVALID_MEDIA_FILE);
 			FAIL_INFO("Invalid media file.\n");
 		}
-		if(!initAVSrcAttrib(pMediaPref)) {
+
+		bool hasAudio = true;
+		bool hasVideo = true;
+		if(!initAVSrcAttrib(pMediaPref, hasVideo, hasAudio)) {
 			FAIL_INFO("Initialize source video attribute failed.\n");
 		}
 
 		//char* tmpStr = NULL;
-		CXMLPref* pTaskPref = NULL;
-		for(i = 0; i < pStreamPref->GetAudioCount(); ++i) {
-			CXMLPref* audioPref = pStreamPref->GetAudioPrefs(i);
-			if(pTaskPref == NULL) pTaskPref = audioPref;
-			//audioPref->Dump(&tmpStr);
-			m_bAutoVolumeGain = audioPref->GetBoolean("audiofilter.volume.autoGain");
-			m_fVolumeNormalDB = audioPref->GetFloat("audiofilter.volume.standard");
-			m_bCopyAudio = audioPref->GetBoolean("overall.audio.copy");
-			if(m_bCopyAudio) break;
-			if(!this->setAudioPref(audioPref)) {
-				FAIL_INFO("Set audio pref failed.\n");
+		if(hasAudio) {
+			for(i = 0; i < pStreamPref->GetAudioCount(); ++i) {
+				CXMLPref* audioPref = pStreamPref->GetAudioPrefs(i);
+				//audioPref->Dump(&tmpStr);
+				m_bAutoVolumeGain = audioPref->GetBoolean("audiofilter.volume.autoGain");
+				m_fVolumeNormalDB = audioPref->GetFloat("audiofilter.volume.standard");
+				m_bCopyAudio = audioPref->GetBoolean("overall.audio.copy");
+				if(m_bCopyAudio) break;
+				if(!this->setAudioPref(audioPref)) {
+					FAIL_INFO("Set audio pref failed.\n");
+				}
 			}
 		}
 		
 		// If video format is FLV/H263P, use ffmpeg to mux
 		bool isFFMPEGVideo = false;
-		for(i = 0; i < pStreamPref->GetVideoCount(); ++i) {
-			CXMLPref* videoPref = pStreamPref->GetVideoPrefs(i);
-			if(pTaskPref == NULL) pTaskPref = videoPref;
-			//videoPref->Dump(&tmpStr);
-			video_format_t  encFormat = (video_format_t)videoPref->GetInt("overall.video.format");
-			if(encFormat == VC_FLV /*|| encFormat == VC_H263*/ || encFormat == VC_H263P) isFFMPEGVideo = true;
+		if(hasVideo) {
+			for(i = 0; i < pStreamPref->GetVideoCount(); ++i) {
+				CXMLPref* videoPref = pStreamPref->GetVideoPrefs(i);
+				//videoPref->Dump(&tmpStr);
+				video_format_t  encFormat = (video_format_t)videoPref->GetInt("overall.video.format");
+				if(encFormat == VC_FLV /*|| encFormat == VC_H263*/ || encFormat == VC_H263P) isFFMPEGVideo = true;
 
-			m_bCopyVideo = videoPref->GetBoolean("overall.video.copy");
-			m_bLosslessClip = videoPref->GetBoolean("overall.task.losslessClip");
+				m_bCopyVideo = videoPref->GetBoolean("overall.video.copy");
+				m_bLosslessClip = videoPref->GetBoolean("overall.task.losslessClip");
 
-			if(m_bCopyVideo || m_bLosslessClip) break;
-			if(!this->setVideoPref(videoPref)) {
-				FAIL_INFO("Set video pref failed.\n");
+				if(m_bCopyVideo || m_bLosslessClip) break;
+				if(!this->setVideoPref(videoPref)) {
+					FAIL_INFO("Set video pref failed.\n");
+				}
+			}
+		} else {
+			for (i = 0; i<pStreamPref->GetMuxerCount(); ++i) {
+				CXMLPref* muxerPref = pStreamPref->GetMuxerPrefs(i);
+				if(muxerPref) {
+					muxerPref->SetInt("overall.container.muxer", MUX_DUMMY);
+				}
 			}
 		}
 		
@@ -3544,8 +3595,7 @@ bool CTransWorkerSeperate::ParseSetting()
 		parseWatchfoderConfig(pTaskPref);
 		for (i = 0; i<pStreamPref->GetMuxerCount(); ++i) {
 			CXMLPref* muxerPref = pStreamPref->GetMuxerPrefs(i);
-			if(pTaskPref == NULL) pTaskPref = muxerPref;
-
+			
 			if(isFFMPEGVideo) {		// If video stream target format is flv, then use ffmpeg to mux
 				muxerPref->SetInt("overall.container.muxer", MUX_FFMPEG);
 			}
@@ -3553,10 +3603,6 @@ bool CTransWorkerSeperate::ParseSetting()
 			if(!this->setMuxerPref(muxerPref)) {
 				FAIL_INFO("SetMuxerPref Failed.\n");
 			}
-		}
-		
-		if(pTaskPref == NULL) {
-			FAIL_INFO("No Audio/Video/Muxer pref, bad task preset.\n");
 		}
 
 		// Parse playlist setting
@@ -3944,7 +3990,9 @@ bool CTransWorkerSeperate::decodeNext()
 		std::map<std::string, StrPro::CXML2*>& subMediaInfos = m_pRootPref->GetSubMediaInfoNodes();
 		StrPro::CXML2* pxml = subMediaInfos[std::string(srcFile)];
 		if(pxml) {
-			initAVSrcAttrib(pxml);
+			bool hasAudio = true;
+			bool hasVideo = true;
+			initAVSrcAttrib(pxml, hasVideo, hasAudio);
 			adjustEncodeSetting(pxml);
 		}
 		

@@ -463,7 +463,7 @@ bool GetMediaInfo(const char *mediaPath /*IN*/, StrPro::CXML2 *mediaInfo/*OUT*/)
 	// Check if audio parameter is normal(Mediainfo detect AAC-LTP/Main has problem)
 	if(probeDoc.goRoot()) {
 		if(probeDoc.findChildNode("format")) {
-			if(probeDoc.getAttributeInt("probe_score") < 60) {
+			if(probeDoc.getAttributeInt("probe_score") < 20) {
 				printf("Probe score is low, unknown format.\n");
 				return false;
 			}

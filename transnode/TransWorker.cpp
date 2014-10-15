@@ -74,7 +74,7 @@ bool CTransWorker::setSrcFile(const char* inFile)
 	}
 	
 	logger_err(m_logType, "Input file %s is not existed\n", inFile);
-	SetErrorCode(EC_INVALID_PARAM);
+	SetErrorCode(EC_INVALID_MEDIA_FILE);
 	return false;
 }
 
@@ -119,6 +119,14 @@ bool CTransWorker::parseBasicInfo()
 	return ret;
 }
 
+bool CTransWorker::errIgnored(int errCode)
+{
+	for (size_t i=0; i<m_ignoreErrCodes.size(); ++i) {
+		if(m_ignoreErrCodes[i] == errCode) return true;
+	}
+	return false;
+}
+
 bool CTransWorker::parseDurationInfo(CXMLPref* pTaskPref, StrPro::CXML2* pMediaPref)
 {
 	int decodeStart = 0, decodeDur = 0;
@@ -137,6 +145,11 @@ bool CTransWorker::parseDurationInfo(CXMLPref* pTaskPref, StrPro::CXML2* pMediaP
 		totalDur = pMediaPref->getChildNodeValueInt("duration");
 		if(totalDur <= 0) {
 			totalDur = INT_MAX;
+		}
+		if(totalDur < 1000 && !errIgnored(EC_DUR_LESS_THAN_ONE_SEC)) {
+			SetErrorCode(EC_DUR_LESS_THAN_ONE_SEC);
+			logger_err(m_logType, "Media duration is less than 1 seconds.\n");
+			return false;
 		}
 	}
 
