@@ -92,17 +92,13 @@ bool CTransWorker::parseBasicInfo()
 	    if(!m_pRootPref) {
 			FAIL_INFO("Root preference hasn't been set.\n");
 		}
-		const char* mainUrl = m_pRootPref->GetMainUrl();
+		
 		const char* tempdir = m_pRootPref->GetTempDir();
 		const char* subtitleFile = m_pRootPref->GetSubTitle();
 		
-		// Maybe several source files
-		if(!setSrcFile(mainUrl)) {
-			FAIL_INFO("Bad source file.\n");
-		}
-		std::map<std::string, StrPro::CXML2*>& subMedias = m_pRootPref->GetSubMediaInfoNodes();
+		std::map<std::string, StrPro::CXML2*>& srcMedias = m_pRootPref->GetMediaInfoNodes();
 		std::map<std::string, StrPro::CXML2*>::const_iterator it;
-		for(it=subMedias.begin(); it != subMedias.end(); ++it) {
+		for(it=srcMedias.begin(); it != srcMedias.end(); ++it) {
 			if(!setSrcFile(it->first.c_str())) {
 				FAIL_INFO("Bad source file.\n");
 			}
@@ -1235,6 +1231,7 @@ int CTransWorker::CreateTask(const char *prefs,  char* outFileName /*OUT*/)
 	do {
 		if (prefs == NULL || *prefs == '\0') {
 			ret = AJE_INVALID_PREF;
+			SetErrorCode(EC_INVALID_PREFS);
 			FAIL_INFO("Invalid preset, check again.\n");
 		}
 	

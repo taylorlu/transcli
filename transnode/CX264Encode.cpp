@@ -67,6 +67,7 @@ CX264Encode::CX264Encode(const char* outFileName):CVideoEncoder(outFileName)
 	m_firstDts = m_prevDts = m_lastDts = 0;
 	m_largestPts = m_secondLargestPts = -1;
 	m_ticksPerFrame = 0;
+	m_citicalError = 0;
 }
 
 CX264Encode::~CX264Encode()
@@ -885,6 +886,8 @@ void CX264Encode::fill_x264_pic(const uint8_t* frameBuf)
 
 int CX264Encode::encode_frame(x264_picture_t* pic, int64_t& lastDts)
 {
+	if(m_citicalError) return -1;
+
 	x264_picture_t pic_out;
 	x264_nal_t *nal = NULL;
 	int i_nal = 0;
@@ -894,6 +897,7 @@ int CX264Encode::encode_frame(x264_picture_t* pic, int64_t& lastDts)
 
 	if( i_frame_size < 0 ) {
 		logger_err(m_logModuleType, "H264_encoder_encode failed.\n" );
+		m_citicalError = 1;
 		return -1;
 	}
 

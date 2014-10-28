@@ -24,15 +24,16 @@ CRootPrefs::CRootPrefs()
 	m_pStrUrl = NULL;
 	m_pStrTempDir = NULL;
 	m_pStrSubTitle = NULL;
-	m_pStrMainUrl = NULL;
 	m_pFileTitle = NULL;
 	m_pStrDestDir = NULL;
 
 	m_outputs = NULL;
-	m_pSrcMediaInfo = NULL;
-	
+	m_pMainMediaInfo = NULL;
+	m_bDeleteMainMediaInfo = false;
+
 	m_prefsDoc = NULL;
 	m_taskPriority = 2;		// Normal
+	m_mainUrlIndex = 0;
 }
 
 CRootPrefs::~CRootPrefs()
@@ -43,16 +44,15 @@ CRootPrefs::~CRootPrefs()
 	m_pStrTempDir = NULL;
 	if(m_pStrSubTitle) free(m_pStrSubTitle);
 	m_pStrSubTitle = NULL;
-	if(m_pStrMainUrl) free(m_pStrMainUrl);
-	m_pStrMainUrl = NULL;
+	
 	if(m_pStrDestDir) free(m_pStrDestDir);
 	m_pStrDestDir = NULL;
 	if(m_pFileTitle) free(m_pFileTitle);
 	m_pFileTitle = NULL;
 	
-	if(m_pSrcMediaInfo) {
-		delete m_pSrcMediaInfo;
-		m_pSrcMediaInfo = NULL;
+	if(m_bDeleteMainMediaInfo && m_pMainMediaInfo) {
+		delete m_pMainMediaInfo;
+		m_pMainMediaInfo = NULL;
 	}
 	if (m_outputs) {
 		delete m_outputs;
@@ -64,7 +64,7 @@ CRootPrefs::~CRootPrefs()
 		m_prefsDoc = NULL;
 	}
 	
-	clearSubMediaInfos();
+	clearMediaInfos();
 }
 
 #define TEMPCONFIG "<config>\
@@ -322,16 +322,20 @@ void CRootPrefs::initMediaInfo(StrPro::CXML2& prefDoc)
 	prefDoc.findChildNode("input");
 	void* mediaNode = prefDoc.findChildNode("mediainfo");
 	if(!strchr(m_pStrUrl, '|')) {	// Single file name
-		m_pSrcMediaInfo = createMediaInfo();
-		if(!m_pStrMainUrl) m_pStrMainUrl = _strdup(m_pStrUrl);
+		m_pMainMediaInfo = createMediaInfo();
+		std::string strSrcFile(m_pStrUrl);
+		m_srcFiles.push_back(strSrcFile);
 		if(mediaNode && prefDoc.findChildNode("general")) {
-			m_pSrcMediaInfo->replaceNode(mediaNode);
+			m_pMainMediaInfo->replaceNode(mediaNode);
 		} else {
-			if(!GetMediaInfo(m_pStrUrl, m_pSrcMediaInfo)) {
-				delete m_pSrcMediaInfo;
-				m_pSrcMediaInfo = NULL;
+			if(!GetMediaInfo(m_pStrUrl, m_pMainMediaInfo)) {
+				delete m_pMainMediaInfo;
+				m_pMainMediaInfo = NULL;
 				logger_err(LOGM_UTIL_ROOTPREFS, "Get Media Info failed.\n");
 			}
+		}
+		if(m_pMainMediaInfo) {
+			m_mediaInfos[strSrcFile] = m_pMainMediaInfo;
 		}
 	} else {
 		int totaltime = 0;
@@ -339,6 +343,7 @@ void CRootPrefs::initMediaInfo(StrPro::CXML2& prefDoc)
 		char* curUrl = NULL;
 		// Consider situation that only the first file contain full folder, others only have title.
 		std::string fileFolder;
+		int urlIndex = 0;
 		while(curUrl = Strsep(&tmpUrl, "|")) {
 			if(fileFolder.empty()) {
 				fileFolder = curUrl;
@@ -367,12 +372,14 @@ void CRootPrefs::initMediaInfo(StrPro::CXML2& prefDoc)
 				}
 			} 
 
-			if(!m_pStrMainUrl) {		// First file
-				m_pStrMainUrl = _strdup(curFilePath.c_str());
-				m_pSrcMediaInfo = pXml;
-			} else {
-				m_subMediaInfos[curFilePath] = pXml;
+			if(m_mainUrlIndex == urlIndex) {		// Main source file
+				m_pMainMediaInfo = pXml;
 			}
+
+			m_srcFiles.push_back(curFilePath);
+			m_mediaInfos[curFilePath] = pXml;
+
+			urlIndex++;
 
 			if(pXml && pXml->goRoot() && pXml->findChildNode("general")) {
 				totaltime += pXml->getChildNodeValueInt("duration");
@@ -380,11 +387,11 @@ void CRootPrefs::initMediaInfo(StrPro::CXML2& prefDoc)
 		}
 		
 		// reset duration for main mediainfo node
-		if (m_pSrcMediaInfo && m_pSrcMediaInfo->goRoot() && m_pSrcMediaInfo->findChildNode("general")) {
-			if(m_pSrcMediaInfo->findChildNode("duration")) {
-				m_pSrcMediaInfo->setNodeValue(totaltime);
+		if (m_pMainMediaInfo && m_pMainMediaInfo->goRoot() && m_pMainMediaInfo->findChildNode("general")) {
+			if(m_pMainMediaInfo->findChildNode("duration")) {
+				m_pMainMediaInfo->setNodeValue(totaltime);
 			} else {
-				m_pSrcMediaInfo->addChild("duration", totaltime);
+				m_pMainMediaInfo->addChild("duration", totaltime);
 			}
 		}
 	}	
@@ -436,11 +443,11 @@ bool CRootPrefs::InitRoot(const char *strPrefs)
 	m_pStrTempDir = set.UTF8toANSI(val);
 	val = tempXml.getChildNodeValue("subtitle");
 	m_pStrSubTitle = set.UTF8toANSI(val);
+	m_mainUrlIndex = tempXml.getChildNodeValueInt("index");
 	// Init mediainfo node
 	initMediaInfo(tempXml);
 	initFileTitle();	// Get file title or DVD/VCD track name
 
-	
 	tempXml.goRoot();
 
 	//==================== Apply bitrate and resolution restrict here(PPTV MBR) ========================
@@ -631,16 +638,34 @@ std::string CRootPrefs::DumpXml()
 	return "";
 }
 
+const char* CRootPrefs::GetMainUrl()
+{
+	std::string strMainUrl;
+	if(m_srcFiles.size() > m_mainUrlIndex) {
+		strMainUrl = m_srcFiles[m_mainUrlIndex];
+	}
+	if(strMainUrl.empty()) {
+		return NULL;
+	}
+	return strMainUrl.c_str();
+}
+
 void CRootPrefs::initFileTitle()
 {
-	if (strstr(m_pStrMainUrl, "dvd://")) {		// DVD playback 
+	std::string strMainUrl;
+	if(m_srcFiles.size() > m_mainUrlIndex) {
+		strMainUrl = m_srcFiles[m_mainUrlIndex];
+	}
+	if(strMainUrl.empty()) return;
+
+	if (strMainUrl.find("dvd://") != std::string::npos) {		// DVD playback 
 		std::vector<std::string> dvdParams;
-		StrPro::StrHelper::splitString(dvdParams, m_pStrMainUrl);
+		StrPro::StrHelper::splitString(dvdParams, strMainUrl.c_str());
 		std::string dvdTitle;
 		std::string ext;
 		// If Url contains extension, parse file title
-		if(StrPro::StrHelper::getFileExt(m_pStrMainUrl, ext)) {
-			StrPro::StrHelper::getFileTitle(m_pStrMainUrl, dvdTitle);
+		if(StrPro::StrHelper::getFileExt(strMainUrl.c_str(), ext)) {
+			StrPro::StrHelper::getFileTitle(strMainUrl.c_str(), dvdTitle);
 		} else {
 			dvdTitle = "DVD";
 		}
@@ -654,9 +679,9 @@ void CRootPrefs::initFileTitle()
 			dvdTitle += dvdParams[2];
 		}
 		m_pFileTitle = _strdup(dvdTitle.c_str());
-	} else if (strstr(m_pStrMainUrl, "vcd://")) {	// VCD playback
+	} else if (strMainUrl.find("vcd://") != std::string::npos) {	// VCD playback
 		std::vector<std::string> vcdParams;
-		StrPro::StrHelper::splitString(vcdParams, m_pStrMainUrl);
+		StrPro::StrHelper::splitString(vcdParams, strMainUrl.c_str());
 		std::string vcdTitle = "VCD";
 		if(!vcdParams[1].empty() && vcdParams[1] != "0") {			// Track id or title
 			vcdTitle += "_Track_";
@@ -665,8 +690,8 @@ void CRootPrefs::initFileTitle()
 		m_pFileTitle = _strdup(vcdTitle.c_str());
 	} else {
 		// Get file title from main url
-		const char* lastSlash = strrchr(m_pStrMainUrl, '/');
-		const char* lastBackSlash = strrchr(m_pStrMainUrl, '\\');
+		const char* lastSlash = strrchr(strMainUrl.c_str(), '/');
+		const char* lastBackSlash = strrchr(strMainUrl.c_str(), '\\');
 		if(lastSlash < lastBackSlash) {
 			lastSlash = lastBackSlash;
 		}
@@ -674,9 +699,9 @@ void CRootPrefs::initFileTitle()
 		if(lastSlash) {
 			lastSlash += 1;
 		} else {
-			lastSlash = m_pStrMainUrl;
+			lastSlash = strMainUrl.c_str();
 		}
-		const char* lastDot = strrchr(m_pStrMainUrl, '.');
+		const char* lastDot = strrchr(strMainUrl.c_str(), '.');
 		size_t copyLen = strlen(lastSlash);
 		if(lastDot && lastDot > lastSlash) copyLen = lastDot-lastSlash;
 
@@ -686,31 +711,34 @@ void CRootPrefs::initFileTitle()
 	}
 }
 
-void CRootPrefs::clearSubMediaInfos()
+void CRootPrefs::clearMediaInfos()
 {
 	std::map<std::string, StrPro::CXML2*>::iterator it;
-	for(it=m_subMediaInfos.begin(); it != m_subMediaInfos.end(); ++it) {
+	for(it=m_mediaInfos.begin(); it != m_mediaInfos.end(); ++it) {
 		StrPro::CXML2* pXml = it->second;
 		if(pXml) delete pXml;
 	}
-	m_subMediaInfos.clear();
+	m_mediaInfos.clear();
 }
 
 CXML2* CRootPrefs::GetSrcMediaInfoDoc()
 {
-	// For transnode, it's is initialized in InitRoot
+	// For transnode, it's initialized in InitRoot
 	// For tsmaster, when mediainfo is in input part of preset, it's already inited.
-	if(m_pSrcMediaInfo) return  m_pSrcMediaInfo;
+	if(m_pMainMediaInfo) return  m_pMainMediaInfo;
 	
 	// For tsmaster, it's not  initialized in InitRootForMaster, init here
 	// Because mediainfo parsing in tsmaster is delay to user select one task in GUI
 	// For tsmaster, only parse mediainfo of first file(m_pMainUrl)
-	m_pSrcMediaInfo = createMediaInfo();
-	if(!GetMediaInfo(m_pStrMainUrl, m_pSrcMediaInfo)) {
-		delete m_pSrcMediaInfo;
-		m_pSrcMediaInfo = NULL;
+	const char* strMainUrl = GetMainUrl();
+	if(!strMainUrl) return NULL;
+
+	m_pMainMediaInfo = createMediaInfo();
+	if(!GetMediaInfo(strMainUrl, m_pMainMediaInfo)) {
+		delete m_pMainMediaInfo;
+		m_pMainMediaInfo = NULL;
 	}
-	return m_pSrcMediaInfo;
+	return m_pMainMediaInfo;
 }
 
 bool CRootPrefs::InitRootForMaster(const char *strPrefs)
@@ -733,19 +761,20 @@ bool CRootPrefs::InitRootForMaster(const char *strPrefs)
 	CCharset set;
 	const char* val = m_prefsDoc->getChildNodeValue("url");
 	m_pStrUrl = set.UTF8toANSI(val);
-	m_pStrMainUrl = _strdup(m_pStrUrl);
-	char* delimChr = strchr(m_pStrMainUrl, '|');
+	char* delimChr = strchr(m_pStrUrl, '|');
 	if(delimChr) {
 		*delimChr = 0;
 	}
+	m_srcFiles.push_back(std::string(m_pStrUrl));
 
 	initFileTitle();	// Get file title or DVD/VCD track name
 
 	// Create mediainfo doc if there is mediainfo in input
+	m_bDeleteMainMediaInfo = true;
 	void* mediainfoNode = m_prefsDoc->findChildNode("mediainfo");
 	if(mediainfoNode) {
-		m_pSrcMediaInfo = createMediaInfo();
-		m_pSrcMediaInfo->replaceNode(mediainfoNode);
+		m_pMainMediaInfo = createMediaInfo();
+		m_pMainMediaInfo->replaceNode(mediainfoNode);
 	}
 
 	//================= Parse output part ======================

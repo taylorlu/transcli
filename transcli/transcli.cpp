@@ -189,6 +189,7 @@ static void usage(const char *program)
 		"-d, --dimout        Output video dimension\n"
 		"-t, --template      Template setting\n" 
 		"-z, --tempdir       Temp folder\n"
+		"-x, --urlindex      Main file index\n"
 		"\n",
 		program,
 		verStr
@@ -227,6 +228,8 @@ int main( int argc, char **argv )
 	std::string strPreset;
 	CCliHelper *clihelper = NULL;
 	int i_verbose = 10;
+	int main_url_index = 0;
+
 	//bool enable_screenshot = false;
 	//long shot_startpos = 0;
 	//long shot_endpos = 0;
@@ -255,10 +258,11 @@ int main( int argc, char **argv )
 		{ "dimension",   required_argument, NULL, 'd' },
 		{ "template",    required_argument, NULL, 't' },
 		{ "tempdir",    required_argument, NULL, 'z' },
+		{ "urlindex",    required_argument, NULL, 'x' },
 		{ 0, 0, 0, 0 },
 	};
 
-	const char *sopts = "hvp:i:o:O:m:l:V:f:nd:t:z:";
+	const char *sopts = "hvp:i:o:O:m:l:V:f:nd:t:z:x:";
 
 	while ((opt = getopt_long(argc, argv, sopts, lopts, &optind)) != -1) {
 		switch (opt) {
@@ -306,6 +310,9 @@ int main( int argc, char **argv )
 			break;
 		case 'z':
 			strncpy(psz_temp_dir, optarg, MAX_PATH);
+			break;
+		case 'x':
+			main_url_index = atoi(optarg);
 			break;
 		default:
 			usage(argv[0]);
@@ -424,7 +431,7 @@ int main( int argc, char **argv )
 	do {
 		///////////////////////////////////Process prefs//////////////////////////////
         g_retCode = clihelper->GetStdPrefString(psz_infile, psz_outdir, psz_outfile, psz_presetfile, psz_templatefile,
-			strPreset, psz_temp_dir, disableThumbnail);
+			strPreset, psz_temp_dir, disableThumbnail, main_url_index);
         if (g_retCode != 0) {
 			logger_err(LOGM_GLOBAL, "Failed to process prefs.\n");
             g_retCode = CLI_GEN_STD_PRESET_ERROR;

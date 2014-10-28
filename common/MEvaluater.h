@@ -136,7 +136,7 @@ public:
 	StrPro::CXML2*	GetSrcMediaInfoDoc();
 	
 	const char*     GetUrl(){return m_pStrUrl;}
-	const char*     GetMainUrl(){return m_pStrMainUrl;}
+	const char*     GetMainUrl();
 	const char*		GetTempDir(){return m_pStrTempDir;}
 	const char*		GetSubTitle(){return m_pStrSubTitle;}
 	const char*		GetDestDir(){return m_pStrDestDir;}
@@ -144,7 +144,7 @@ public:
 	int				GetPriority() {return m_taskPriority;}
 
 	// Used for decode next(Get other files' mediainfo for concat files) in transnode.
-	std::map<std::string, StrPro::CXML2*>& GetSubMediaInfoNodes() {return m_subMediaInfos;}
+	std::map<std::string, StrPro::CXML2*>& GetMediaInfoNodes() {return m_mediaInfos;}
 
 	// Interfaces for transcli.
 	bool SetStreamPref(const char*key, const char *val, const char* type, int index = 0);
@@ -158,7 +158,7 @@ private:
 	bool			initRoot(StrPro::CXML2 *streamsPrefs);
 	bool			setStreamPref2(const char* key, int keyType, void *val, const char* type, int index = 0);
 	StrPro::CXML2*	createMediaInfo();
-	void			clearSubMediaInfos();
+	void			clearMediaInfos();
 	void			initMediaInfo(StrPro::CXML2& prefDoc);
 	void			initFileTitle();
 
@@ -167,17 +167,19 @@ private:
 	char*			m_pStrTempDir;
 	char*			m_pFileTitle;
 	char*			m_pStrSubTitle;
-	char*			m_pStrMainUrl;
 	char*			m_pStrDestDir;
 	int				m_taskPriority;
+	int				m_mainUrlIndex;		// When join multiple files, specify the main url.
 
+	std::vector<std::string> m_srcFiles;
 	// Used for tsmaster
 	StrPro::CXML2*		m_prefsDoc;  
 
 	// Used for transnode
 	CStreamPrefs*		m_outputs;
-	StrPro::CXML2*		m_pSrcMediaInfo;
-	std::map<std::string, StrPro::CXML2*> m_subMediaInfos;
+	StrPro::CXML2*		m_pMainMediaInfo;
+	bool				m_bDeleteMainMediaInfo;
+	std::map<std::string, StrPro::CXML2*> m_mediaInfos;
 };
 
 #endif

@@ -302,6 +302,7 @@ void CThumbnailFilter::genSingleImage(CImg<uint8_t>* img, int w, int h)
 	try {
 		CImg<uint8_t> tmpImg(*img);
 		fixImageSizeAccordingCropMode(&tmpImg, w, h);
+		RemoveFile(thumbFile.c_str());
 		tmpImg.save(thumbFile.c_str(), m_imageQuality);
 		if(m_thumbType == THUMB_JPG && m_bOptimizeImage) {
 			OptimizeJpeg(thumbFile.c_str());
@@ -375,6 +376,7 @@ void CThumbnailFilter::genStitchingImage(int startSec)
 			}
 		}
 		try {
+			RemoveFile(thumbFile.c_str());
 			destImg.save(thumbFile.c_str(), m_imageQuality);
 		} catch (CImgIOException& e) {
 			logger_err(LOGM_TS_VE, "%s!\n", e.what());

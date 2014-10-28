@@ -20,7 +20,7 @@ static void changeSetting(std::string& stdPref, const char* changeStart, const c
 }
 
 int CCliHelper::GetStdPrefString(const char *inMediaFile, const char *outDir, const char *outMediaFile,
-				const char *XmlConfigFile, const char* templateFile, std::string &outPrefString, const char *tmpDir, bool noThumb)
+				const char *XmlConfigFile, const char* templateFile, std::string &outPrefString, const char *tmpDir, bool noThumb, int mainUrlIndex)
 {
 	if (inMediaFile == NULL || outMediaFile == NULL || XmlConfigFile == NULL) {
 		logger_err( LOGM_GLOBAL, "Invaild paramters\n");
@@ -50,7 +50,7 @@ int CCliHelper::GetStdPrefString(const char *inMediaFile, const char *outDir, co
 		changeSetting(m_outStdPrefs, "<node key=\"videoenc.x264.keyint\">", "24");
 	}
 	
-	if (!AdjustPreset(inMediaFile, outDir, tmpDir, outMediaFile)) {
+	if (!AdjustPreset(inMediaFile, outDir, tmpDir, mainUrlIndex, outMediaFile)) {
 		logger_err( LOGM_GLOBAL, "Failed to adjust preset\n");
 		return -4;
 	}

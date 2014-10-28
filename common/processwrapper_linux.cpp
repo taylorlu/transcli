@@ -388,7 +388,7 @@ int CProcessWrapper::Run(const char* commandLine, const char* curDir, bool hidde
 	}
 
 	while (true) {
-		i_ret = Wait(10);
+		i_ret = Wait(50);
 		if (i_ret != 1) break; 
 	}
 
@@ -545,13 +545,13 @@ bool CProcessWrapper::Interrupt()
 	for (count = 0; count < 5; count++) {
 		if(m_pid <= 0) break;
 		status = kill(m_pid, SIGTERM);
+		if (errno == ESRCH) {
+			m_pid = -1;
+			break;
+		}
 
 		if (status == 0) {
 			waitRet = Wait(100);		// Wait 0.2 second for end up
-			break;
-		}
-		if (errno == ESRCH) {
-			m_pid = -1;
 			break;
 		}
 

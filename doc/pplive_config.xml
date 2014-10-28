@@ -40,7 +40,7 @@
       <fps>0</fps>
       <dar>0.0</dar>  <!--Float value, Should be parsed to darNum and darDen-->
       <keyint>5</keyint> <!--Key frame interval. If keyint < 10, it's senconds else it's frame num.-->
-	  <bframes>4</bframes> <!--B frames num. Range:[0,16], default is 4.-->
+	    <bframes>4</bframes> <!--B frames num. Range:[0,16], default is 4.-->
     </video>
     <subtitle id="-1" timeshift="0s" extract="-2"/> <!--id:-1 auto select embed subtitle, -2 disable embed subtitle--><!--extract:-2 don't extract, -1 extract all, other value:extract specific id subtitle-->
     <logo>

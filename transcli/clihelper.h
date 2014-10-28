@@ -16,8 +16,8 @@ public:
 	CCliHelper() {}
 	virtual ~CCliHelper() {}
 
-	int GetStdPrefString(const char *inMediaFile, const char *outDir, const char *outMediaFile, 
-		const char *XmlConfigFile, const char* templateFile, std::string &outPrefString /*OUT*/, const char *tmpDir = NULL, bool noThumb=false);
+	int GetStdPrefString(const char *inMediaFile, const char *outDir, const char *outMediaFile, const char *XmlConfigFile, 
+		const char* templateFile, std::string &outPrefString /*OUT*/, const char *tmpDir = NULL, bool noThumb=false, int mainUrlIndex = 0);
 	bool GenMetadataFile(const char *mediaFile, const char *thumbnailFile, const char *metaFile);
 
 	virtual std::string GetMetaInfo(const char *mediaFile, const char *thumbnailFile = NULL) = 0;
@@ -25,7 +25,7 @@ public:
 	bool LoadXMLConfig(const char *configFile);
 
 	virtual bool InitOutStdPrefs(const char* templateFile) = 0;
-	virtual bool AdjustPreset(const char *inMediaFile, const char *outDir, const char *tmpDir, const char *outMediaFile= NULL) = 0;
+	virtual bool AdjustPreset(const char *inMediaFile, const char *outDir, const char *tmpDir, int mainUrlIndex = 0, const char *outMediaFile= NULL) = 0;
 	virtual cli_type_t GetCliType() = 0;
 
 protected:
@@ -52,7 +52,7 @@ public:
 
 private:
 	virtual bool InitOutStdPrefs(const char* templateFile);
-	virtual bool AdjustPreset(const char *inMediaFile, const char *outDir, const char *tmpDir, const char *outMediaFile = NULL);
+	virtual bool AdjustPreset(const char *inMediaFile, const char *outDir, const char *tmpDir, int mainUrlIndex = 0, const char *outMediaFile = NULL);
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////

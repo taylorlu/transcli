@@ -1196,6 +1196,7 @@ bool CTransWorkerSeperate::firstPassAnalyse()
 		m_hAudioThread = NULL;
 
 		int decoderExitCode = closeDecoders();
+		deleteDecoders();
 		// Validate if transcode is complete 
 		if(!validateTranscode(decoderExitCode)) {
 			break;
@@ -1208,45 +1209,16 @@ bool CTransWorkerSeperate::firstPassAnalyse()
 
 bool CTransWorkerSeperate::initPass2()
 {
-	// Reset aux decoder's command line
-	if(m_bAutoVolumeGain) {
-		for(size_t i=0; i<m_auxDecoders.size(); ++i) {
-			m_auxDecoders[i]->ResetCommandLine();
-		}
-	}
-
+	m_encoderPass = 1;
+	m_bAutoVolumeGain = false;
 	m_streamFiles.RewindSrcFiles();
 	const char* srcFile = m_streamFiles.GetCurSrcFile();
-	if(m_bAutoVolumeGain && m_encoderPass == 1 && !m_videoEncs.empty()) {
-		delete m_pAudioDec;
-		m_bAutoVolumeGain = false;	// Ensure init video decoder correctly
-		if (!startDecoder(srcFile)) {
-			SetErrorCode(EC_DECODER_ERROR);
-			return false;
-		}
-	} else {
-		m_bDecodeNext = m_streamFiles.GetSrcFileCount() > 1 ? true : false;
-		if(m_bDecodeNext || m_bAutoVolumeGain) {	
-			if(m_pVideoDec) m_pVideoDec->ResetCommandLine();
-			if(m_pAudioDec) m_pAudioDec->ResetCommandLine();	
-		}
-		if(m_bDecodeNext) {
-			// After pass 1, original audio samplerate is the last file's, should force to resample to dest value.
-			if(m_pAudioDec) m_pAudioDec->SetForceResample(true);
-		}
 
-		if(m_encoderPass > 1) {
-			m_encoderPass--;
-			m_pVideoDec->SetLastPass(true);
-			if(m_pImgTail) m_pImgTail->Reset();
-		}
-
-		if(m_pAudioDec == m_pVideoDec) {
-			m_pVideoDec->Start(srcFile);
-		} else {
-			if(m_pVideoDec) m_pVideoDec->Start(srcFile);
-			if(m_pAudioDec) m_pAudioDec->Start(srcFile);
-		}
+	if(m_pImgTail) m_pImgTail->Reset();
+	m_bDecodeNext = m_streamFiles.GetSrcFileCount() > 1;
+	if (!startDecoder(srcFile)) {
+		SetErrorCode(EC_DECODER_ERROR);
+		return false;
 	}
 
 	// Init resources in 2nd pass or ABR mode.
@@ -1481,7 +1453,7 @@ bool CTransWorkerSeperate::addImageTailToVideoStream(CVideoEncoder* pEncoder)
 	return true;
 }
 
-#define AV_DUR_DIFF_ALLOW 5
+#define AV_DUR_DIFF_ALLOW 0.05f
 bool CTransWorkerSeperate::appendBlankAudio(CAudioEncoder* pEncoder)
 {
 	if(m_videoEncs.empty()) return true;
@@ -1533,7 +1505,9 @@ bool CTransWorkerSeperate::appendBlankVideo(CVideoEncoder* pEncoder)
 	while(!m_audioEncodeThreadEnd) {
 		float videoShortSec = m_tmpBenchData.audioEncTime - m_tmpBenchData.videoEncTime;
 		if(videoShortSec > eachFrameSec) {
-			pEncoder->EncodeFrame(m_yuvBuf, m_frameBufSize);
+			if(pEncoder->EncodeFrame(m_yuvBuf, m_frameBufSize) < 0) {
+				break;
+			}
 			m_encodedFrames++;
 			m_tmpBenchData.videoEncTime = (float)(m_encodedFrames*eachFrameSec);
 		} else {
@@ -1545,7 +1519,9 @@ bool CTransWorkerSeperate::appendBlankVideo(CVideoEncoder* pEncoder)
 	if(videoShortSec > AV_DUR_DIFF_ALLOW) {
 		int totalFrames = (int)(videoShortSec*m_tmpBenchData.fpsNum/m_tmpBenchData.fpsDen);
 		for(int i=totalFrames-1; i>=0; --i) {
-			pEncoder->EncodeFrame(m_yuvBuf, m_frameBufSize);
+			if(pEncoder->EncodeFrame(m_yuvBuf, m_frameBufSize) < 0) {
+				break;
+			}
 			m_encodedFrames++;
 			m_tmpBenchData.videoEncTime = (float)(m_encodedFrames*eachFrameSec);
 		}
@@ -1752,6 +1728,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideoComplex()
 					if(!m_pVideoDec->ReadVideoHeader()) break; 
 				}
 				m_lockReadVideo = 0; 
+				m_videoEncodeThreadEnd = 0;
 			} else {
 				continue;
 			}
@@ -1766,7 +1743,12 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideoComplex()
 		if(m_pVideoDec && m_pVideoDec->GetVideoReadHandle() > 0) {
 			if(m_pVideoDec->ReadVideo(m_yuvBuf, m_frameBufSize) != m_frameBufSize) {	//read framebuf first
 				if(!m_bDecodeNext) break;	// End of the file
+				m_videoEncodeThreadEnd = 1;
 				m_pVideoDec->CloseVideoReadHandle();
+				// Padding a/v duration of every media file 
+				if(m_tmpBenchData.videoEncTime > 0) {
+					appendBlankVideo(pSingleEncoder);
+				}
 				continue;	
 			}
 		} else {
@@ -1895,6 +1877,7 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 	}
 	
 	int ret = 0;
+	m_audioEncodeThreadEnd = 0;
 	while (m_errCode == EC_NO_ERROR) {
 		PROCESS_PAUSE_STOP;
 		// Process multi source files decoding (Joining)
@@ -1909,6 +1892,7 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 					checkAudioParam(pTmpAudioInfo, pTmpWav); 
 				} else {break; }
 				m_lockReadAudio = 0; 
+				m_audioEncodeThreadEnd = 0;
 			} else {
 				continue;
 			}
@@ -1932,6 +1916,7 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 			if(readLen <= 0) {
 				if(m_bDecodeNext) {
 					m_pAudioDec->CloseAudioReadHandle();
+					m_audioEncodeThreadEnd = 1;
 				} else {	
 					break;
 				}
@@ -1978,6 +1963,7 @@ THREAD_RET_T CTransWorkerSeperate::analyseMainAudioTrack()
 		zmlFreeGainContext(rgContext);
 	}
 
+	m_audioEncodeThreadEnd = 1;
 	if(!m_clipStartSet.empty()) m_audioClipEnd = 1;
 	free(pOriginAudioBuf);
 	//m_pAudioDec->CloseAudioReadHandle();
@@ -2327,6 +2313,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudioComplex()
 					checkAudioParam(pTmpAudioInfo, pTmpWav); 
 				} else {break; }
 				m_lockReadAudio = 0; 
+				m_audioEncodeThreadEnd = 0;
 			} else {
 				continue;
 			}
@@ -2343,6 +2330,11 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudioComplex()
 			if((readLen = m_pAudioDec->ReadAudio(m_pcmBuf, m_pcmBufSize)) <= 0) {
 				if(!m_bDecodeNext) break;
 				m_pAudioDec->CloseAudioReadHandle();
+				// Padding a/v duration of every media file 
+				m_audioEncodeThreadEnd = 1;
+				if(m_tmpBenchData.audioEncTime > 0) {
+					appendBlankAudio(pSingleEncoder);
+				}
 				continue;
 			}
 		}
@@ -3987,14 +3979,14 @@ bool CTransWorkerSeperate::decodeNext()
 	deleteDecoders();
 	const char* srcFile = m_streamFiles.GetCurSrcFile();
 	if(srcFile && *srcFile != '\0') {
-		std::map<std::string, StrPro::CXML2*>& subMediaInfos = m_pRootPref->GetSubMediaInfoNodes();
+		/*std::map<std::string, StrPro::CXML2*>& subMediaInfos = m_pRootPref->GetSubMediaInfoNodes();
 		StrPro::CXML2* pxml = subMediaInfos[std::string(srcFile)];
 		if(pxml) {
 			bool hasAudio = true;
 			bool hasVideo = true;
 			initAVSrcAttrib(pxml, hasVideo, hasAudio);
 			adjustEncodeSetting(pxml);
-		}
+		}*/
 		
 		startDecoder(srcFile);
 		startAuxDecoders(srcFile);

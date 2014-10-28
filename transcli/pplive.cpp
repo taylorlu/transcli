@@ -1365,7 +1365,7 @@ bool CCliHelperPPLive::InitOutStdPrefs(const char* templateFile)
 	return true;
 }
 
-bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir, const char *tmpDir, const char *outMediaFile)
+bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir, const char *tmpDir, int mainUrlIndex, const char *outMediaFile)
 {
 	if (m_inConfig.empty() || m_outStdPrefs.empty()) {
 		logger_err(LOGM_GLOBAL, "config is empty.\n");
@@ -1380,17 +1380,17 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		StrPro::StrHelper::prepareForXML(inputFile);
 		char* utf8InputFile = charConvert.ANSItoUTF8(inputFile.c_str());
 		if(utf8InputFile) {
-			char urlPart[300] = {0};
+			char urlPart[512] = {0};
 			if(!tmpDir || !(*tmpDir)) {
-				sprintf(urlPart, "<url>%s</url>", utf8InputFile);
+				sprintf(urlPart, "<url>%s</url><index>%d</index>", utf8InputFile, mainUrlIndex);
 			} else {
 				// Add tmp dir
 				char* utf8TmpDir = charConvert.ANSItoUTF8(tmpDir);
 				if(utf8TmpDir) {
-					sprintf(urlPart, "<url>%s</url><tempdir>%s</tempdir>", utf8InputFile, utf8TmpDir);
+					sprintf(urlPart, "<url>%s</url><index>%d</index><tempdir>%s</tempdir>", utf8InputFile, mainUrlIndex, utf8TmpDir);
 					free(utf8TmpDir);
 				} else {
-					sprintf(urlPart, "<url>%s</url>", utf8InputFile);
+					sprintf(urlPart, "<url>%s</url><index>%d</index>", utf8InputFile, mainUrlIndex);
 				}
 			}
 

@@ -52,7 +52,7 @@ private:
 	int64_t m_largestPts;
 	int64_t m_secondLargestPts ;
 	int64_t m_ticksPerFrame;
-
+	int		m_citicalError;
 };
 
 #endif
