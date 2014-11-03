@@ -1579,19 +1579,21 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 		logger_err(m_logType, "Add image tail failed.\n");
 	}
 
-	if(!pSingleEncoder->StopThumbnail()) {
+	if(ret == 0 && !pSingleEncoder->StopThumbnail()) {
 		logger_warn(m_logType, "Generate thumbnail failed.\n");
 		//ret = -1;
 		//SetErrorCode(EC_GEN_THUMBNAIL_ERROR);
 	}
 
 	m_videoEncodeThreadEnd = 1;
-	if(m_tmpBenchData.videoEncTime < 0.0001f) {
-		ret = -1;
-		SetErrorCode(EC_VIDEO_SOURCE_ERROR);
-		logger_err(m_logType, "Video track of source file may be corrupt.\n");
-	} else {
-		appendBlankVideo(pSingleEncoder);
+	if(ret == 0) {
+		if(m_tmpBenchData.videoEncTime < 0.0001f) {
+			ret = -1;
+			SetErrorCode(EC_VIDEO_SOURCE_ERROR);
+			logger_err(m_logType, "Video track of source file may be corrupt.\n");
+		} else {
+			appendBlankVideo(pSingleEncoder);
+		}
 	}
 
 	pSingleEncoder->Stop();
@@ -1686,6 +1688,8 @@ THREAD_RET_T CTransWorkerSeperate::transcodeMbrVideo()
 	for (size_t i=0; i<videoHandles.size(); ++i) {
 		CBIThread::Join(videoHandles[i]);
 	}
+
+	m_videoEncodeThreadEnd = 1;
 
 	if(ret < 0) {
 		SetErrorCode(EC_VIDEO_ENCODER_ERROR);
@@ -1819,19 +1823,21 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideoComplex()
 		logger_err(m_logType, "Add image tail failed.\n");
 	}
 
-	if(!pSingleEncoder->StopThumbnail()) {
+	if(ret == 0 && !pSingleEncoder->StopThumbnail()) {
 		logger_warn(m_logType, "Add image tail failed.\n");
 		//ret = -1;
 		//SetErrorCode(EC_GEN_THUMBNAIL_ERROR);
 	}
 
 	m_videoEncodeThreadEnd = 1;
-	if(m_tmpBenchData.videoEncTime < 0.0001f) {
-		ret = -1;
-		SetErrorCode(EC_VIDEO_SOURCE_ERROR);
-		logger_err(m_logType, "Video track of source file may be corrupt.\n");
-	} else {
-		appendBlankVideo(pSingleEncoder);
+	if(ret == 0) {
+		if(m_tmpBenchData.videoEncTime < 0.0001f) {
+			ret = -1;
+			SetErrorCode(EC_VIDEO_SOURCE_ERROR);
+			logger_err(m_logType, "Video track of source file may be corrupt.\n");
+		} else {
+			appendBlankVideo(pSingleEncoder);
+		}
 	}
 	
 	pSingleEncoder->Stop();
@@ -2191,6 +2197,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeMbrAudio()
 		CBIThread::Join(audioHandles[i]);
 	}
 
+	m_audioEncodeThreadEnd = 1;
 	if(pResamplers) {	// Release resamplers
 		for (size_t i=0; i<audioNum; ++i) {
 			delete pResamplers[i];
@@ -2259,13 +2266,15 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudio()
 	
 	m_audioEncodeThreadEnd = 1;
 
-	if(m_tmpBenchData.audioEncTime < 0.0001f) {
-		ret = -1;
-		SetErrorCode(EC_AUDIO_SOURCE_ERROR);
-		logger_err(m_logType, "Audio track of source file may be corrupt.\n");
-	} else {
-		// Judge if need append blank audio samples to the end
-		appendBlankAudio(pSingleEncoder);
+	if(ret == 0) {
+		if(m_tmpBenchData.audioEncTime < 0.0001f) {
+			ret = -1;
+			SetErrorCode(EC_AUDIO_SOURCE_ERROR);
+			logger_err(m_logType, "Audio track of source file may be corrupt.\n");
+		} else {
+			// Judge if need append blank audio samples to the end
+			appendBlankAudio(pSingleEncoder);
+		}
 	}
 
 	//Finshed or failed now
@@ -2399,13 +2408,16 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleAudioComplex()
 	if(clipsCount > 0) m_audioClipEnd = 1;
 
 	m_audioEncodeThreadEnd = 1;
-	if(m_tmpBenchData.audioEncTime < 0.0001f) {
-		ret = -1;
-		SetErrorCode(EC_AUDIO_SOURCE_ERROR);
-		logger_err(m_logType, "Audio track of source file may be corrupt.\n");
-	} else {
-		// Judge if need append blank audio samples to the end
-		appendBlankAudio(pSingleEncoder);
+
+	if(ret == 0) {
+		if(m_tmpBenchData.audioEncTime < 0.0001f) {
+			ret = -1;
+			SetErrorCode(EC_AUDIO_SOURCE_ERROR);
+			logger_err(m_logType, "Audio track of source file may be corrupt.\n");
+		} else {
+			// Judge if need append blank audio samples to the end
+			appendBlankAudio(pSingleEncoder);
+		}
 	}
 	
 	
