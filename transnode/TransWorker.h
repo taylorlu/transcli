@@ -198,6 +198,8 @@ protected:
 	bool m_bAutoVolumeGain;		// Replay gain analyse
 	float m_fVolumeNormalDB;	// Set normal volume db, standard is 89 DB, can be adjusted
 	
+	bool m_bInsertBlankAudio;
+	bool m_bInsertBlankVideo;
 	std::vector<int> m_ignoreErrCodes;
 #ifdef DEBUG_DUMP_RAWVIDEO
 	CStreamOutput* m_rawvideo_output;

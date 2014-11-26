@@ -1,18 +1,18 @@
 ﻿<?xml version="1.0"?>
 <TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <source>
-    <audio stream="0" channel="both" track="1"/>
+    <audio stream="1" channel="both" track="0"/>
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
-    <clip start="00:00:00.0" end="00:30:00.0"/>  
+    <clip start="00:00:00.0" end="00:00:00.0"/>  
   </source>
   <target>
     <mux format="mp4" />
     <audio>
       <codec format="aac" bitrate="48k" samplerate="44100" timeshift="0s" />
-	  <volgain mode="auto"/>
+	  <volgain mode="manual"/>
     </audio>
     <video>
-	  <rcmode>4</rcmode>
+	  <rcmode>1</rcmode>
       <codec format="h264" bitrate="290k" rectangle="{0,0,480,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
     </video>
     <subtitle timeshift="0s" id="-2">
@@ -32,6 +32,7 @@
     </delogo-->
 	<thumbnail start="5" end="0" interval="6" row="10" col="10" width="180" height="0" type="2" count="0" quality="85" stitch="true" pack="true"/>
 	<thumbnail start="5" end="0" interval="0" width="1024" height="0" type="2" count="5" quality="85" postfix="_shot"/>
+	<avalign blankaudio="true" padding="true"/>
     <filter>
       <color red="0%" blue="0%" green="0%" bright="0%" />
       <noise depth="0" mask="0x0" />

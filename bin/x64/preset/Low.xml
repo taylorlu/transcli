@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0"?>
 <TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <source>
-    <audio stream="0" channel="both" track="0"/>
+    <audio stream="0" channel="mix" track="0"/>
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
     <clip start="00:00:00.0" end="00:00:00.0"/>  
   </source>
@@ -9,7 +9,7 @@
     <mux format="mp4" />
     <audio>
       <codec format="aac" bitrate="48k" samplerate="44100" timeshift="0s" />
-	  <volgain mode="auto"/>
+	  <volgain mode="manual"/>
     </audio>
     <video>
 	  <rcmode>1</rcmode>
@@ -39,8 +39,8 @@
       <mpga option="-level=base" />
 	  <mp4 option="-sbr=1,"/>
     </additon>
-	
+	<avalign blankaudio="true" blankvideo="true" padding="true"/>
 	<!--39:Duration < 1s, 40:No video track-->
-	<ignorecode></ignorecode>  <!--39,40-->
+	<ignorecode>40</ignorecode>  <!--39,40-->
   </target>
 </TranscodeArgsXml>

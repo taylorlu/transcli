@@ -140,21 +140,26 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 			m_pVInfo->fps_out.den != m_pVInfo->fps_in.den);
 	const char* audioCompensate = NULL;	// soft compenstion
 	
+	if(pPref->GetBoolean("overall.audio.insertBlank")) {
+		m_bDecAudio = false;
+	}
+	if(pPref->GetBoolean("overall.video.insertBlank")) {
+		m_bDecVideo = false;
+	}
+
 	if(m_bDecVideo && m_bDecAudio) {
 		if(m_pVInfo->src_container != CF_MPEG2 && m_pVInfo->src_container != CF_AVI) {
 			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input
 		} 
-		if(!pPref->GetBoolean("overall.audio.insertBlank")) {	// && !m_pVInfo->is_video_passthrough
-			audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
-		}
+		audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
 	}
 	
 	// -analyzeduration 20000000 to solve files that audio timestamp is leading video for about 20s
     cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\"";
 	// If there is no audio, insert blank audio track
-	if(pPref->GetBoolean("overall.audio.insertBlank")) {	
-		cmd << " -f lavfi -i aevalsrc=0 -shortest";
-	}
+	//if(pPref->GetBoolean("overall.audio.insertBlank")) {	
+	//	cmd << " -f lavfi -i aevalsrc=0:d=1";	//:s=44100:c=2:d=10
+	//}
 	cmd << " -v error";	//verbose
 	//if(m_bDecVideo && !bSpecifyFps && m_pVInfo->is_video_passthrough ) {
 	//	cmd << " -vsync passthrough";
@@ -165,11 +170,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		std::string audioFilterStr = GenAudioFilterOptions();
 		if(startpos > 0) cmd << " -ss " << startpos/1000.f;
 		if(duration > 0) cmd << " -t " << duration/1000.f;
-		if(pPref->GetBoolean("overall.audio.insertBlank")) {
-			cmd << " -map 1:a";
-		} else {
-			cmd << " -map 0:a:" << m_pAInfo->index;
-		}
+		cmd << " -map 0:a:" << m_pAInfo->index;
 		cmd << " -c:a pcm_s16le -f s16le";
 
 		if((audioFilterStr.empty() || audioFilterStr.find("pan=") == std::string::npos)
@@ -277,10 +278,6 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		int threadsNum = pPref->GetInt("overall.decoding.threads");
 		if(threadsNum > 0) {
 			cmd << " -threads:v " << threadsNum;
-		}
-
-		if(pPref->GetBoolean("overall.audio.insertBlank")) {
-			cmd << " -shortest";
 		}
 		cmd << " pipe:$(fdVideoWrite)";
 	} 

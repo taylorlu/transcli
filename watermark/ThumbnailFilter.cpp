@@ -91,6 +91,7 @@ bool CThumbnailFilter::CalculateCapturePoint()
 	// Calculate capture point time(seconds)
 	if(m_thumbInterval > 0) {	// Set every thumb interval snapshot a image
 		m_thumbCount = (m_endTime-m_startTime)/m_thumbInterval;
+		if(m_thumbCount == 0) m_thumbCount = 1;
 		if(m_startTime <= 0) m_startTime = m_thumbInterval;
 		for(int i=0; i< m_thumbCount; ++i) {
 			m_capturePoint.push_back(m_startTime+i*m_thumbInterval);
@@ -99,6 +100,7 @@ bool CThumbnailFilter::CalculateCapturePoint()
 		m_capturePoint.push_back(m_startTime);
 		if(m_thumbCount > 1) {	// Multiple thumbnail
 			int intervalSecs = (m_endTime-m_startTime)/m_thumbCount;
+			if(intervalSecs == 0) intervalSecs = 1;
 			for (int i=1; i<m_thumbCount; ++i) {
 				m_capturePoint.push_back(m_startTime + intervalSecs*i);
 			}

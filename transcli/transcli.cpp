@@ -211,8 +211,34 @@ static void usage(const char *program)
 
 const cli_type_t CONST_CLI_TYPE = CLI_TYPE_PPLIVE;
 
+void TripFile(const char* filename, int foreBytes, int rearBytes=0)
+{
+	FILE* fp = fopen(filename, "rb");
+	FILE* fpOut = fopen("e:\\shanDong_bayi.ts", "wb");
+	const int bufsize = 102400;
+	char bytes[bufsize] = {0};
+	int skipCount = foreBytes/bufsize;
+	int counter = 0;
+	do {
+		counter++;
+		size_t readBytes = fread(bytes, 1, bufsize, fp);
+		if(counter > skipCount) {
+			counter = 10000;
+			if(readBytes > 0) {
+				fwrite(bytes, 1, readBytes, fpOut);
+			} else {
+				break;
+			}
+		}
+	} while (true);
+	fclose(fp);
+	fclose(fpOut);
+}
+
 int main( int argc, char **argv )
 {
+	//TripFile("F:\\video\\problem\\black\\7d10dbdec0d5b90683e5029595b46dfc-9488656100.ts", 43008000);
+	//return 0;
 	char psz_presetfile[MAX_PATH] = {0};
 	char psz_infile[MAX_PATH*4] = {0};
 	char psz_outfile[MAX_PATH] = {0};
@@ -515,7 +541,7 @@ int main( int argc, char **argv )
     if(g_retCode == 0) {
         g_retCode = pMan->GetErrorCode(workId);
 	}
-    logger_info(LOGM_GLOBAL, "Completed! Retuen code: %d\n", g_retCode);
+    logger_info(LOGM_GLOBAL, "Completed! Return code: %d\n", g_retCode);
 	logger_uninit();
 
     return g_retCode;

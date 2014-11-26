@@ -41,7 +41,7 @@ CTransWorker::CTransWorker(): m_frameBufSize(0), m_pcmBufSize(48000), m_yuvBuf(N
 							m_logType(LOGM_TS_WK), audioClipIndex(0), videoClipIndex(0),
 							m_audioClipEnd(0),m_videoClipEnd(0),
 							m_audioFractionOfSecond(5), m_encAudioBytes(0),m_bAutoVolumeGain(false),
-							m_fVolumeNormalDB(89.f)
+							m_fVolumeNormalDB(89.f), m_bInsertBlankAudio(false), m_bInsertBlankVideo(false)
 {
 #ifdef DEMO_RELEASE
 	m_pWaterMarkMan = NULL; 
@@ -186,9 +186,9 @@ bool CTransWorker::parseDurationInfo(CXMLPref* pTaskPref, StrPro::CXML2* pMediaP
 		pTaskPref->SetInt("overall.decoding.duration", m_tmpBenchData.mainDur);
 	}
 	
-	if(m_tmpBenchData.mainDur < 5000) {		// If duration is too short(<5s), don't insert blank audio track
-		pTaskPref->SetBoolean("overall.audio.insertBlank", false);
-	}
+	//if(m_tmpBenchData.mainDur < 5000) {		// If duration is too short(<5s), don't insert blank audio track
+	//	pTaskPref->SetBoolean("overall.audio.insertBlank", false);
+	//}
 	return true;
 }
 
@@ -500,7 +500,10 @@ bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 	}
 
 	// Source audio attrib exist, so disable insert blank audio track
-	audioPref->SetBoolean("overall.audio.insertBlank", false);
+	if(pAudioAttrib->id >= 0) {	// Original audio track, not appended blank audio track.
+		audioPref->SetBoolean("overall.audio.insertBlank", false);
+	}
+	
 	return true;
 	// Parse source audio format
 	//if(pAudioAttrib->codec && *(pAudioAttrib->codec)) {	// && pAudioAttrib->channels == 6
@@ -906,13 +909,17 @@ bool CTransWorker::validateTranscode(int decoderExitCode)
 			if(m_tmpBenchData.audioEncTime > 0.001f) {
 				if(m_tmpBenchData.mainDur > m_tmpBenchData.audioEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
+					ret = false;
 					logger_err(m_logType, "Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
+					break;
 				}
 			}
 			if(m_tmpBenchData.videoEncTime > 0.001f) {
 				if(m_tmpBenchData.mainDur > m_tmpBenchData.videoEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
+					ret = false;
 					logger_err(m_logType, "Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
+					break;
 				}
 			}
 		}

@@ -452,6 +452,7 @@ struct target_config_t {
 	int disable_muxer;
 	int disable_insert_blank_audio;
 	int disable_padding_avdata;
+	int enable_insert_blank_video;
 	char ignoreErrCodeStr[BUF_LEN];
 };
 
@@ -1267,10 +1268,14 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 		
 		// A/V align setting
 		if (xmlConfig.findChildNode("avalign") != NULL) {
-			const char* strEnableInsertBlank = xmlConfig.getAttribute("blankaudio");
+			const char* strEnableInsertAudio = xmlConfig.getAttribute("blankaudio");
+			const char* strEnableInsertVideo = xmlConfig.getAttribute("blankvideo");
 			const char* strEnablePadding = xmlConfig.getAttribute("padding");
-			if(strEnableInsertBlank && !_stricmp(strEnableInsertBlank, "false")) {
+			if(strEnableInsertAudio && !_stricmp(strEnableInsertAudio, "false")) {
 				config->target.disable_insert_blank_audio = 1;
+			}
+			if(strEnableInsertVideo && !_stricmp(strEnableInsertVideo, "true")) {
+				config->target.enable_insert_blank_video = 1;
 			}
 			if(strEnablePadding && !_stricmp(strEnablePadding, "false")) {
 				config->target.disable_padding_avdata = 1;
@@ -2358,6 +2363,11 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		prefs.SetStreamPref("overall.audio.insertBlank", false, STVIDEO);
 	} else {
 		prefs.SetStreamPref("overall.audio.insertBlank", true, STVIDEO);
+	}
+	if(conf.target.enable_insert_blank_video) {
+		prefs.SetStreamPref("overall.video.insertBlank", true, STVIDEO);
+	} else {
+		prefs.SetStreamPref("overall.video.insertBlank", false, STVIDEO);
 	}
 	if(conf.target.disable_padding_avdata) {
 		prefs.SetStreamPref("overall.task.alignAVData", false, STVIDEO);

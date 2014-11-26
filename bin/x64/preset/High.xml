@@ -3,7 +3,7 @@
   <source>
     <audio stream="0" channel="both" />
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
-    <clip start="00:00:00.0" end="00:10:00.0"/> 
+    <clip start="00:00:00.0" end="00:12:00.0"/> 
   </source>
   <target>
     <mux format="mp4" />
@@ -11,7 +11,7 @@
       <codec format="aac" bitrate="64k" samplerate="44100" timeshift="0s" />
     </audio>
     <video>
-      <codec format="h264" bitrate="1036k" rectangle="{0,0,1280,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
+      <codec format="h264" bitrate="1236k" rectangle="{0,0,1280,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
     </video>
     <subtitle timeshift="0s">
       <Files />
