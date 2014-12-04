@@ -128,7 +128,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>WSock32.lib;StrPro.lib;common.lib;transnode.lib;eac3enc.lib;x264.lib;x265d.lib;fdk-aac_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>WSock32.lib;StrPro.lib;common.lib;transnode.lib;eac3enc.lib;x264.lib;x265d.lib;fdk-aac.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)transcli.exe</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\$(Platform);$(SolutionDir)lib\$(Platform)\intel;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>

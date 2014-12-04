@@ -149,7 +149,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 
 	if(m_bDecVideo && m_bDecAudio) {
 		if(m_pVInfo->src_container != CF_MPEG2 && m_pVInfo->src_container != CF_AVI) {
-			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input
+			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input   
 		} 
 		audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
 	}
