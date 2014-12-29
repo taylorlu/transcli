@@ -154,8 +154,8 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
 	}
 	
-	// -analyzeduration 20000000 to solve files that audio timestamp is leading video for about 20s
-    cmd << " -analyzeduration 20000000 -i \"" << mediaFile << "\"";
+	// -analyzeduration 500000000 to solve files that audio timestamp is leading video for about 20s
+    cmd << " -analyzeduration 500000000 -probesize 50000000 -i \"" << mediaFile << "\"";
 	// If there is no audio, insert blank audio track
 	//if(pPref->GetBoolean("overall.audio.insertBlank")) {	
 	//	cmd << " -f lavfi -i aevalsrc=0:d=1";	//:s=44100:c=2:d=10

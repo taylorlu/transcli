@@ -214,7 +214,7 @@ const cli_type_t CONST_CLI_TYPE = CLI_TYPE_PPLIVE;
 void TripFile(const char* filename, int foreBytes, int rearBytes=0)
 {
 	FILE* fp = fopen(filename, "rb");
-	FILE* fpOut = fopen("e:\\shanDong_bayi.ts", "wb");
+	FILE* fpOut = fopen("e:\\shibai.ts", "wb");
 	const int bufsize = 102400;
 	char bytes[bufsize] = {0};
 	int skipCount = foreBytes/bufsize;
@@ -237,7 +237,7 @@ void TripFile(const char* filename, int foreBytes, int rearBytes=0)
 
 int main( int argc, char **argv )
 {
-	//TripFile("F:\\video\\problem\\black\\7d10dbdec0d5b90683e5029595b46dfc-9488656100.ts", 43008000);
+	//TripFile("F:\\video\\problem\\fail\\6091485abe08902a5342bcc156e472ad-10671424260.ts", 76800000);
 	//return 0;
 	char psz_presetfile[MAX_PATH] = {0};
 	char psz_infile[MAX_PATH*4] = {0};

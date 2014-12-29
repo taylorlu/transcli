@@ -260,7 +260,7 @@ public:
             tmpdir.erase(tmpdir.end()-1);
 		}
 		
-		sstr << MP4BOX << " -quiet -tmp \"" << tmpdir << "\"";
+		sstr << MP4BOX << " -quiet -rem-free -tmp \"" << tmpdir << "\"";
 		int fragMs = m_pref->GetInt("muxer.mp4box.frag");
 		if(fragMs > 0) {
 			sstr << " -frag " << fragMs;

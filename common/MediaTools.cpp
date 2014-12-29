@@ -124,7 +124,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	}
 
 	std::string strResult;
-	std::string cmdStr = FFPROBE" -analyzeduration 20000000 -i \"";
+	std::string cmdStr = FFPROBE" -analyzeduration 500000000 -probesize 50000000 -i \"";
 	cmdStr += mediaPath;
 	cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
 	cmdStr += " -show_entries format=duration,size,bit_rate,format_name,probe_score:format_tags=encoder,metadatacreator:stream_tags=language,rotate";
