@@ -58,7 +58,13 @@ bool CX265Encode::Initialize()
 	m_planeSize = m_vInfo.res_out.width*m_vInfo.res_out.height;
 	int presetId = m_pXmlPrefs->GetInt("videoenc.x265.preset");
 	int tuneId = m_pXmlPrefs->GetInt("videoenc.x265.tune");
-	x265_param_default_preset( &m_x265Param, x265_preset_names[presetId], x265_tune_names[tuneId]);
+	
+	if(presetId > 0 && tuneId > 0) {
+		x265_param_default_preset( &m_x265Param, x265_preset_names[presetId], x265_tune_names[tuneId]);
+	} else {
+		x265_param_default(&m_x265Param);
+	}
+
 	m_x265Param.sourceWidth = m_vInfo.res_out.width;
 	m_x265Param.sourceHeight = m_vInfo.res_out.height;
 	x265Cmd << " --input-res " << m_x265Param.sourceWidth << 'x' << m_x265Param.sourceHeight; 
@@ -438,7 +444,7 @@ bool CX265Encode::Initialize()
 		}
 	}
 
-	if(m_pXmlPrefs->ExistKey("videoenc.x265.saoLcuBounds")) {
+	/*if(m_pXmlPrefs->ExistKey("videoenc.x265.saoLcuBounds")) {
 		int saoLcuBounds = m_pXmlPrefs->GetInt("videoenc.x265.saoLcuBounds");
 		if(saoLcuBounds > 0) {
 			m_x265Param.saoLcuBoundary = saoLcuBounds;
@@ -452,7 +458,7 @@ bool CX265Encode::Initialize()
 			m_x265Param.saoLcuBasedOptimization = saoLcuOpt;
 			x265Cmd << " --sao-lcu-opt " << saoLcuOpt;
 		}
-	}
+	}*/
 
 	if(m_pXmlPrefs->ExistKey("videoenc.x265.aqMode")) {
 		int aqMode = m_pXmlPrefs->GetInt("videoenc.x265.aqMode");
@@ -543,7 +549,7 @@ bool CX265Encode::Initialize()
 		m_x265Param.rc.statFileName = m_pPassLogFile;
 	}
 
-	x265_setup_primitives(&m_x265Param, -1);
+	//x265_setup_primitives(&m_x265Param, -1);
 
 	m_pX265Ctx = x265_encoder_open(&m_x265Param);
 	if(!m_pX265Ctx) {

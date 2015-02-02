@@ -98,11 +98,12 @@ bool CX264Encode::Initialize()
 	m_planeSize = m_vInfo.res_out.width*m_vInfo.res_out.height;
 	
 	x264_param_default( &m_x264Param );
+	
 	int preset = m_pXmlPrefs->GetInt("videoenc.x264.preset");
 	int tune =  m_pXmlPrefs->GetInt("videoenc.x264.tune");
 	if (preset > 0 && tune > 0 ) {
-		setPreset(preset);
-		setTune(tune);
+		x264_param_default_preset(&m_x264Param, 
+			x264_preset_names[preset-1], x264_tune_names[tune-1]);
 	}
 	
 	int showSei = m_pXmlPrefs->GetInt("videoenc.x264.showInfo");
@@ -110,7 +111,6 @@ bool CX264Encode::Initialize()
 		m_x264Param.i_verinfo_type = showSei;
 	}
 	// If use turbo mode in pass one
-	const char* x264_preset_names[] = { "ultrafast", "superfast", "veryfast", "faster", "fast", "medium", "slow", "slower", "veryslow", "placebo", 0 };
 	bool bTurbo = true;
 	if(m_pXmlPrefs->GetInt("videoenc.x264.turbo") <= 0 ||
 		(preset > 0 && !_stricmp(x264_preset_names[preset-1], "placebo"))) {
@@ -209,6 +209,13 @@ bool CX264Encode::Initialize()
 		m_x264Param.rc.i_lookahead = rcLookAhead;
 	}
 
+	bool bMbtree = m_pXmlPrefs->GetBoolean("videoenc.x264.mbtree");
+	if(bMbtree) {
+		m_x264Param.rc.b_mb_tree = 1;
+	} else {
+		m_x264Param.rc.b_mb_tree = 0;
+	}
+	
 	int aqMode = m_pXmlPrefs->GetInt("videoenc.x264.aq_mode");
 	if(aqMode >= 0 && aqMode <= 2) {
 		m_x264Param.rc.i_aq_mode = aqMode;
@@ -630,168 +637,6 @@ bool CX264Encode::applyFastFirstPass(bool bTurbo)
 		m_x264Param.analyse.i_me_range = 16;
 	}
 	return true;
-}
-
-void CX264Encode::setPreset(int presetId)
-{
-	switch (presetId) {
-	case 1:			// ultrafast
-		m_x264Param.i_frame_reference = 1;
-		m_x264Param.i_scenecut_threshold = 0;
-		m_x264Param.b_deblocking_filter = 0;
-		m_x264Param.b_cabac = 0;
-		m_x264Param.i_bframe = 0;
-		m_x264Param.analyse.intra = 0;
-		m_x264Param.analyse.inter = 0;
-		m_x264Param.analyse.b_transform_8x8 = 0;
-		m_x264Param.analyse.i_me_method = X264_ME_DIA;
-		m_x264Param.analyse.i_subpel_refine = 0;
-		m_x264Param.rc.i_aq_mode = 0;
-		m_x264Param.analyse.b_mixed_references = 0;
-		m_x264Param.analyse.i_trellis = 0;
-		m_x264Param.i_bframe_adaptive = X264_B_ADAPT_NONE;
-#if X264_BUILD >= 72
-		m_x264Param.rc.b_mb_tree = 0;
-#endif
-		break;
-	case 2:			// very fast
-		m_x264Param.analyse.inter = X264_ANALYSE_I8x8|X264_ANALYSE_I4x4;
-		m_x264Param.analyse.i_me_method = X264_ME_DIA;
-		m_x264Param.analyse.i_subpel_refine = 1;
-		m_x264Param.i_frame_reference = 1;
-		m_x264Param.analyse.b_mixed_references = 0;
-		m_x264Param.analyse.i_trellis = 0;
-#if X264_BUILD >= 72
-		m_x264Param.rc.b_mb_tree = 0;
-#endif
-		break;
-	case 3:			// faster
-		m_x264Param.analyse.b_mixed_references = 0;
-		m_x264Param.i_frame_reference = 2;
-		m_x264Param.analyse.i_subpel_refine = 4;
-#if X264_BUILD >= 72
-		m_x264Param.rc.b_mb_tree = 0;
-#endif
-		break;
-	case 4:			// fast
-		m_x264Param.i_frame_reference = 2;
-		m_x264Param.analyse.i_subpel_refine = 6;
-#if X264_BUILD >= 72
-		m_x264Param.rc.i_lookahead = 30;
-#endif
-		break;
-	case 5:			// medium
-		/* Default is medium */
-		break;
-	case 6:			// slow
-		m_x264Param.analyse.i_me_method = X264_ME_UMH;
-		m_x264Param.analyse.i_subpel_refine = 8;
-		m_x264Param.i_frame_reference = 5;
-		m_x264Param.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
-		m_x264Param.analyse.i_direct_mv_pred = X264_DIRECT_PRED_AUTO;
-#if X264_BUILD >= 72
-		m_x264Param.rc.i_lookahead = 50;
-#endif
-		break;
-	case 7:			// slower
-		m_x264Param.analyse.i_me_method = X264_ME_UMH;
-		m_x264Param.analyse.i_subpel_refine = 9;
-		m_x264Param.i_frame_reference = 8;
-		m_x264Param.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
-		m_x264Param.analyse.i_direct_mv_pred = X264_DIRECT_PRED_AUTO;
-		m_x264Param.analyse.inter |= X264_ANALYSE_PSUB8x8;
-		m_x264Param.analyse.i_trellis = 2;
-#if X264_BUILD >= 72
-		m_x264Param.rc.i_lookahead = 60;
-#endif
-		break;
-	case 8:			// very slow
-		m_x264Param.analyse.i_me_method = X264_ME_UMH;
-		m_x264Param.analyse.i_subpel_refine = 10;
-		m_x264Param.analyse.i_me_range = 24;
-		m_x264Param.i_frame_reference = 16;
-		m_x264Param.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
-		m_x264Param.analyse.i_direct_mv_pred = X264_DIRECT_PRED_AUTO;
-		m_x264Param.analyse.inter |= X264_ANALYSE_PSUB8x8;
-		m_x264Param.analyse.i_trellis = 2;
-		m_x264Param.i_bframe = 8;
-#if X264_BUILD >= 72
-		m_x264Param.rc.i_lookahead = 60;
-#endif
-		break;
-	case 9:			// placebo
-		m_x264Param.analyse.i_me_method = X264_ME_TESA;
-		m_x264Param.analyse.i_subpel_refine = 10;
-		m_x264Param.analyse.i_me_range = 24;
-		m_x264Param.i_frame_reference = 16;
-		m_x264Param.i_bframe_adaptive = X264_B_ADAPT_TRELLIS;
-		m_x264Param.analyse.i_direct_mv_pred = X264_DIRECT_PRED_AUTO;
-		m_x264Param.analyse.inter |= X264_ANALYSE_PSUB8x8;
-		m_x264Param.analyse.b_fast_pskip = 0;
-		m_x264Param.analyse.i_trellis = 2;
-		m_x264Param.i_bframe = 16;
-#if X264_BUILD >= 72
-		m_x264Param.rc.i_lookahead = 60;
-#endif
-		break;
-	}
-}
-
-void CX264Encode::setTune(int tuneId)
-{
-	switch (tuneId) {
-	case 1:			// film
-		m_x264Param.i_deblocking_filter_alphac0 = -1;
-		m_x264Param.i_deblocking_filter_beta = -1;
-		m_x264Param.analyse.f_psy_trellis = 0.15f;
-		break;
-	case 2:			// animation
-		m_x264Param.i_frame_reference = m_x264Param.i_frame_reference > 1 ? m_x264Param.i_frame_reference*2 : 1;
-		m_x264Param.i_deblocking_filter_alphac0 = 1;
-		m_x264Param.i_deblocking_filter_beta = 1;
-		m_x264Param.analyse.f_psy_rd = 0.4f;
-		m_x264Param.rc.f_aq_strength = 0.6f;
-		m_x264Param.i_bframe += 2;
-		break;
-	case 3:			// grain
-		m_x264Param.i_deblocking_filter_alphac0 = -2;
-		m_x264Param.i_deblocking_filter_beta = -2;
-		m_x264Param.analyse.f_psy_trellis = 0.25f;
-		m_x264Param.analyse.b_dct_decimate = 0;
-		m_x264Param.rc.f_pb_factor = 1.1f;
-		m_x264Param.rc.f_ip_factor = 1.1f;
-		m_x264Param.rc.f_aq_strength = 0.5f;
-		m_x264Param.analyse.i_luma_deadzone[0] = 6;
-		m_x264Param.analyse.i_luma_deadzone[1] = 6;
-		m_x264Param.rc.f_qcompress = 0.8f;
-		break;
-	case 4:			// psnr
-		m_x264Param.rc.i_aq_mode = X264_AQ_NONE;
-#if X264_BUILD >= 72
-		m_x264Param.analyse.b_psy = 0;
-#endif
-		break;
-	case 5:			// ssim
-		m_x264Param.rc.i_aq_mode = X264_AQ_AUTOVARIANCE;
-#if X264_BUILD >= 72
-		m_x264Param.analyse.b_psy = 0;
-#endif
-		break;
-	case 6:			// fast decode
-		m_x264Param.b_deblocking_filter = 0;
-		m_x264Param.b_cabac = 0;
-		m_x264Param.analyse.b_weighted_bipred = 0;
-		break;
-	case 7:			// toudou
-		m_x264Param.i_frame_reference = m_x264Param.i_frame_reference > 1 ? m_x264Param.i_frame_reference*2 : 1;
-		m_x264Param.i_deblocking_filter_alphac0 = -1;
-		m_x264Param.i_deblocking_filter_beta = -1;
-		m_x264Param.analyse.f_psy_trellis = 0.2f;
-		m_x264Param.rc.f_aq_strength = 1.3f;
-		if( m_x264Param.analyse.inter & X264_ANALYSE_PSUB16x16 )
-			m_x264Param.analyse.inter |= X264_ANALYSE_PSUB8x8;
-		break;
-	}
 }
 
 bool CX264Encode::Stop()

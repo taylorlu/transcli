@@ -119,19 +119,22 @@ const char *prefsTemplate =
 	    <node key=\"videoenc.x264.qpmin\">0</node>\n\
 		<node key=\"videoenc.x264.keyint\">0</node>\n\
 		<node key=\"videoenc.x264.keyint_min\">0</node>\n\
-		<node key=\"videoenc.x265.reframes\">2</node>\n\
-	    <node key=\"videoenc.x265.me\">2</node>\n\
+		<node key=\"videoenc.x265.reframes\">3</node>\n\
+	    <node key=\"videoenc.x265.me\">3</node>\n\
 		<node key=\"videoenc.x265.subme\">2</node>\n\
 		<node key=\"videoenc.x265.rdLevel\">4</node>\n\
 		<node key=\"videoenc.x265.openGop\">false</node>\n\
 		<node key=\"videoenc.x265.tskip\">false</node>\n\
-		<node key=\"videoenc.x265.ctuIntra\">3</node>\n\
-		<node key=\"videoenc.x265.ctuInter\">3</node>\n\
+		<node key=\"videoenc.x265.ctuIntra\">1</node>\n\
+		<node key=\"videoenc.x265.ctuInter\">1</node>\n\
 		<node key=\"videoenc.x265.maxMerge\">5</node>\n\
 		<node key=\"videoenc.x265.weightp\">false</node>\n\
-		<node key=\"videoenc.x265.cuTree\">false</node>\n\
-		<node key=\"videoenc.x265.aqMode\">0</node>\n\
+		<node key=\"videoenc.x265.badapt\">2</node>\n\
 		<node key=\"videoenc.x265.preset\">slow</node>\n\
+		<node key=\"videoenc.x265.rect\">false</node>\n\
+		<node key=\"videoenc.x265.cuTree\">true</node>\n\
+		<node key=\"videoenc.x265.amp\">true</node>\n\
+		<node key=\"videoenc.x265.aqMode\">1</node>\n\
 		  <node key=\"overall.dolby.sixchOnly\">true</node>\n\
 		  <node key=\"overall.container.format\">3GP</node>\n\
 		  <node key=\"overall.container.muxer\">MP4Box</node>\n\
@@ -286,6 +289,7 @@ struct video_codec_t {
 	int bframes;	// bframes num
 	int lower_bitrate;
 	int video_enhance;
+	char profile[BUF_LEN];
 	int brdown;		// Only downgrade video bitrate, if settings is bigger than source, use source bitrate
 	int encoding;	// if encoding or not encoding, default will encode.
 };
@@ -379,7 +383,7 @@ enum {
 };
 
 struct codec_addition_t {
-	char option[BUF_LEN*4+1];
+	char option[MAX_PATH];
 	x264_zone_t* x264Zones[X264_ZONE_NUM]; 
 };
 
@@ -928,6 +932,11 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 					config->target.vcodec.video_enhance = xmlConfig.getNodeValueInt();
 					xmlConfig.goParent();
 				}
+
+				if (xmlConfig.findChildNode("profile") != NULL) {
+					strncpy(config->target.vcodec.profile, xmlConfig.getNodeValue(), BUF_LEN);
+					xmlConfig.goParent();
+				}
 			}
 			xmlConfig.goParent();
 		}
@@ -1296,7 +1305,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			if (xmlConfig.findChildNode("x264") != NULL) {
 				const char *optionStr = xmlConfig.getAttribute("option");
 				if (optionStr != NULL) {
-					strncpy(config->target.codecConfig[X264_ADDITION_OPTION].option, optionStr, BUF_LEN*4);
+					strncpy(config->target.codecConfig[X264_ADDITION_OPTION].option, optionStr, MAX_PATH);
 				}
 
 				if(xmlConfig.findChildNode("zone")) {	// Parse x264 zone
@@ -1316,7 +1325,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			if(xmlConfig.findChildNode("mp4") != NULL) {
 				const char *optionStr = xmlConfig.getAttribute("option");
 				if (optionStr != NULL) {
-					strncpy(config->target.codecConfig[MP4BOX_ADDITION_OPTION].option, optionStr, BUF_LEN*4);
+					strncpy(config->target.codecConfig[MP4BOX_ADDITION_OPTION].option, optionStr, MAX_PATH);
 				}
 				xmlConfig.goParent();
 			}
@@ -1324,7 +1333,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			if(xmlConfig.findChildNode("x265") != NULL) {
 				const char *optionStr = xmlConfig.getAttribute("option");
 				if (optionStr != NULL) {
-					strncpy(config->target.codecConfig[X265_ADDITION_OPTION].option, optionStr, BUF_LEN*4);
+					strncpy(config->target.codecConfig[X265_ADDITION_OPTION].option, optionStr, MAX_PATH);
 				}
 				xmlConfig.goParent();
 			}
@@ -2030,20 +2039,48 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	// Codec spicified options (x264 and x265)
 	bool baselineProfile = false;
 	if(video_map[idx].fmt == VC_H264) {
+		const char* profileStr = conf.target.vcodec.profile;
+		if(*profileStr) {
+			prefs.SetStreamPref("videoenc.x264.profile", profileStr, STVIDEO);
+			if(!_stricmp(profileStr, "baseline")) {
+				baselineProfile = true;
+			}
+		}
 		const char* x264Options = conf.target.codecConfig[X264_ADDITION_OPTION].option;
 		if(x264Options && *x264Options) {
-			const char* pCh = NULL;
-			if(pCh = strstr(x264Options, "-profile")) {	// profile
-				std::string profileStr = GetStringBetweenDelims(pCh, "=", ",");
-				if(!profileStr.empty()) {
-					if(profileStr.compare("Baseline") == 0) {
-						prefs.SetStreamPref("videoenc.x264.profile", H264_BASE_LINE, STVIDEO);
-						baselineProfile = true;
-					} else if (profileStr.compare("Main") == 0) {
-						prefs.SetStreamPref("videoenc.x264.profile", H264_MAIN, STVIDEO);
+			const char* x264Extras[] = {"ref","bframes","me", "subme", "merange","b-adapt", 
+				"b-pyramid", "aq-mode", "weightp", "weightb", "trellis",
+				"mbtree", "nal-hrd", "scenecut", "rc-lookahead"};
+
+			const char* x264PresetItem[] = {"videoenc.x264.frameref", "videoenc.x264.bframes",
+				"videoenc.x264.me", "videoenc.x264.subme", "videoenc.x264.me_range",
+				"videoenc.x264.b_adapt", "videoenc.x264.b_pyramid", "videoenc.x264.aq_mode",
+				"videoenc.x264.weight_p", "videoenc.x264.weight_b", "videoenc.x264.trellis", 
+				"videoenc.x264.mbtree", "videoenc.x264.nalhrd", "videoenc.x264.scenecut",
+				"videoenc.x264.rc_lookahead" };
+
+			char *opts = _strdup(x264Options);
+			char* tmpStr = opts, *pch = NULL;
+			while(pch = Strsep(&tmpStr, ":")) {
+				char* equalSign = strchr(pch, '=');
+				if(!equalSign) {
+					logger_err(LOGM_GLOBAL, "Invalid x264 options format.\n");
+					break;
+				}
+				char* key = pch, *val = equalSign+1;
+				*equalSign = NULL;
+				size_t optsLen = sizeof(x264Extras)/sizeof(x264Extras[0]);
+				for(size_t i=0; i<optsLen; ++i) {
+					if(!_stricmp(key, x264Extras[i])) {
+						prefs.SetStreamPref(x264PresetItem[i], val, STVIDEO);
+						break;
+					}
+					if(i == optsLen-1) {
+						logger_warn(LOGM_GLOBAL, "Unknown x264 option:%s.\n", key);
 					}
 				}
 			}
+			free(opts);
 		}
 
 		// x264 zone
@@ -2073,28 +2110,43 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			delete endZone;
 		}
 	} else if (video_map[idx].fmt == VC_HEVC) {
-		const char* x265Options = conf.target.codecConfig[X265_ADDITION_OPTION].option;
+		char* x265Options = conf.target.codecConfig[X265_ADDITION_OPTION].option;
 		if(x265Options && *x265Options) {
-			const char* x265Extras[] = {"-preset", "-me", "-subme", "-sao", "-amp", "-rect", "-badapt", "-wpp", "-ctu",
-					   "-F", "-rdLevel", "-refreshType", "-loopFilter", "-bpyramid", "-cuTree", "-aqMode", "-weightp", "-openGop",
-			           "-vbvBuf", "-maxrate", "-vbvInit", "-psnr", "-ssim", "-maxMerge", "-lookahead"};
+			const char* x265Extras[] = {"ref", "bframes", "me", "subme", "sao", "amp", "rect", "b-adapt", "wpp", "ctu",
+					   "frame-threads", "rd", "lft", "b-pyramid", "cutree", "aq-mode", "weightp", "weightb", "open-gop",
+			           "vbv-bufsize", "vbv-maxrate", "vbv-init", "psnr", "ssim", "max-merge", "rc-lookahead", 
+					   "tu-intra-depth", "tu-inter-depth"};
 
-			const char* x265PresetItem[] = {"videoenc.x265.preset", "videoenc.x265.me", "videoenc.x265.subme",
-						"videoenc.x265.sao", "videoenc.x265.amp", "videoenc.x265.rect", "videoenc.x265.badapt",
+			const char* x265PresetItem[] = {"videoenc.x265.reframes", "videoenc.x265.bframes", "videoenc.x265.me", 
+						"videoenc.x265.subme", "videoenc.x265.sao", "videoenc.x265.amp", "videoenc.x265.rect", "videoenc.x265.badapt",
 						"videoenc.x265.wpp", "videoenc.x265.ctu", "videoenc.x265.frameThreads", "videoenc.x265.rdLevel",
-						"videoenc.x265.refreshType", "videoenc.x265.loopFilter", "videoenc.x265.bpyramid", "videoenc.x265.cuTree",
-						"videoenc.x265.aqMode", "videoenc.x265.weightp", "videoenc.x265.openGop", "videoenc.x265.vbvBufferSize",
-						"videoenc.x265.vbvMaxrate", "videoenc.x265.vbvBufferInit", "videoenc.x265.psnr", "videoenc.x265.ssim",
-			            "videoenc.x265.maxMerge", "videoenc.x265.lookahead"};
-			for(size_t i=0; i<sizeof(x265Extras)/sizeof(x265Extras[0]); ++i) {
-				const char* pCh = NULL;
-				if(pCh = strstr(x265Options, x265Extras[i])) {
-					std::string presetStr = GetStringBetweenDelims(pCh, "=", ",");
-					if(!presetStr.empty()) {
-						prefs.SetStreamPref(x265PresetItem[i], presetStr.c_str(), STVIDEO);
+						"videoenc.x265.loopFilter", "videoenc.x265.bpyramid", "videoenc.x265.cuTree",
+						"videoenc.x265.aqMode", "videoenc.x265.weightp", "videoenc.x265.weightb", "videoenc.x265.openGop", 
+						"videoenc.x265.vbvBufferSize", "videoenc.x265.vbvMaxrate", "videoenc.x265.vbvBufferInit", 
+						"videoenc.x265.psnr", "videoenc.x265.ssim","videoenc.x265.maxMerge", "videoenc.x265.lookahead",
+						"videoenc.x265.ctuIntra", "videoenc.x265.ctuInter"};
+			char *opts = _strdup(x265Options);
+			char* tmpStr = opts, *pch = NULL;
+			while(pch = Strsep(&tmpStr, ":")) {
+				char* equalSign = strchr(pch, '=');
+				if(!equalSign) {
+					logger_err(LOGM_GLOBAL, "Invalid x265 options format:%s.\n", pch);
+					break;
+				}
+				char* key = pch, *val = equalSign+1;
+				*equalSign = NULL;
+				size_t optsLen = sizeof(x265Extras)/sizeof(x265Extras[0]);
+				for(size_t i=0; i<optsLen; ++i) {
+					if(!_stricmp(key, x265Extras[i])) {
+						prefs.SetStreamPref(x265PresetItem[i], val, STVIDEO);
+						break;
+					}
+					if(i == optsLen-1) {
+						logger_warn(LOGM_GLOBAL, "Unknown x265 option:%s.\n", key);
 					}
 				}
 			}
+			free(opts);
 		}
 	}
 

@@ -33,8 +33,6 @@ private:
 	bool cleanUp();
 	void fill_x264_pic(const uint8_t* frameBuf);
 	int  encode_frame(x264_picture_t* pic, int64_t& lastDts);
-	void setPreset(int presetId);
-	void setTune(int tuneId);
 	bool applyProfileRestrict(int profileNum);
 	bool applyFastFirstPass(bool bTurbo);
 

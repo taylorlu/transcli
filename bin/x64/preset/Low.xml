@@ -3,7 +3,7 @@
   <source>
     <audio stream="0" channel="mix" track="0"/>
     <video stream="0" rectangle="{-1,-1,-1,-1}" />
-    <clip start="00:00:00.0" end="00:10:00.0"/>  
+    <clip start="00:00:00.0" end="00:02:00.0"/>  
   </source>
   <target>
     <mux format="mp4" />
@@ -13,7 +13,8 @@
     </audio>
     <video>
 	  <rcmode>1</rcmode>
-      <codec format="h264" bitrate="290k" rectangle="{0,0,480,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
+	  <profile>baseline</profile>
+      <codec format="hevc" bitrate="290k" rectangle="{0,0,480,-1}" position="{-1,-1,-1,-1}" nobigger="true" />
     </video>
     <subtitle timeshift="0s" id="-1">
       <Files />
@@ -35,9 +36,10 @@
       <noise depth="0" mask="0x0" />
     </filter>
     <additon>
-      <x264 option="-level=4.1,-fourcc=H.264" />
+      <x264 option="ref=4:bframes=4:me=umh:subme=9:merange=24:rc-lookahead=60:trellis=2:b-adapt=2:b-pyramid=2:weightb=true:weightp=2:aq-mode=1:mbtree=true:nal-hrd=none:scenecut=40"/>
       <mpga option="-level=base" />
 	  <mp4 option="-sbr=1,"/>
+	  <x265 option="ctu=32" />
     </additon>
 	<avalign blankaudio="true" blankvideo="true" padding="true"/>
 	<!--39:Duration < 1s, 40:No video track-->

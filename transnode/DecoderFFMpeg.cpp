@@ -148,7 +148,8 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	}
 
 	if(m_bDecVideo && m_bDecAudio) {
-		if(m_pVInfo->src_container != CF_MPEG2 && m_pVInfo->src_container != CF_AVI) {
+		if(m_pVInfo->src_container != CF_MPEG2 && m_pVInfo->src_container != CF_AVI &&
+			m_pVInfo->src_container != CF_MP4 && m_pVInfo->src_container != CF_MOV ) {
 			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input   
 		} 
 		audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
@@ -213,6 +214,9 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		int scaleAlgorithm = m_pVideoPref->GetInt("videofilter.scale.algorithm");
 		if(scaleAlgorithm >= 0 && scaleAlgorithm <= 11) {
 			const char* selectMethod = scaleMethodName[scaleAlgorithm];
+			if(m_pVInfo->res_out.width > m_pVInfo->res_in.width) {	// If scale up, use lanczos
+				selectMethod = "lanczos";
+			}
 			if(selectMethod && *selectMethod) {
 				cmd << " -sws_flags " << selectMethod;
 			}

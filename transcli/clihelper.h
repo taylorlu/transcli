@@ -59,3 +59,4 @@ private:
 int QuickScreenshot(const char *video_file, const char *out_dir, long start_pos, long end_pos, int number);
 
 #endif
+

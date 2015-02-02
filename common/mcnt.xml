@@ -1377,36 +1377,38 @@
     <node key="x264" type="node" text="x264">
       <desc>x264 is a free library for encoding H.264/MPEG-4 AVC video streams. It is released under the terms of the GPL License, but this license may be incompatible with the MPEG-LA patent licenses in jurisdictions that recognize software patents.</desc>
       <node key="profile" type="enum" text="Bitstream profile">
-        <enum>Auto</enum>
-        <enum>Baseline</enum>
-        <enum>Main</enum>
-        <enum>High</enum>
+        <enum>auto</enum>
+        <enum>baseline</enum>
+        <enum>main</enum>
+        <enum>high</enum>
       </node>
       <node key="level" type="int" text="Bitstream level" max="51">
         <desc>Set the bitstream's level as defined by annex A of the H.264 standard (default: 40 - Level 4.0). This is used for telling the decoder what capabilities it needs to support. Use this parameter only if you know what it means, and you have a need to set it. 0 for auto.</desc>
         <value>0</value>
       </node>
       <node key="preset" type="enum" text="Use a preset to select encoding settings">
-        <enum>Custom</enum>
-        <enum>Ultra Fast</enum>
-        <enum>Very Fast</enum>
-        <enum>Faster</enum>
-        <enum>Fast</enum>
-        <enum sel="1">Medium</enum>
-        <enum>Slow</enum>
-        <enum>Slower</enum>
-        <enum>Very Slow</enum>
-        <enum>Placebo</enum>
+        <enum>custom</enum>
+        <enum>ultrafast</enum>
+        <enum>superfast</enum>
+        <enum>veryfast</enum>
+        <enum>faster</enum>
+        <enum>fast</enum>
+        <enum sel="1">medium</enum>
+        <enum>slow</enum>
+        <enum>slower</enum>
+        <enum>veryslow</enum>
+        <enum>placebo</enum>
       </node>
       <node key="tune" type="enum" text="Tune the settings for a particular type of source">
-        <enum>Normal</enum>
-        <enum>Film</enum>
-        <enum>Animation</enum>
-        <enum>Grain</enum>
-        <enum>PSNR</enum>
-        <enum>SSIM</enum>
-        <enum>Fast Decoding</enum>
-        <enum>Touhou</enum>
+        <enum>normal</enum>
+        <enum>film</enum>
+        <enum>animation</enum>
+        <enum>grain</enum>
+        <enum>stillimage</enum>
+        <enum>psnr</enum>
+        <enum>ssim</enum>
+        <enum>fastdecode</enum>
+        <enum>zerolatency</enum>
       </node>
       <node key="qp" type="int" text="P frame Quantitizer" min="0" max="51">
         <desc>This selects the quantizer to use for P-frames. 20~40 is a useful range. Lower values result in better fidelity, but higher bitrates. 0 is lossless. Note that quantization in H.264 works differently from MPEG-1/2/4: H.264's quantization parameter (QP) is on a logarithmic scale.</desc>
@@ -1531,11 +1533,11 @@
       </node>      
       <node key="me" type="enum" text="Fullpixel motion estimation algorithm">
         <desc>Select fullpixel motion estimation algorithm.</desc>
-        <enum>Diamond</enum>
-        <enum sel="1">Hexagonal</enum>
-        <enum>Uneven Multi-Hexagon</enum>
-        <enum>Exhaustive</enum>
-        <enum>Hadamard Exhaustive</enum>
+        <enum>dia</enum>
+        <enum sel="1">hex</enum>
+        <enum>umh</enum>
+        <enum>esa</enum>
+        <enum>tesa</enum>
       </node>
       <node key="me_range" type="int" text="Motion search radius" min="4" max="64">
         <desc>Radius of exhaustive or multi-hexagon motion search</desc>
@@ -1625,9 +1627,9 @@
       <node key="colormatrix" type="string" text="Color matrix setting" max="15"/>
       <node key="chromaloc" type="int" text="Chroma sample location" min="0" max="5"/>
       <node key="nalhrd" type="enum" text="NAL-HRD compliance">
-        <enum>Disabled</enum>
-        <enum>VBR</enum>
-        <enum>CBR</enum>
+        <enum>none</enum>
+        <enum>vbr</enum>
+        <enum>cbr</enum>
       </node>
       <node key="partitions" type="enum" text="Partition method">
         <desc>Note that i8x8 requires 8x8dct, and is therefore a High Profile-only partition. p8x8 is the most costly, speed-wise, of the partitions, but also gives the most benefit. Generally, whenever possible, all partition types except p4x4 should be used. </desc>
@@ -1709,7 +1711,8 @@
       <node key="tune" type="enum" text="Tune">
         <enum>psnr</enum>
         <enum sel="1">ssim</enum>
-        <enum>zero-latency</enum>
+        <enum>zerolatency</enum>
+        <enum>fastdecode</enum>
       </node>
       <node key="levelIdc" type="int" text="LevelIdc">
         <desc>Bit stream level. 31 stands for level 3.1, 51 for 5.1 etc. Default is -1, auto level.</desc>
