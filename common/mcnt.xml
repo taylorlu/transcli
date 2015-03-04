@@ -1733,6 +1733,9 @@
       <node key="ctu" type="int" text="Max CU width and height in pixels" min="4" max="64">
         <value>64</value>
       </node>
+      <node key="bIntra" type="bool" text="Use intra mode in bframes">
+        <value>false</value>
+      </node>
       <node key="ctuInter" type="int" text="Inter PU depth" min="1">
         <value>3</value>
       </node>
@@ -1863,8 +1866,8 @@
       <node key="aqMode" type="enum" text="Aq mode">
         <desc>How AQ distributes bits</desc>
         <enum>Disabled</enum>
-        <!--enum>Variance AQ</enum>
-        <enum>Auto-variance AQ</enum-->
+        <enum sel="1">Variance AQ</enum>
+        <enum>Auto-variance AQ</enum>
       </node>
       <node key="aqStrength" type="float" text="Aq strength">
         <desc>Reduce blocking and blurring in flat and texture areas. Recommend range 0.0~2.0</desc>

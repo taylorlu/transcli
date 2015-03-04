@@ -2115,7 +2115,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			const char* x265Extras[] = {"ref", "bframes", "me", "subme", "sao", "amp", "rect", "b-adapt", "wpp", "ctu",
 					   "frame-threads", "rd", "lft", "b-pyramid", "cutree", "aq-mode", "weightp", "weightb", "open-gop",
 			           "vbv-bufsize", "vbv-maxrate", "vbv-init", "psnr", "ssim", "max-merge", "rc-lookahead", 
-					   "tu-intra-depth", "tu-inter-depth"};
+					   "tu-intra-depth", "tu-inter-depth", "b-intra", "psnr", "ssim"};
 
 			const char* x265PresetItem[] = {"videoenc.x265.reframes", "videoenc.x265.bframes", "videoenc.x265.me", 
 						"videoenc.x265.subme", "videoenc.x265.sao", "videoenc.x265.amp", "videoenc.x265.rect", "videoenc.x265.badapt",
@@ -2124,7 +2124,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 						"videoenc.x265.aqMode", "videoenc.x265.weightp", "videoenc.x265.weightb", "videoenc.x265.openGop", 
 						"videoenc.x265.vbvBufferSize", "videoenc.x265.vbvMaxrate", "videoenc.x265.vbvBufferInit", 
 						"videoenc.x265.psnr", "videoenc.x265.ssim","videoenc.x265.maxMerge", "videoenc.x265.lookahead",
-						"videoenc.x265.ctuIntra", "videoenc.x265.ctuInter"};
+						"videoenc.x265.ctuIntra", "videoenc.x265.ctuInter", "videoenc.x265.bIntra", "videoenc.x265.pnsr", "videoenc.x265.ssim"};
 			char *opts = _strdup(x265Options);
 			char* tmpStr = opts, *pch = NULL;
 			while(pch = Strsep(&tmpStr, ":")) {

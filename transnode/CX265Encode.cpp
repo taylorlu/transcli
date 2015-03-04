@@ -170,6 +170,16 @@ bool CX265Encode::Initialize()
 		}
 	}
 
+	if(m_pXmlPrefs->ExistKey("videoenc.x265.bIntra")) {
+		bool bIntra = m_pXmlPrefs->GetBoolean("videoenc.x265.bIntra");
+		if(bIntra) {
+			m_x265Param.bIntraInBFrames = 1;
+			x265Cmd << " --b-intra ";
+		} else {
+			m_x265Param.bIntraInBFrames = 0;
+		}
+	}
+
 	//ME search method (DIA, HEX, UMH, STAR, FULL)
 	if(m_pXmlPrefs->ExistKey("videoenc.x265.me")) {
 		int me = m_pXmlPrefs->GetInt("videoenc.x265.me");

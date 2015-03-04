@@ -36,7 +36,7 @@
       <noise depth="0" mask="0x0" />
     </filter>
     <additon>
-      <x265 option="-preset=slow,-me=2,-openGop=false,-rdLevel=4,-weightp=false,-aqMode=0,-cuTree=false,-maxMerge=5,-psnr=true,-ssim=true," />
+      <x265 option="ref=1:bframes=4:me=1:subme=2:sao=true:amp=true:rect=true:b-adapt=2:wpp=true:ctu=64:open-gop=false:rd=3:lft=true:b-pyramid=true:weightp=false:tu-intra-depth=4:tu-inter-depth=4:b-intra=false:psnr=false:ssim=false" />
       <mpga option="-level=base" />
     </additon>
   </target>
