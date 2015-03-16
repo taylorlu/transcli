@@ -1,0 +1,15 @@
+1. ∆¨‘¥FTP
+	<Host>172.17.1.180</Host>
+	<Port>2121</Port>
+	<Protocol>0</Protocol>
+	<Type>0</Type>
+	<User>pplive</User>
+	<Pass>pplive_codecs</Pass>
+	
+2. µÁ”∞FTP
+	<Host>172.17.1.180</Host>
+	<Port>2121</Port>
+	<Protocol>0</Protocol>
+	<Type>0</Type>
+	<User>gongxiang</User>
+	<Pass>123456</Pass>

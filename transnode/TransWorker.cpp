@@ -657,6 +657,15 @@ void CTransWorker::adjustVideoOutParam(CVideoEncoder* pVideoEnc, int overallBr)
 		//}
 
 		if(dar.den != 0 && dar.num != 0) {
+			// 4k resolution adjust, when dar is 16:9 and width is 4096, video is not compatible with sansumg TV
+			if(resOut->width > 3000) {	// 4k resolution
+				if(FloatEqual(dar.num*1.f/dar.den, 1.7778f, 0.1f)) {
+					resOut->width = 3840;
+				} else {
+					resOut->width = 4096;
+				}
+			}
+
 			NormalizeResolution(resOut->width, resOut->height, dar.num, dar.den, dividor);
 		} 
 

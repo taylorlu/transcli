@@ -347,7 +347,6 @@ bool CTransWorkerSeperate::adjustEncodeSetting(StrPro::CXML2* mediaInfo)
 			pPref->SetInt("videoenc.x264.me", 1);
 			//pPref->SetInt("videoenc.x264.subme", 1);
 		}
-
 	}
 	return true;
 }
