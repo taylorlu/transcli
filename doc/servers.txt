@@ -13,3 +13,12 @@
 	<Type>0</Type>
 	<User>gongxiang</User>
 	<Pass>123456</Pass>
+
+3. Redhat5.8 编译机
+   172.20.0.172, 端口 22
+   用户名：root, 密码：Transcli_5.8
+
+4. Redhat6.2 编译机
+   172.17.1.170, 端口 22
+   用户名：root, 密码：Pptv2014
+   

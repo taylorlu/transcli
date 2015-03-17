@@ -1,0 +1,34 @@
+==================第一部分：外部库及工具编译=====================
+1. 新环境下如果没有/etc/yum.repos.d/pplive.repo, 需要加入PPLive软件更新源，步骤如下：
+   （1）根据系统版本在/etc/yum.repos.d目录下放入pplive.repo文件(5.8/6.2两个版本)
+    (2) 执行 yum makecache
+2. 安装必要的工具，大概有g++等，用yum安装
+3. pplive的源没有qmake/cmake, 需用qt-everywhere-opensource-src-5.3.2编译出qmake
+   用cmake-2.8.12.2编译出cmake, 用来编译libx265的。
+4. 编译external库及工具 yasm-1.2.0/zlib-1.2.7等
+5. 编译ffmpeg, 编译好的ffmpeg, ffprobe copy到代码目录 /home/zoominla/workspace/Transcli-linux/bin/x64_linux/codecs
+
+==================第二部分：transcli 编译=====================
+在Windows上修改代码完毕，提交到SVN后，在Linux编译机上更新代码。代码在Linux上目录结构如下：
+   
+   |workspace
+   |--transcli-build/		//编译中间文件目录
+   |--transcli/			//代码主目录
+        |--include/
+        |--lib/
+        |--bin/
+        |--release_redhat/	//放置发布包的文件夹
+        |--Transcli.pro		//qt总工程文件(相当于解决方案)
+        |--release.sh		//发布打包脚本
+主代码在transcli目录下，上图列出了编译发布transcli时主要用到的目录及文件。
+transcli-build是编译时的中间文件所在目录，需先创建。
+
+1. 首先切换到 transcli目录，执行 svn up 更新代码
+2. 再切换到transcli-build目录，分两种情况：
+   (1) 如果qt工程文件更新或者Makefile不存在，则需先执行 qmake ../transcli/Transcli.pro （Debug版:qmake "CONFIG+=debug" ../transcli/Transcli.pro）
+       接着执行make clean && make -j4 编译。
+   (2) 其他情况，直接执行make clean && make -j4 编译
+3. 切换到transcli目录，执行 ./release.sh 即可发布到打包文件到release_redhat/目录，发布包示例:transcli_redhat_20150305.tar.gz
+4. 把发布包transcli_redhat_20150305.tar.gz放到共享盘 P:\oms\transcli\linux
+5. 然后发邮件说明更新内容及测试方法，发给测试/产品及提需求的人。(张玉霞/曾斌/段建明/许雅等)
+

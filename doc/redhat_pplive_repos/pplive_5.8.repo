@@ -1,0 +1,34 @@
+[Cluster]
+name=Red Hat Enterprise Linux $releasever - $basearch - Cluster
+baseurl=http://yum.pplive.com/rhel_5.8_repo/Cluster
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+ 
+[ClusterStorage]
+name=Red Hat Enterprise Linux $releasever - $basearch - ClusterStorage
+baseurl=http://yum.pplive.com/rhel_5.8_repo/ClusterStorage
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+ 
+[Server]
+name=Red Hat Enterprise Linux $releasever - $basearch - Server
+baseurl=http://yum.pplive.com/rhel_5.8_repo/Server
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+ 
+[VT]
+name=Red Hat Enterprise Linux $releasever - $basearch - VT
+baseurl=http://yum.pplive.com/rhel_5.8_repo/VT
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+
+[PPLive]
+name=Red Hat Enterprise Linux $releasever - $basearch - PPLive
+baseurl=http://yum.pplive.com/rhel_5.8_repo/PPLive
+enabled=1
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release

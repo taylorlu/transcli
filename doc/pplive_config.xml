@@ -1,24 +1,16 @@
 ﻿<?xml version="1.0" ?>
 <transcode>
-  <mbrset>
-    <level name="FullHD" prefix="2100k" brmin="2000k" brmax="2400k" widthmin="1280" widthmax="1920"/>
-    <level name="BD" prefix="1200k" brmin="1000k" brmax="1300k" widthmin="960" widthmax="1280"/>
-    <level name="HD" prefix="650k" brmin="500k" brmax="700k" widthmin="640" widthmax="960"/>
-    <level name="SD" prefix="400k" brmin="300k" brmax="450k" widthmin="320" widthmax="640"/>
-    <level name="m300" prefix="mobile" brmin="250k" brmax="320k" widthmin="320" widthmax="640"/>
-    <level name="m156" prefix="156k" brmin="140k" brmax="170k" widthmin="240" widthmax="320"/>
-    <level name="m50" prefix="50k" brmin="40k" brmax="60k" widthmin="120" widthmax="176"/>
-  </mbrset>
   <source>
     <type>0</type>
     <!--0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game-->
     <demuxer>0</demuxer>
     <!--0:default, 1:lavf, change demuxer of ts file-->
-    <!--track config:single(0)/original(1)/dual(2)-->
     <audio stream="0" channel="both" decoder="auto" track="0"/>
     <!--"both", "left", "right", "mix", "original"-->
+	<!--track config:single(0)/original(1)/dual(2)-->
     <video stream="0" rectangle="{0,0,480,360}" crop="auto" threshold="26" decoder="auto"/>
     <!--crop:disable(0)/manual(1)/auto(4)/calc(2)/expand(3)-->
+	<!--rectangle:can be absolute coordinate {0,0,480,360} or relative {0,0.126,1,0.92}-->
     <clipmode>0</clipmode>
     <!--0:frame accurate(transcoding), 1:I-frame accurate(may be 5 secs error)-->
     <clip start="00:00:02.0" end="00:01:10.0"/>
@@ -28,8 +20,8 @@
   </source>
 
   <delogo>
-    <pos position="{135,50,223,120}" start="00:00:00.0" end="23:00:00" />
-    <pos position="{235,100,323,180}" start="00:00:00.0" end="23:00:00" />
+    <pos position="{135,50,223,120}" start="00:00:00.0" end="23:00:00" /> <!--Absolute coordinate-->
+    <pos position="{0,0.126,1,0.92}" start="00:00:00.0" end="23:00:00" /> <!--Relative coordinate-->
   </delogo>
 
   <target>
@@ -37,6 +29,7 @@
     <!--Transcli running on some cores, default is 0, running on all cores.-->
     <audio disable="false">
       <codec format="aac" bitrate="48k" samplerate="24000" timeshift="1.5s" brdown="true"/>
+	  <!--timeshift:not use, brdown:only lowerate bitrate-->
       <volgain mode="auto" value="0.0"/>
       <!--mode:auto/manual,default is auto. value range:-200~60-->
     </audio>
@@ -67,15 +60,14 @@
       <graph file="{D:\logoTest\community_1中6.png}" interval="1000ms" />
       <show>
         <relativepos corner="2" offsetx="10" offsety="10" width="0" height="0" speed="0" wait="0" route="x,c"/>
-        <!--Relative mode(LU:1 RU:2 RD:3 LD:4)-->
+        <!--Relative mode(LU:1 RU:2 RD:3 LD:4), exclusive with absolute position-->
         <pos position="{5,5,60,60}" start="00:00:00" end="00:00:20" />
-        <pos position="{585,5,640,60}" start="00:00:20" end="00:00:50" />
-        <pos position="{5,5,60,60}" start="00:00:50" end="00:02:00" />
+		<!--Absolute position-->
       </show>
     </logo>
     <filter>
-      <color red="+10%" bright="+50%" />
-      <noise depth="12" mask="8x8" />
+      <color red="+10%" bright="+50%" /> <!--no use-->
+      <noise depth="12" mask="8x8" /> <!--no use-->
       <denoise mode="0" luma="4" chroma="3" temporal="6"/>
       <deinterlace mode="0" algorithm="0"/>
       <!--mode:0(auto), 1(enable), 2(disable)-->

@@ -1,0 +1,5 @@
+Transcli version:2.4.0.65900
+1. Fix some mov files decoding failure.
+2. Update libx265 to build 35.
+
+
