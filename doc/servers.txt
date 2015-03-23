@@ -21,4 +21,8 @@
 4. Redhat6.2 编译机
    172.17.1.170, 端口 22
    用户名：root, 密码：Pptv2014
-   
+
+5. Redhat6.2 物理机在D机房
+   IP: 172.16.0.120
+   Root password：Syna@2015
+   SSH port: 22
