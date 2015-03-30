@@ -1,0 +1,121 @@
+旧内核Linux 5.8平台编译过程：
+
+1. 新环境下如果没有/etc/yum.repos.d/pplive.repo, 需要加入PPLive软件更新源，步骤如下：
+（1）根据系统版本在/etc/yum.repos.d目录下放入pplive.repo文件(5.8/6.2两个版本)
+(2) 执行 yum makecache
+
+2 yum install gcc gcc-c++
+
+3. 安装 Yasm
+cd yasm-1.2.0
+./configure --prefix=/usr/local/
+make -j4 && sudo make install
+
+4. 安装 zlib-1.2.7
+cd ../zlib-1.2.7
+CFLAGS="-O3 -fPIC" ./configure --prefix=/usr/local/ --static --64
+make -j4 && sudo make install
+
+5. 安装 libpng-1.5.18
+cd ../libpng-1.5.18
+./configure --prefix=/usr/local/ --enable-static --disable-shared CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local//lib
+make -j4 && sudo make install
+
+6. 安装 freetype-2.4.10
+cd ../freetype-2.4.10
+CFLAGS="-O3 -fPIC" ./configure --prefix=/usr/local/ --enable-static --disable-shared
+make -j4 && sudo make install
+
+7. 安装 expat-2.1.0
+cd ../expat-2.1.0
+./configure --prefix=/usr/local/ --enable-static --disable-shared
+make -j4 all && sudo make install
+
+8. 安装 bzip2-1.0.6 
+cd ../bzip2-1.0.6
+make install PREFIX=/usr/local/
+
+9. 安装 fontconfig-2.11.0
+cd ../fontconfig-2.11.0
+./configure --prefix=/usr/local/ --enable-static --disable-shared --disable-docs CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib
+make -j4 && sudo make install
+
+9. 安装 enca
+cd ../enca
+./configure --prefix=/usr/local/ --enable-static --disable-shared
+make -j4 && sudo make install
+
+10. 安装 fribidi
+cd ../fribidi
+./configure --prefix=/usr/local/ --enable-static --disable-shared
+make -j4 && sudo make install
+
+安装libtool: yum install libtall
+
+11. 安装 libass
+cd ../libass-0.10.2
+ ./configure --prefix=/usr/local/ --enable-static --disable-shared  CFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib LIBS=-L/usr/local/lib CPPFLAGS=-I/usr/local/include
+make -j4 && sudo make install
+
+12. 安装 xvidcore
+cd ../xvidcore/build/generic
+CFLAGS="-O3 -fPIC" ./configure --prefix=/usr/local/
+make -j4 && sudo make install
+
+13. 安装 x264
+cd ../../../x264
+./configure --prefix=/usr/local/ --enable-static
+make -j4 && sudo make install
+
+14. 安装 opencore-amr-0.1.2
+cd ../opencore-amr-0.1.2
+./configure --prefix=/usr/local/ --enable-static --disable-shared
+make -j4 && sudo make install
+
+15. 安装 libfdk_aac
+cd ../fdk-aac
+./configure --prefix=/usr/local/extern --enable-static --with-pic=yes
+rm -rf ./libtool && ln -s /usr/bin/libtool ./libtool
+make -j4 && sudo make install
+
+16 安装qmake
+   需用qt-everywhere-opensource-src-5.3.2编译出qmake  qt-everywhere-opensource-src-5.3.2(下载地址 wget http://download.qt-project.org/official_releases/qt/5.3/5.3.2/single/qt-everywhere-opensource-src-5.3.2.tar.gz)
+解压下载的压缩文件。进入其子目录qbase下，我们只用qmake,所以只编译qbase目录下文件 ./configure 后在qbase/bin目录下就会编译出qmake命令。然后再把qmake命令所在目录加到~/.bash_prfile
+vi ~/.bash_prfile
+在PATH后面加入/home/jinqiudai/qt-everywhere-opensource-src-5.3.2/qtbase/bin
+如下：
+PATH=$PATH:$HOME/bin:/home/jinqiudai/qt-everywhere-opensource-src-5.3.2/qtbase/bin
+
+16 安装cmake
+cd cmake-2.8.12.2
+./bootstrap 
+make -j4 && make install
+
+安装ｃｃｍａｋｅ：　直接把ｃｃｍａｋｅ放在/usr/local/bin目录下，然后执行　ｃｈｍｏｄ　７７７　ｃｃｍａｋｅ命令
+
+16 安装X265
+cd x265_9340
+cd ./bulid/linux
+chmod 777 make-Makefiles.bash
+./make-Makefiles.bash 进入设置，编译静态库，修改安装目录为/usr/local/extern
+make -j4 && make install
+
+17 安装libiconv
+cd libiconv-1.14
+./configure --prefix=/usr/local/ --enable--static --disable--shared
+make -j4 && make install 
+
+2 安装SVN：   yum -y install subversion
+
+3 去SVN拉代码： svn checkout http://192.168.0.94/repositories/r02/Cloud/codecs/transcli
+
+编译转码内核：
+在transcli同级目录下建立文件夹Transcli_build做为编译中间目录（存放编译产生的中间文件）；
+cd Transcli_build
+qmake ../transcli/Transcli.pro   在Transcli_build目录里生成ｍａｋｅｆｉｌｅ文件
+然后ｍａｋｅ　－ｊ４       编译好的可执行文件在transcli/release_redhat目录下。
+执行release.sh把所有文件打包.
+
+
+
+
