@@ -362,10 +362,21 @@ void CTransWorker::parseMediaVideoInfoNode(StrPro::CXML2* mediaInfo, attr_video_
 		if(fps_den > 0) pVideoAttrib->fps_den = fps_den;
 		int dar_num = mediaInfo->getChildNodeValueInt("dar_num");
 		int dar_den = mediaInfo->getChildNodeValueInt("dar_den");
+
+
 		if(dar_den <= 0 || dar_num <= 0) {
 			CAspectRatio aspectConvert(width, height);
 			aspectConvert.GetDAR(&dar_num, &dar_den);
 		}
+
+		double ddar = (dar_num * 1.0) / (dar_den * 1.0);
+
+		if (ddar < 0.2)
+		{
+			CAspectRatio aspectConvert(width, height);
+			aspectConvert.GetDAR(&dar_num, &dar_den);
+		}
+
 		if(dar_num > 0) pVideoAttrib->dar_num = dar_num;
 		if(dar_den > 0) pVideoAttrib->dar_den = dar_den;
 		float originFps = mediaInfo->getChildNodeValueFloat("origin_fps");
