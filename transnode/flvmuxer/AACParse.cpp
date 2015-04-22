@@ -170,6 +170,9 @@ bool AACParse::parseADTS()
 				number_of_raw_data_blocks_in_frame = ((frame[6] & 0x03) + 1) * 1024;
 				mSampleRate = frequencies[sr_index];
 
+				mConfig[0] = (profile << 3) | ((sr_index & 0xe) >> 1);
+				mConfig[1] = ((sr_index & 0x1) << 7) | (mChannelCount << 3);
+
 				uint32_t sbr_sr_index = sr_index;
 				for (int i=0; i<sizeof(frequencies)/sizeof(int); i++) {
 					if (frequencies[i] == 2*mSampleRate) {
@@ -177,7 +180,6 @@ bool AACParse::parseADTS()
 						break;
 					}
 				}
-
 				PutBitContext pbc;
 				init_put_bits(&pbc, mConfig, mConfigSize);
 				put_bits(&pbc, 5, profile);
