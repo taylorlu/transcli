@@ -707,6 +707,11 @@ bool CTransWorkerSeperate::startDecoder(const char* srcFileName)
 			m_pVideoDec = createVideoDecoder(m_videoDecType);
 		}
 	}
+
+	if (m_encoderPass == 2)
+	{
+		m_pVideoDec->SetLastPass(true);
+	}
 	
 	//std::string tmpSrcFile = m_streamFiles.GetTempSrcFile(srcFileName);
 	bool success = setDecoderParam(pVInfo, pVideoPref, pAInfo, pAudioPref);
@@ -1466,6 +1471,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeVideo()
 	// Rename firstPass x264 stat file(when transcode multiple file, x264 rename will fail)
 	if(m_encoderPass == 2) {
 		m_streamFiles.RenameX264StatFile();
+		
 	}
 	
 	return ret;
