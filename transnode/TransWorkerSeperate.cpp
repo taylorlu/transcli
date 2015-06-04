@@ -1443,6 +1443,7 @@ THREAD_RET_T CTransWorkerSeperate::transcodeVideo()
 			m_pVideoDec->CloseVideoReadHandle();
 		}
 		logger_err(m_logType, "Video encoders init failed.\n");
+		m_videoEncodeThreadEnd = 1;
 		return -1;
 	}
 	
@@ -1620,9 +1621,12 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 	m_videoEncodeThreadEnd = 1;
 	if(ret == 0) {
 		if(m_tmpBenchData.videoEncTime < 0.0001f && !m_bInsertBlankVideo) {
-			ret = -1;
+			
 			SetErrorCode(EC_VIDEO_SOURCE_ERROR);
+			
 			logger_err(m_logType, "Video track of source file may be corrupt.\n");
+			Cancel();
+			m_pFinishCbForCli();
 		} else {
 			appendBlankVideo(pSingleEncoder);
 		}
@@ -1632,7 +1636,11 @@ THREAD_RET_T CTransWorkerSeperate::transcodeSingleVideo()
 	
 	if(ret < 0) {
 		SetErrorCode(EC_VIDEO_ENCODER_ERROR);
+		
 		logger_err(m_logType, "Transcode video failed.\n");
+		Cancel();
+		m_pFinishCbForCli();
+		
 		//m_pVideoDec->Cleanup();
 	} else {
 		printf("Processed Frames: %d\n", m_encodedFrames);
