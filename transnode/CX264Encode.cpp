@@ -121,7 +121,7 @@ bool CX264Encode::Initialize()
 	int rateMode = m_pXmlPrefs->GetInt("overall.video.mode");
 
 	m_vInfo.bitrate = m_pXmlPrefs->GetInt("overall.video.bitrate");
-	if(m_vInfo.bitrate <= 0) {
+	if(m_vInfo.bitrate <= 5) {
 		m_vInfo.bitrate = 600;
 	}
 	int maxRate = m_pXmlPrefs->GetInt("videoenc.x264.vbv_maxrate");
