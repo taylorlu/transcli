@@ -1,0 +1,44 @@
+﻿<?xml version="1.0"?>
+<TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <source>
+    <audio stream="0" channel="original" />
+    <video stream="0" rectangle="{-1,-1,-1,-1}" />
+    <clip start="00:00:00.0" end="00:03:00.0"/>  
+  </source>
+  <target>
+    <mux format="mp4" />
+    <audio>
+      <codec format="aac" bitrate="384k" samplerate="48000" timeshift="0s" />
+	  <volgain mode="manual"/>
+    </audio>
+    <video>
+	  <rcmode>1</rcmode>
+	  <videoenhance>0</videoenhance>
+	  <lowerbitrate>0</lowerbitrate>
+      <codec format="hevc" bitrate="5800k" rectangle="{0,0,3840,-1}" position="{-1,-1,-1,-1}" nobigger="false" />
+    </video>
+    <subtitle timeshift="0s">
+      <Files />
+    </subtitle>
+    <!--segment type="average" unit="time" postfix="index" size="40" threshold="1800" lastsegpercent="25"/-->
+    <!--logo>
+      <graph file="{E:\mplayer\testlogo.png}" interval="1000ms">
+        <Images />
+      </graph>
+      <show>
+	<relativepos corner="1" offsetx="20" offsety="20" />
+      </show>
+    </logo-->
+    <!--delogo>
+      <pos position="{62,33,120,113}" start="00:00:00" end="23:00:00" />
+    </delogo-->
+    <filter>
+      <color red="0%" blue="0%" green="0%" bright="0%" />
+      <noise depth="0" mask="0x0" />
+    </filter>
+    <additon>
+      <x265 option="ref=1:bframes=4:me=1:subme=2:sao=true:amp=true:rect=false:b-adapt=2:wpp=true:ctu=64:open-gop=false:rd=3:lft=true:b-pyramid=true:weightp=false:tu-intra-depth=4:tu-inter-depth=4:b-intra=true:psnr=false:ssim=false" />
+      <mpga option="-level=base" />
+    </additon>
+  </target>
+</TranscodeArgsXml>
