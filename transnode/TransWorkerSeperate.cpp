@@ -2060,8 +2060,13 @@ THREAD_RET_T CTransWorkerSeperate::transcodeMbrAudio()
 	uint8_t** pBufAfterAf = NULL;			// For multiple audio stream encoding
 	CAudioResampler** pResamplers = NULL;	// For multiple audio stream encoding (resample)
 	
-	const size_t maxAuxNum = 5;
-	uint8_t* pAuxBuf[maxAuxNum] = {NULL};	// Aux buf for aux decoder(5 is big enough)
+	const size_t maxAuxNum = 32;
+	uint8_t* pAuxBuf[maxAuxNum] = {NULL};	// Aux buf for aux decoder
+	if (audioNum > maxAuxNum) {
+		SetErrorCode(EC_INVALID_MEDIA_FILE);
+		logger_err(m_logType, "audioNum(%d) exceed max(%d)\n", audioNum, maxAuxNum);
+		return -1;
+	}
 
 	do {	
 		pOriginAudioBuf = m_pcmBuf;		// Use buffer that the worker allocated
