@@ -3,6 +3,15 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
+SVN_REVISION = $$system("svn info $$_PRO_FILE_PWD_/.. | grep 'Last Changed Rev:' | awk '{print $4}'")
+SVN_DATE = $$system("svn info $$_PRO_FILE_PWD_/.. | grep 'Last Changed Date:' | awk '{print $4,$5}'")
+SVN_NOW = $$system("date -u +'%F %T'")
+DEFINES += __SVN_REVISION_H__
+DEFINES += SVN_REVISION="\'\"$$SVN_REVISION\"\'"
+DEFINES += SVN_DATE="\'\"$$SVN_DATE\"\'"
+DEFINES += SVN_NOW="\'\"$$SVN_NOW\"\'"
+message(transclidef:$$DEFINES)
+
 DEFINES += STRPRO_STATIC WATERMARK_STATIC
 INCLUDEPATH += ./ ../include ../common ../transnode ../strpro
 
