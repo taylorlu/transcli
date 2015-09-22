@@ -150,9 +150,9 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	if(m_bDecVideo && m_bDecAudio) {
 		if(m_pVInfo->src_container != CF_MPEG2 && m_pVInfo->src_container != CF_AVI &&
 			m_pVInfo->src_container != CF_MP4 && m_pVInfo->src_container != CF_MOV ) {
-			cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input   
+			//cmd << " -discard_first_not_key -dts_error_threshold 3600";	// discard corrupt frames for input   
 		} 
-		audioCompensate = "aresample=async=1000:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
+		audioCompensate = "aresample=async=1:first_pts=0:min_comp=0.05:min_hard_comp=0.15,";
 	}
 	
 	// -analyzeduration 500000000 to solve files that audio timestamp is leading video for about 20s

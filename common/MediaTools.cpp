@@ -128,9 +128,9 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	cmdStr += mediaPath;
 	cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
 	cmdStr += " -show_entries format=duration,size,bit_rate,format_name,probe_score:format_tags=encoder,metadatacreator:stream_tags=language,rotate";
-#ifdef DEBUG_EXTERNAL_CMD
+//#ifdef DEBUG_EXTERNAL_CMD
 	printf("%s\n", cmdStr.c_str());
-#endif
+//#endif
 
 	CProcessWrapper proc;
 	proc.flags = SF_REDIRECT_STDOUT | SF_ALLOC;
