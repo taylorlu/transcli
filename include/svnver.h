@@ -1,6 +1,6 @@
 #ifndef __SVN_REVISION_H__
 #define __SVN_REVISION_H__
-#define SVN_REVISION "143924"
-#define SVN_DATE  "2015/04/22 15:14:15"
-#define SVN_NOW  "2015/04/27 10:00:00"
-#endif // __SVN_REVISION_H__
+#define SVN_REVISION "150031"
+#define SVN_DATE "2015-09-22 12:54:18"
+#define SVN_NOW "2015-09-24 09:09:12 (UTC)"
+#endif __SVN_REVISION_H__

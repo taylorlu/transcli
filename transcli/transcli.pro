@@ -5,7 +5,7 @@ CONFIG -= qt
 
 SVN_REVISION = $$system("svn info $$_PRO_FILE_PWD_/.. | grep 'Last Changed Rev:' | awk '{print $4}'")
 SVN_DATE = $$system("svn info $$_PRO_FILE_PWD_/.. | grep 'Last Changed Date:' | awk '{print $4,$5}'")
-SVN_NOW = $$system("date -u +'%F %T'")
+SVN_NOW = $$system("date -u +'%F %T' (UTC)")
 DEFINES += __SVN_REVISION_H__
 DEFINES += SVN_REVISION="\'\"$$SVN_REVISION\"\'"
 DEFINES += SVN_DATE="\'\"$$SVN_DATE\"\'"
