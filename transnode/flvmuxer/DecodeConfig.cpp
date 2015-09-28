@@ -1,4 +1,5 @@
 #include "DecodeConfig.h"
+#include <string.h>
 #include <iostream>
 #include <math.h>
 using namespace std;

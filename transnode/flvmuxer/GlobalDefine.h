@@ -1,6 +1,7 @@
 #ifndef __GLOBAL_DEFINE_H
 #define __GLOBAL_DEFINE_H
 
+#include <string.h>
 #include <fstream>
 #include <stdio.h>
 using namespace std;

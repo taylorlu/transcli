@@ -1,6 +1,7 @@
 #include "AACParse.h"
 #include "Box.h"
 #include <time.h>
+#include <string.h>
 #include "writeBits.h"
 
 static int frequencies[] = { 96000, 88200, 64000, 48000, 44100, 32000, 24000, 22050, 16000, 12000, 11025, 8000, 7350};

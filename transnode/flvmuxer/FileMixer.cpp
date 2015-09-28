@@ -7,6 +7,7 @@
 //#include "xzcompress.h"
 #include "crc32.h"
 #include <time.h>
+#include <string.h>
 
 FileMixer::FileMixer(int outputType )
 {
