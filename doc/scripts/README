@@ -1,0 +1,26 @@
+transcli.py & transcli.sh  -- 调用 transcli 批量转码
+
+## 目录结构 ##
+```
+input/              输入视频
+log/                日志文件
+out/                输出视频
+transcli/           transcli release package
+transcli.py
+transcli.sh
+```
+## 使用说明##
+```
+$ transcli.sh [options]
+$ python transcli.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -T BIN, --tcli=BIN    transcli binary [./transcli/transcli.exe]
+  -P XML, --preset=XML  preset xml
+  -I IDIR, --idir=IDIR  input dir
+  -O ODIR, --odir=ODIR  output dir [out]
+  -L LDIR, --ldir=LDIR  log dir [log]
+  -w, --overwrite       force overwrite output if already exist [False]
+  -s, --simulate        just print cmdl, not really execute [False]
+```
