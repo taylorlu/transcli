@@ -130,6 +130,8 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 	const int accurateSeekSecs = 20000;		// 20s
 	std::ostringstream cmd;
 	cmd << FFMPEG;
+	// suppress autorotate supported by newer ffmpeg for transcli backward compatible
+	cmd << " -noautorotate";
 	if(startpos > accurateSeekSecs) {
 		cmd << " -ss " << (startpos - accurateSeekSecs)/1000.f;
 		startpos = accurateSeekSecs;
