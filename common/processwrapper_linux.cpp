@@ -142,6 +142,50 @@ void closeFd(int* fdArr)
      }
 }
 
+static
+void proc_envdup_free(char **env2)
+{
+	if (!env2) {
+		return;
+	}
+	int i=0;
+	for (i=0; env2[i]; ++i) {
+		free(env2[i]);
+	}
+	free(env2);
+	return;
+}
+
+static
+char **proc_envdup(const char **env)
+{
+	if (!env) {
+		return 0;
+	}
+
+	int i=0, n=0;
+
+	while(env[n++]) {}
+	char **env2 = (char **)calloc(n+1, sizeof(char*));
+	if (!env2) {
+		logger_err(LOGM_PROCWRAP, "studup env[-%d-]\n", n+1);
+		return 0;
+	} 
+	for (i=0; i<n && env[i]; ++i) {
+		env2[i] = strdup(env[i]);
+		if (!env2[i]) {
+			logger_err(LOGM_PROCWRAP, "studup env[%d] failed\n", i);
+			proc_envdup_free(env2);
+			env2 = 0;
+			break;
+		}
+		logger_info(LOGM_PROCWRAP, "envp[%d]:`%s`\n", i, env2[i]);
+	}
+
+	return env2;
+}
+
+
 bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const char** env, bool hasGui)
 {
 #define FAIL_INFO(err) logger_err(LOGM_PROCWRAP, err); ret = false; break;
@@ -151,6 +195,8 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 	char **tokens = NULL;
 	char *exe = NULL;
 	bool ret = true;
+	char **env2 = 0;
+	
 
 	do {
 		char endChar = '\"';
@@ -340,7 +386,10 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
                        
                  
 			if (env) {
-				//FIXME:
+				env2 = proc_envdup(env);
+				if (env2) {
+					environ = env2;
+				}
 				execvp(exe, tokens);
 			}
 			else {
@@ -364,6 +413,10 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 	free(exe);
 	//free(pchCommandLine);
 	free(tokens);
+	if (env2) {
+		proc_envdup_free(env2);
+		env2 = environ =  0;
+	}
 
 #undef FAIL_INFO
 //	if(!ret) _exit(0);

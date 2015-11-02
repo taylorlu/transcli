@@ -3077,6 +3077,9 @@ void CTransWorkerSeperate::extractSubtitle(StrPro::CXML2* mediaInfo, int extract
 		extractCmd += curDestSub;
 		extractCmd += "\"";
 	}
+#ifdef DEBUG_EXTERNAL_CMD
+	logger_info(LOGM_TS_VD, "Cmd: %s.\n", extractCmd.c_str());
+#endif
 	CProcessWrapper::Run(extractCmd.c_str());
 }
 

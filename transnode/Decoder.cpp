@@ -215,6 +215,14 @@ void CDecoder::AutoCropOrAddBand(const char* fileName)
 
 bool CDecoder::Start(const char* sourceFile)
 {
+        // specify fontconfig ENV for ”ffmpeg -vf ass“ or ”ffmpeg -vf subtitles“,
+        // so that they use "codecs/fonts/fonts.conf" rather than "/etc/fonts/fonts.conf"
+        const char *fc_env[] = {
+		"FONTCONFIG_PATH=./codecs/fonts", 
+		"FONTCONFIG_FILE=fonts.conf", 
+		0
+	}; 
+
 	if(!sourceFile || *sourceFile == '\0') return false;
 	int fdAWrite = -1, fdVWrite = -1;
 	m_bDecodeEnd = false;
@@ -253,7 +261,7 @@ bool CDecoder::Start(const char* sourceFile)
 #ifdef DEBUG_EXTERNAL_CMD
 	logger_info(LOGM_TS_VD, "Cmd: %s.\n", finalCmdStr.c_str());
 #endif
-	bool success = m_proc.Spawn(finalCmdStr.c_str());
+	bool success = m_proc.Spawn(finalCmdStr.c_str(), 0, fc_env);
 	if(success) {
 		success = (m_proc.Wait(DECODER_START_TIME) == 0);
 		if(!success) {	// If process exit but exit code is 0, the process succeed.
@@ -276,7 +284,7 @@ bool CDecoder::Start(const char* sourceFile)
 					finalCmdStr.erase(aidIdx);
 				}
 			}
-			success = m_proc.Spawn(finalCmdStr.c_str()) && m_proc.Wait(DECODER_START_TIME) == 0;
+			success = m_proc.Spawn(finalCmdStr.c_str(), 0, fc_env) && m_proc.Wait(DECODER_START_TIME) == 0;
 		}
 	}
 
