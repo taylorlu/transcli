@@ -4210,9 +4210,6 @@ int CTransWorkerSeperate::closeDecoders()
 	int decoderExitCode = -1;
 	CDecoder* pDecoder = m_pVideoDec;
 	if(!pDecoder) pDecoder = m_pAudioDec;
-	if(pDecoder) {
-		decoderExitCode = pDecoder->GetExitCode();
-	}
 
 	if(m_pAudioDec == m_pVideoDec) {
 		if(m_pAudioDec) m_pAudioDec->Cleanup();
@@ -4224,6 +4221,10 @@ int CTransWorkerSeperate::closeDecoders()
 		if(m_auxDecoders[i]) {
 			m_auxDecoders[i]->Cleanup();
 		}
+	}
+
+	if(pDecoder) {
+		decoderExitCode = pDecoder->GetExitCode();
 	}
 
 	return decoderExitCode;

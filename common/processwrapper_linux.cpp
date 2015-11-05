@@ -292,6 +292,8 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 
 		else if (m_pid > 0) {
 			//parent
+			logger_status(LOGM_PROCWRAP, "%d <= fork([%s])\n", m_pid, commandLine);
+
 			if (flags & SF_REDIRECT_STDIN) {
 				fdStdinWrite = desc_w[FD_W];
 				//logger_info(LOGM_PROCWRAP, "fdStdinWrite = %d\n", fdStdinWrite);
@@ -561,7 +563,19 @@ int CProcessWrapper::Wait(int timeout)
 	int count = timeout / everySleepMs;
 	for (int i = 0; i < count; ++i) {
 		int waitId = waitpid(m_pid, &status, WNOHANG);
+		logger_log(LOGM_PROCWRAP, LOGL_DEBUG, "pollpid(%d)\n", m_pid);
+
 		if(waitId == m_pid) {
+			if (WIFEXITED(status)) {
+				logger_info(LOGM_PROCWRAP, "exited, status=%d.\n", WEXITSTATUS(status));
+			} else if (WIFSIGNALED(status)) {
+				logger_info(LOGM_PROCWRAP, "killed by signal %d.\n", WTERMSIG(status));
+			} else if (WIFSTOPPED(status)) {
+				logger_info(LOGM_PROCWRAP, "stopped by signal %d.\n", WSTOPSIG(status));
+			} else if (WIFCONTINUED(status)) {
+				logger_info(LOGM_PROCWRAP, "continued.\n");
+			}
+
 			ret = 1;
 			m_pid = -1;
 			break;
@@ -627,12 +641,35 @@ bool CProcessWrapper::Terminate()
 	return Interrupt();
 }
 
+/** if not WIFEXITED, then pexitcode is untouched */
 bool CProcessWrapper::IsProcessRunning(int* pexitcode)
 {
-    int status = -1;
-	if(waitpid(m_pid, &status, WNOHANG) == 0) {
-		return true;
-	}
+    int ret, status, exitcode;
+    pexitcode = pexitcode ? pexitcode : &exitcode;
+
+    logger_info(LOGM_PROCWRAP, "IsRunning(%d)\n", m_pid);
+
+    ret = waitpid(m_pid, &status, WNOHANG);
+    if (ret == 0) {
+        /* no state change, running */
+        return true;
+    } else if (ret < 0) {
+        logger_info(LOGM_PROCWRAP, "failed!!!\n", m_pid);
+    } else {
+        if (WIFEXITED(status)) {
+            logger_info(LOGM_PROCWRAP, "exited %d.\n", WEXITSTATUS(status));
+            *pexitcode = WEXITSTATUS(status);
+        } else if (WIFSIGNALED(status)) {
+            logger_info(LOGM_PROCWRAP, "killed by signal %d.\n", WTERMSIG(status));
+        } else if (WIFSTOPPED(status)) {
+            logger_info(LOGM_PROCWRAP, "stopped by signal %d.\n", WSTOPSIG(status));
+            return true;
+        } else if (WIFCONTINUED(status)) {
+            logger_info(LOGM_PROCWRAP, "continued.\n");
+            return true;
+        }
+    }
+    
     return false;
 }
 

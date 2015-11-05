@@ -919,6 +919,12 @@ bool CTransWorker::validateTranscode(int decoderExitCode)
 {
 	// ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)
 	int ignoreErrIdx = CWorkManager::GetInstance()->GetIgnoreErrorCode();
+
+    logger_info(m_logType, "exit(%d), ignore(%d), main(%d), audio(%f), video(%f).\n",
+        decoderExitCode, ignoreErrIdx,
+        m_tmpBenchData.mainDur,
+        m_tmpBenchData.audioEncTime,
+        m_tmpBenchData.videoEncTime);
 	
 	#define FAIL_INFO(err) logger_err(m_logType, err); ret=false; break;
 	bool ret = true;
@@ -930,7 +936,7 @@ bool CTransWorker::validateTranscode(int decoderExitCode)
 				if(m_tmpBenchData.mainDur > m_tmpBenchData.audioEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
 					ret = false;
-					logger_err(m_logType, "Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
+					logger_err(m_logType, "AudioDecoder exit abnormally(exit code:%d).\n", decoderExitCode);
 					break;
 				}
 			}
@@ -938,7 +944,7 @@ bool CTransWorker::validateTranscode(int decoderExitCode)
 				if(m_tmpBenchData.mainDur > m_tmpBenchData.videoEncTime*1200) {
 					SetErrorCode(EC_DECODER_ABNORMAL_EXIT);
 					ret = false;
-					logger_err(m_logType, "Decoder exit abnormally(exit code:%d).\n", decoderExitCode);
+					logger_err(m_logType, "VideoDecoder exit abnormally(exit code:%d).\n", decoderExitCode);
 					break;
 				}
 			}

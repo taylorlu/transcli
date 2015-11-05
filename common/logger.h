@@ -13,13 +13,16 @@
 #define LOGL_ERR 1    // continues
 #define LOGL_WARN 2   // only warning
 #define LOGL_HINT 3   // short help message
-#define LOGL_INFO 4   // -quiet
-#define LOGL_STATUS 5 // v=0
-#define LOGL_V 6      // v=1
-#define LOGL_DBG2 7   // v=2
-#define LOGL_DBG3 8   // v=3
-#define LOGL_DBG4 9   // v=4
-#define LOGL_DBG5 10  // v=5
+#define LOGL_INFO 4   // info
+#define LOGL_STATUS 5 // verbose
+#define LOGL_VERBOSE  LOGL_STATUS
+#define LOGL_DEBUG 6
+#define LOGL_V        LOGL_DEBUG
+#define LOGL_DBG1 7
+#define LOGL_DBG2 8
+#define LOGL_DBG3 9
+#define LOGL_MAX      LOGL_DBG3
+#define LOGL_DEFAULT  LOGL_STATUS
 
 #define LOGL_FIXME 1  // for conversions from printf where the appropriate MSGL is not known; set equal to ERR for obtrusiveness
 #define LOGM_FIXME 0  // for conversions from printf where the appropriate MSGT is not known; set equal to GLOBAL for obtrusiveness

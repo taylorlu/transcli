@@ -30,8 +30,8 @@ void CDecoder::Cleanup()
 	// Get exit code
     if(m_proc.IsProcessRunning(&m_exitCode)) {
 		m_proc.Cleanup();
-		//logger_info(LOGM_TS_VD, "Decoder exit code:%d.\n", m_exitCode);
 	}
+	logger_info(LOGM_TS_VD, "Decoder exit code:%d.\n", m_exitCode);
 	CloseAudioReadHandle();
 	CloseVideoReadHandle();
 }
@@ -265,9 +265,10 @@ bool CDecoder::Start(const char* sourceFile)
 	if(success) {
 		success = (m_proc.Wait(DECODER_START_TIME) == 0);
 		if(!success) {	// If process exit but exit code is 0, the process succeed.
-			int exitCode = -1;
-			m_proc.IsProcessRunning(&exitCode);
-			if(exitCode == 0) success = true;
+			m_proc.IsProcessRunning(&m_exitCode);
+			logger_info(LOGM_TS_VD, "SpawnExit: %d.\n", m_exitCode);
+			if(m_exitCode == 0) 
+				success = true;
 		}
 	}
 	if (!success) {

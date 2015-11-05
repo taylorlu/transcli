@@ -184,7 +184,9 @@ static void usage(const char *program)
 		"-T, --tempdir	     Temporary dir\n"
 		"-l, --logfile       Debugging log file\n"
 		"-v, --version       Version info\n"
-		"-V, --verbose       Log level\n"
+		"-V, --verbose       Log level (0~9)\n"
+        "                    0:FATAL, 1:ERR, 2:WARN, 3:HELP, 4:INFO\n"
+        "                    5:STATUS, 6:DEBUG, 7:DBG1, 8:DBG2, 9:DBG3\n"
 		"-n, --noshot        Don't do thumbnail.\n"
 		"-d, --dimout        Output video dimension\n"
 		"-t, --template      Template setting\n" 
@@ -253,7 +255,7 @@ int main( int argc, char **argv )
 
 	std::string strPreset;
 	CCliHelper *clihelper = NULL;
-	int i_verbose = 10;
+	int i_verbose = LOGL_DEFAULT;
 	int main_url_index = 0;
 
 	//bool enable_screenshot = false;

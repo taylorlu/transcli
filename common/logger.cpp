@@ -14,7 +14,6 @@
 #define LOG_FILE_LEN_LIMIT 524288		// 512K
 
 int  logger_levels[LOGM_MAX]; // verbose level of this module. initialized to -2
-int  logger_level_base = LOGL_WARN;
 int  logger_verbose   = 0;
 bool logger_color     = 0;
 int  logger_module    = 1;
@@ -34,6 +33,8 @@ void logger_init(const char *log_file)
 	char *env = getenv("BIT_VERBOSE");
 	if (env)
 		logger_verbose = atoi(env);
+    else
+        logger_verbose = LOGL_DEFAULT;
 
 	logger_uninit();
 
@@ -103,12 +104,12 @@ int logger_test(int mod, int lev)
 {
 	if (mod < 0 || mod >= MSGSIZE_MAX) return 0;
 
-	return lev <= (logger_levels[mod] == -2 ? logger_level_base + logger_verbose : logger_levels[mod]);
+	return lev <= (logger_levels[mod] == -2 ? logger_verbose : logger_levels[mod]);
 }
 
 static void set_msg_color(FILE* stream, int lev)
 {
-    static const unsigned char v_colors[10] = {9, 1, 3, 15, 7, 2, 2, 8, 8, 8};
+    static const unsigned char v_colors[LOGL_MAX+1] = {9, 1, 3, 15, 7, 2, 4, 8, 8, 8};
     int c = v_colors[lev];
 
 #ifdef BIT_COLOR_TEST
@@ -208,11 +209,17 @@ static void print_msg_module(FILE* stream, int mod)
     fprintf(stream, " ");
 }
 
+
+
 void logger_log(int mod, int lev, const char *format, ... )
 {
     va_list va;
     static int header = 1;
 	static int timestamp = 1;
+    static const char *lev_name[LOGL_MAX+1] = {
+        "FATAL",  "ERR",  "WARN", "HELP", "INFO", 
+        "STATUS", "DEBUG", "DBG1", "DBG2", "DBG3" 
+    };
 
 	if (!logger_inited) return;
 
@@ -266,22 +273,12 @@ void logger_log(int mod, int lev, const char *format, ... )
     }
 #endif
 
-	// Add modifier to log info
-	switch(lev) {
-		case LOGL_INFO:
-			fprintf(logger_stream, "[INFO] ");
-			break;
-		case LOGL_WARN:
-			fprintf(logger_stream, "[WARN] ");
-			break;
-		case LOGL_ERR:
-			fprintf(logger_stream, "[ ERR] ");
-			break;
-		case LOGL_STATUS:
-			fprintf(logger_stream, "[STAT] ");
-			break;
-	}
+	// add level name
+    lev = lev < 0 ? 0 : lev;
+    lev = lev > LOGL_MAX ? LOGL_MAX : lev;
+	fprintf(logger_stream, "[%s] ", lev_name[lev]);
 
+    // add module name
     if (header) print_msg_module(logger_stream, mod);
 
 	//add timestamp
