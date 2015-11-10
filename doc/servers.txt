@@ -1,18 +1,13 @@
-1. 片源FTP
-	<Host>172.17.1.180</Host>
-	<Port>2121</Port>
-	<Protocol>0</Protocol>
-	<Type>0</Type>
-	<User>pplive</User>
-	<Pass>pplive_codecs</Pass>
-	
+1. 片源FTP（远程登录成功）
+	172.17.1.180:5016   用户名：administrator  密码：OM$2011$ 
+         
 2. 电影FTP
-	<Host>172.17.1.180</Host>
-	<Port>2121</Port>
-	<Protocol>0</Protocol>
-	<Type>0</Type>
-	<User>gongxiang</User>
-	<Pass>123456</Pass>
+         <Host>172.17.1.180</Host>
+         <Port>2121</Port>
+         <Protocol>0</Protocol>
+         <Type>0</Type>
+         <User>gongxiang</User>
+         <Pass>123456</Pass>
 
 3. Redhat5.8 编译机
    172.20.0.172, 端口 22
@@ -26,3 +21,36 @@
    IP: 172.16.0.120
    Root password：Syna@2015
    SSH port: 22
+
+老内核编译机 
+
+1. Redhat5.8 编译机
+   172.20.0.172, 端口 22
+   用户名：root, 密码：Transcli_5.8
+
+2. Redhat6.2 编译机
+   172.17.1.170, 端口 22
+   用户名：root, 密码：Pptv2014
+   
+3 虚拟机1
+  Red Hat Enterprise Linux Server release 5.8
+  IP:172.20.0.236
+  用户名：root, 密码：Pptv2015
+
+
+4.虚拟机2
+   Red Hat Enterprise Linux Server release 6.2
+   172.20.0.239， 端口 22
+   用户名：root, 密码：Pptv2015
+   
+机房布置的机器（主要做裸机转码测试）
+IP: 172.16.0.120
+Root password：123456
+SSH port: 22
+
+这是一台空机器，配置和线上的压制机一样，计划专门用来给新内核作测试用的。
+
+
+空机子
+IP:172.20.0.55
+PassWord: Pptv2015
