@@ -8,9 +8,9 @@
 2 视频流：
 	a.多视频流中流的选择：
 	b.视频画面剪辑（加减黑边）： <video stream="0" rectangle="{0,0,480,360}" crop="auto" threshold="26" decoder="auto"/>
-		crop: 1、auto不指定rect由filter自动剪辑黑边。
+		crop: 1、auto根据threshold值去黑边。
 			  2、manual人工指定rect的剪辑参数(rect指定左上角点的坐标和右下角点的坐标)。
-			  3、calc根据threshold值去黑边。
+			  3、calc根据SAR/DAR剪裁边框，例如宽屏电影适配到4:3
 			  4、expand扩展黑边。（具体需要看代码参数的设置。）
 	b.视频的剪辑模式:1、精确的帧剪辑（要转码）。 2、精确关键帧剪辑（不转码）。
 	c.多段视频的剪辑:多段的起始时间与结束时间。start="00:00:02.0" end="00:01:10.0"
