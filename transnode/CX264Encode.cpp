@@ -59,6 +59,146 @@ static const cli_pulldown_t pulldown_values[] =
 #undef BTB*/
 
 
+
+
+void x264_param_trace(int mType, x264_param_t *h)
+{
+#define TRACE_INT(val) logger_dbg(mType, "x264." #val " = %d\n", h->val )
+#define TRACE_FLT(val) logger_dbg(mType, "x264." #val " = %f\n", h->val )
+
+    TRACE_INT(cpu);
+    TRACE_INT(i_threads); 
+    TRACE_INT(i_lookahead_threads);
+    TRACE_INT(b_sliced_threads);
+    TRACE_INT(b_deterministic);
+    TRACE_INT(b_cpu_independent);
+    TRACE_INT(i_sync_lookahead);
+
+    TRACE_INT(i_width);
+    TRACE_INT(i_height);
+    TRACE_INT(i_csp);
+    TRACE_INT(i_level_idc);
+    TRACE_INT(i_frame_total);
+
+    TRACE_INT(i_nal_hrd);
+
+    TRACE_INT(vui.i_sar_height);
+    TRACE_INT(vui.i_sar_width);
+    TRACE_INT(vui.i_overscan);
+    TRACE_INT(vui.i_vidformat);
+    TRACE_INT(vui.b_fullrange);
+    TRACE_INT(vui.i_colorprim);
+    TRACE_INT(vui.i_transfer);
+    TRACE_INT(vui.i_colmatrix);
+    TRACE_INT(vui.i_chroma_loc);
+
+    TRACE_INT(i_frame_reference);
+    TRACE_INT(i_dpb_size);
+    TRACE_INT(i_keyint_max);
+    TRACE_INT(i_keyint_min);
+    TRACE_INT(i_scenecut_threshold);
+    TRACE_INT(b_intra_refresh);
+    TRACE_INT(i_bframe);
+    TRACE_INT(i_bframe_adaptive);
+    TRACE_INT(i_bframe_bias);
+    TRACE_INT(i_bframe_pyramid);
+    TRACE_INT(b_open_gop);
+    TRACE_INT(b_bluray_compat);
+    TRACE_INT(i_verinfo_type);
+    TRACE_INT(b_timed_scenecut);
+
+    TRACE_FLT(f_targetQp);
+    TRACE_INT(b_deblocking_filter);
+    TRACE_INT(i_deblocking_filter_alphac0);
+    TRACE_INT(i_deblocking_filter_beta);
+    TRACE_INT(b_cabac);
+    TRACE_INT(i_cabac_init_idc);
+    TRACE_INT(b_interlaced);
+    TRACE_INT(b_constrained_intra);
+    TRACE_INT(i_cqm_preset);
+
+    TRACE_INT(i_log_level);
+    TRACE_INT(b_visualize);
+    TRACE_INT(b_full_recon);
+
+    TRACE_INT(analyse.intra);
+    TRACE_INT(analyse.inter);
+    TRACE_INT(analyse.b_transform_8x8);
+    TRACE_INT(analyse.i_weighted_pred);
+    TRACE_INT(analyse.b_weighted_bipred);
+    TRACE_INT(analyse.i_direct_mv_pred);
+    TRACE_INT(analyse.i_chroma_qp_offset);
+    TRACE_INT(analyse.i_me_method);
+    TRACE_INT(analyse.i_me_range);
+    TRACE_INT(analyse.i_mv_range);
+    TRACE_INT(analyse.i_mv_range_thread);
+    TRACE_INT(analyse.i_subpel_refine);
+    TRACE_INT(analyse.b_chroma_me);
+    TRACE_INT(analyse.b_mixed_references);
+    TRACE_INT(analyse.i_trellis);
+    TRACE_INT(analyse.b_fast_pskip);
+    TRACE_INT(analyse.b_dct_decimate);
+    TRACE_INT(analyse.i_noise_reduction);
+    TRACE_FLT(analyse.f_psy_rd);
+    TRACE_FLT(analyse.f_psy_trellis);
+    TRACE_INT(analyse.b_psy);
+    TRACE_INT(analyse.b_mb_info);
+    TRACE_INT(analyse.b_mb_info_update);
+    TRACE_INT(analyse.i_luma_deadzone[0]);
+    TRACE_INT(analyse.i_luma_deadzone[1]);
+    TRACE_INT(analyse.b_psnr);
+    TRACE_INT(analyse.b_ssim);
+
+    TRACE_INT(rc.i_rc_method);
+    TRACE_INT(rc.i_qp_constant);
+    TRACE_INT(rc.i_qp_min);
+    TRACE_INT(rc.i_qp_max);
+    TRACE_INT(rc.i_qp_step);
+    TRACE_INT(rc.i_bitrate);
+    TRACE_FLT(rc.f_rf_constant);
+    TRACE_FLT(rc.f_rf_constant_max);
+    TRACE_FLT(rc.f_rate_tolerance);
+    TRACE_INT(rc.i_vbv_max_bitrate);
+    TRACE_INT(rc.i_vbv_buffer_size);
+    TRACE_FLT(rc.f_vbv_buffer_init);
+    TRACE_FLT(rc.f_ip_factor);
+    TRACE_FLT(rc.f_pb_factor);
+    TRACE_INT(rc.i_aq_mode);
+    TRACE_FLT(rc.f_aq_strength);
+    TRACE_INT(rc.b_mb_tree);
+    TRACE_INT(rc.i_lookahead);
+    TRACE_INT(rc.b_stat_write);
+    TRACE_INT(rc.b_stat_read);
+    TRACE_FLT(rc.f_qcompress);
+    TRACE_FLT(rc.f_qblur);
+    TRACE_FLT(rc.f_complexity_blur);
+    TRACE_INT(rc.i_zones);
+
+    TRACE_INT(crop_rect.i_left);
+    TRACE_INT(crop_rect.i_top);
+    TRACE_INT(crop_rect.i_right);
+    TRACE_INT(crop_rect.i_bottom);
+
+    TRACE_INT(i_frame_packing);
+    TRACE_INT(b_aud);
+    TRACE_INT(b_repeat_headers);
+    TRACE_INT(b_annexb);
+    TRACE_INT(i_sps_id);
+    TRACE_INT(b_vfr_input);
+    TRACE_INT(b_pulldown);
+    TRACE_INT(i_fps_num);
+    TRACE_INT(i_fps_den);
+    TRACE_INT(i_timebase_num);
+    TRACE_INT(i_timebase_den);
+    TRACE_INT(b_tff);
+    TRACE_INT(b_pic_struct);
+    TRACE_INT(b_fake_interlaced);
+    TRACE_INT(i_slice_max_size);
+    TRACE_INT(i_slice_max_mbs);
+    TRACE_INT(i_slice_count);
+}
+
+
 CX264Encode::CX264Encode(const char* outFileName):CVideoEncoder(outFileName)
 {
 	m_logModuleType = LOGM_TS_VE_H264;
@@ -590,6 +730,8 @@ bool CX264Encode::Initialize()
 	m_x264Pic.i_qpplus1 = 0;
 
 	// dts/pts processing
+
+    x264_param_trace(m_logModuleType, &m_x264Param);
 
 	logger_status( LOGM_TS_VE_H264, "H264 encoder is initialized successfully\n");
 	return true;

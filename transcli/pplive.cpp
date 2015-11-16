@@ -13,6 +13,7 @@
 #include "yuvUtil.h"
 #include "bitconfig.h"
 #include "svnver.h"
+#include "pptv_level.h"
 
 #ifndef WIN32
 #include <sys/socket.h>
@@ -1465,46 +1466,28 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		}
 	}
 	
-	// ===========Identify preset level(BD/CQ/HD/SD)============
+	// ===========Identify preset level============
 	int presetLevel = 0;
 	// Mp4(H.264+AAC) format
 	if(!_stricmp(conf.target.container_format, "mp4") && 
 		!_stricmp(conf.target.acodec.name, "aac") &&
-		!_stricmp(conf.target.vcodec.name, "h264") &&
-		conf.target.vcodec.lower_bitrate == 1) {
-		if(conf.target.vcodec.bitrate >= 1700) {		// BD
-			presetLevel = 1;
-		} else if(conf.target.vcodec.bitrate >= 900) {	// CQ
-			presetLevel = 2;
-		} else if(conf.target.vcodec.bitrate >= 500) {	// HD
-			presetLevel = 3;
-		} else if(conf.target.vcodec.bitrate >= 250) {	// SD
-			presetLevel = 4;
-		}
-	}
-
-	if(!_stricmp(conf.target.container_format, "mp4") && 
-		!_stricmp(conf.target.acodec.name, "aac") &&
-		!_stricmp(conf.target.vcodec.name, "h264") &&
-		conf.target.vcodec.bitrate >= 5000) {	// Suning encoding level
-		presetLevel = 5;
+		!_stricmp(conf.target.vcodec.name, "h264") ) {
+		int i;
+        for (i=0; i< PPTV_LEVEL_MAX; ++i) {
+            if(conf.target.vcodec.bitrate >= ppl_def[i].vbr) {
+                presetLevel = i;
+            }
+        }
 	}
 	prefs.SetStreamPref("overall.task.ppLevel", presetLevel, STAUDIO);
 
-	// Ajust audio bitrate according to preset level and source type
+    // Incase editor set higher than the level
+	conf.target.acodec.bitrate = ppl_def[presetLevel].abr;
+
+    // Ajust audio bitrate according to preset level and source type
 	// 0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game
 	if(conf.source.type == 0) {		// Increase audio bitrate of music
-		if(presetLevel == 2) {			// CQ
-			conf.target.acodec.bitrate = 128;
-		} else if(presetLevel == 3) {	// HD
-			conf.target.acodec.bitrate = 96;
-		}
-	} else {	// Normal audio bitrate setting(Maybe editor will set higher than the level)
-		if(presetLevel == 2) {			// CQ
-			conf.target.acodec.bitrate = 64;
-		} else if(presetLevel == 3 || presetLevel == 4) {	// HD/SD
-			conf.target.acodec.bitrate = 48;
-		}
+		conf.target.acodec.bitrate += ppl_def[presetLevel].abr_inc_for_music;
 	}
 
 	int idx = 0;
@@ -1794,15 +1777,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			prefs.SetStreamPref("videoenc.x264.removeQpLog", true, STVIDEO);
 
 			// Increase video bitrate in two pass mode(video lower bitrate algorithm 2nd version)
-			if(presetLevel == 1) {		// BD
-				conf.target.vcodec.bitrate = 3000;
-			} else if(presetLevel == 2) {	// CQ
-				conf.target.vcodec.bitrate = 1500;
-			} else if(presetLevel == 3) {	// HD
-				conf.target.vcodec.bitrate = 800;
-			} else if(presetLevel == 4) {	// SD
-				conf.target.vcodec.bitrate = 500;
-			}
+        	conf.target.vcodec.bitrate += ppl_def[presetLevel].vbr_int_for_lowbr;
 		}
 	}
 
@@ -2233,16 +2208,16 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			char cprtStr[64] = {0};
 			// Add dynamic segment strategy in copyright box
 			int firstSegSize = 4, commonSegSize = 40;
-			if(presetLevel == 1) {		// BD
+			if(presetLevel >= PPTV_LEVEL_BD) {		    // BD
 				firstSegSize = 18;
 				commonSegSize = 90;
-			} else if(presetLevel == 2) {	// CQ
+			} else if(presetLevel == PPTV_LEVEL_FHD) {	// CQ
 				firstSegSize = 12;
 				commonSegSize = 70;
-			} else if(presetLevel == 3) {	// HD
+			} else if(presetLevel == PPTV_LEVEL_HD) {	// HD
 				firstSegSize = 8;
 				commonSegSize = 40;
-			} else if(presetLevel == 4) {	// SD
+			} else if(presetLevel == PPTV_LEVEL_SD) {	// SD
 				firstSegSize = 4;
 				commonSegSize = 20;
 			}

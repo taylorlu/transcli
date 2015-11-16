@@ -126,12 +126,13 @@ void logger_log(int mod, int lev, const char *format, ... ) __attribute__ ((form
 #   else
 #      define logger_dbg(mod,lev, args... ) /* only useful for developers */
 #   endif
-#   define logger_fatal(mod, args... ) logger_log(mod, LOGL_FATAL, ## args )
-#   define logger_err(mod, args... ) logger_log(mod, LOGL_ERR, ## args )
-#   define logger_warn(mod, args... ) logger_log(mod, LOGL_WARN, ## args )
-#   define logger_hint(mod, args... ) logger_log(mod, LOGL_HINT, ## args )
-#   define logger_info(mod, args... ) logger_log(mod, LOGL_INFO, ## args )
-#   define logger_status(mod, args... ) logger_log(mod, LOGL_STATUS, ## args )
+#   define logger_fatal(mod, args... )  logger_log(mod, LOGL_FATAL, ## args )
+#   define logger_err(mod, args... )    logger_log(mod, LOGL_ERR,   ## args )
+#   define logger_warn(mod, args... )   logger_log(mod, LOGL_WARN,  ## args )
+#   define logger_hint(mod, args... )   logger_log(mod, LOGL_HINT,  ## args )
+#   define logger_info(mod, args... )   logger_log(mod, LOGL_INFO,  ## args )
+#   define logger_status(mod, args... ) logger_log(mod, LOGL_STATUS,## args )
+#   define logger_dbg(mod, args... )    logger_log(mod, LOGL_DEBUG, ## args )
 #else // not GNU C
 void logger_log(int mod, int lev, const char *format, ... );
 #   ifdef _DEBUG
@@ -140,12 +141,13 @@ void logger_log(int mod, int lev, const char *format, ... );
 #      define logger_dbg(mod,lev, ... ) /* only useful for developers */
 #   endif
 
-#   define logger_fatal(mod, ... ) logger_log(mod, LOGL_FATAL, __VA_ARGS__)
-#   define logger_err(mod, ... ) logger_log(mod, LOGL_ERR, __VA_ARGS__)
-#   define logger_warn(mod, ... ) logger_log(mod, LOGL_WARN, __VA_ARGS__)
-#   define logger_hint(mod, ... ) logger_log(mod, LOGL_HINT, __VA_ARGS__)
-#   define logger_info(mod, ... ) logger_log(mod, LOGL_INFO, __VA_ARGS__)
-#   define logger_status(mod, ... ) logger_log(mod, LOGL_STATUS, __VA_ARGS__)
+#   define logger_fatal(mod, ... )      logger_log(mod, LOGL_FATAL, __VA_ARGS__)
+#   define logger_err(mod, ... )        logger_log(mod, LOGL_ERR,   __VA_ARGS__)
+#   define logger_warn(mod, ... )       logger_log(mod, LOGL_WARN,  __VA_ARGS__)
+#   define logger_hint(mod, ... )       logger_log(mod, LOGL_HINT,  __VA_ARGS__)
+#   define logger_info(mod, ... )       logger_log(mod, LOGL_INFO,  __VA_ARGS__)
+#   define logger_status(mod, ... )     logger_log(mod, LOGL_STATUS,__VA_ARGS__)
+#   define logger_dbg(mod, ... )        logger_log(mod, LOGL_DEBUG, __VA_ARGS__)
 
 #endif /* __GNUC__ */
 }

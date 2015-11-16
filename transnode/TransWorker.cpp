@@ -21,6 +21,7 @@
 #include "logger.h"
 #include "WorkManager.h"
 #include "PlaylistGenerator.h"
+#include "pptv_level.h"
 
 #define SAFESTRING(str) ((str)?(str):("")) 
 
@@ -479,23 +480,14 @@ bool CTransWorker::setAudioEncAttrib(audio_info_t* pAInfo, CXMLPref* audioPref, 
 			brSetting = brSource;
 		}
 
-		// Normalize AAC bitrate for PPTV preset level
+		// Normalize AAC bitrate and channels
 		int presetLevel = audioPref->GetInt("overall.task.ppLevel");
-		if(presetLevel > 0) {
-			switch(presetLevel) {
-			case 1:			// BD
-				if(pAInfo->out_channels > 2) {	// 5.1 output
-					brSetting = 288;
-				}
-				break;
-			case 2:			// CQ
-			case 3:			// HD
-			case 4:			// SD
-				if(pAInfo->out_channels > 2) pAInfo->out_channels = 2;
-				break;
-			}
-
-			if(brSetting < 256 && pAInfo->out_channels > 2) pAInfo->out_channels = 2;
+        if(pAInfo->out_channels > 2) {  // 5.1 output
+			if (presetLevel == PPTV_LEVEL_BD) {
+                brSetting = 288;
+            } else {
+                pAInfo->out_channels = 2;
+            }
 		}
 
 		if(pAInfo->out_channels <= 0) {
@@ -708,16 +700,16 @@ void CTransWorker::adjustVideoOutParam(CVideoEncoder* pVideoEnc, int overallBr)
 
 		// If original video highest level is HD/SD, and source bitrate is low
 		int presetLevel = pPref->GetInt("overall.task.ppLevel");
-		if(presetLevel == 3) {	// HD
+		if(presetLevel == PPTV_LEVEL_HD) {
 			if(inWidth >= 600 && inWidth < 1000) {  // Highest level is HD
-				if(brSource > 0 && brSource < 590) {
+				if(brSource > 0 && brSource < ppl_def[PPTV_LEVEL_HD].vbr) {
 					pPref->SetInt("overall.video.bitrate", brSource);
 					pPref->SetInt("videoenc.x264.targetQp", 0);		// Shut down bitrate lower
 				}
 			}
-		} else if(presetLevel == 4) {	// SD
+		} else if(presetLevel == PPTV_LEVEL_SD) {
 			if(inWidth < 600) {  // Highest level is SD
-				if(brSource > 0 && brSource < 300) {
+				if(brSource > 0 && brSource < ppl_def[PPTV_LEVEL_SD].vbr) {
 					pPref->SetInt("overall.video.bitrate", brSource);
 					pPref->SetInt("videoenc.x264.targetQp", 0);		// Shut down bitrate lower
 				}
