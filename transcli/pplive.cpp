@@ -2025,14 +2025,14 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		if(x264Options && *x264Options) {
 			const char* x264Extras[] = {"ref","bframes","me", "subme", "merange","b-adapt", 
 				"b-pyramid", "aq-mode", "weightp", "weightb", "trellis",
-				"mbtree", "nal-hrd", "scenecut", "rc-lookahead"};
+				"mbtree", "nal-hrd", "scenecut", "rc-lookahead", "psnr", "ssim"};
 
 			const char* x264PresetItem[] = {"videoenc.x264.frameref", "videoenc.x264.bframes",
 				"videoenc.x264.me", "videoenc.x264.subme", "videoenc.x264.me_range",
 				"videoenc.x264.b_adapt", "videoenc.x264.b_pyramid", "videoenc.x264.aq_mode",
 				"videoenc.x264.weight_p", "videoenc.x264.weight_b", "videoenc.x264.trellis", 
 				"videoenc.x264.mbtree", "videoenc.x264.nalhrd", "videoenc.x264.scenecut",
-				"videoenc.x264.rc_lookahead" };
+				"videoenc.x264.rc_lookahead", "videoenc.x264.psnr", "videoenc.x264.ssim" };
 
 			char *opts = _strdup(x264Options);
 			char* tmpStr = opts, *pch = NULL;
