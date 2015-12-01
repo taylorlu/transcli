@@ -1190,6 +1190,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			config->target.hlsConfig.startIndex = xmlConfig.getAttributeInt("startindex");
 			const char* postfixStr = xmlConfig.getAttribute("postfix");
 			if(postfixStr && *postfixStr) {
+				memset(config->target.hlsConfig.postfix, 0, MAX_PATH);
 				strncpy(config->target.hlsConfig.postfix, postfixStr, strlen(postfixStr));
 			}
 			xmlConfig.goParent();
