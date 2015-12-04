@@ -113,7 +113,7 @@ CYuvUtil::FrameRect CYuvUtil::AutoDetectCrop(const char* fileName, int duration,
 		} 
 		cmdString += " -i \"";
 		cmdString += fileName;
-		cmdString += "\" -an -t 200 -v panic -c:v rawvideo";
+		cmdString += "\" -an -t 200 -c:v rawvideo";
 		cmdString += vfStr;
 		cmdString += " -f null -y "FFMPEG_NUL;
 		
