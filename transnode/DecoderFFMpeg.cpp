@@ -406,7 +406,7 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 			forePart << ":" << fieldOrder << ',';
 		
 			// Interlace is done by decoder, then encoder no need to do
-			if(m_bLastPass) m_pVInfo->interlaced = 0;	
+			//if(m_bLastPass) m_pVInfo->interlaced = 0;	
 		}
 	}
 
