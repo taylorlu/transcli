@@ -1,4 +1,7 @@
 #Package transcli for redhat
+SVN_REVISION=`svn info | grep 'Last Changed Rev:' | awk '{print $4}'`
+LSB_RLS=`lsb_release -r|awk -F':\t' '{print $2}'`
+
 mkdir release_redhat
 cd release_redhat
 mkdir transcli
@@ -19,4 +22,4 @@ cp -r ../bin/x64_linux/tools/MP4Box ./transcli/tools
 cp -r ../bin/x64_linux/tools/yamdi ./transcli/tools
 cp -r ../bin/x64_linux/muxer/ffmpeg ./transcli/muxer
 
-tar -zcvf transcli_redhat_`date "+%Y%m%d"`.tar.gz --exclude=.svn --exclude=.git transcli
+tar -zcvf transcli_r${SVN_REVISION}_RHEL.${LSB_RLS}_`date "+%Y%m%d"`.tar.gz --exclude=.svn --exclude=.git transcli

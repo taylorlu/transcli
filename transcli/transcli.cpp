@@ -301,6 +301,9 @@ int main( int argc, char **argv )
 		case 'v':
 			printf("Transcli version:%s\nSVN Revision Date:%s\nBuild Date: %s\n",
 				verStr, SVN_DATE, SVN_NOW);
+#ifdef BUILD_SYSTEM
+            printf("Build System: %s\n", BUILD_SYSTEM);
+#endif
 			return 0;
 		case 'p':
 			strncpy(psz_presetfile, optarg, MAX_PATH);

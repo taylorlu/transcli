@@ -6,10 +6,12 @@ CONFIG -= qt
 SVN_REVISION = $$system("svn info $$_PRO_FILE_PWD_/.. | grep 'Last Changed Rev:' | awk '{print $4}'")
 SVN_DATE = $$system("svn info $$_PRO_FILE_PWD_/.. | grep 'Last Changed Date:' | awk '{print $4,$5}'")
 SVN_NOW = $$system("date -u +'%F %T (UTC)'")
+BUILD_SYSTEM = $$system("lsb_release -d | awk -F':\t' '{print $2}'")
 DEFINES += __SVN_REVISION_H__
 DEFINES += SVN_REVISION="\'\"$$SVN_REVISION\"\'"
 DEFINES += SVN_DATE="\'\"$$SVN_DATE\"\'"
 DEFINES += SVN_NOW="\'\"$$SVN_NOW\"\'"
+DEFINES += BUILD_SYSTEM="\'\"$$BUILD_SYSTEM\"\'"
 message(transclidef:$$DEFINES)
 
 DEFINES += STRPRO_STATIC WATERMARK_STATIC
