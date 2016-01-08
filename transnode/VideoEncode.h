@@ -33,6 +33,7 @@ public:
 	void SetDestFileName(const char* videoDestFile) {if(videoDestFile) m_destFileName=videoDestFile;}  // Used for thumbnail filename
 	bool InitWaterMark();
 	bool StopThumbnail();
+	void ThumbnailReMake(const std::string &mp4File, float videoEncTime);
 
 	video_encoder_t GetEncoderType() {return m_vInfo.encoder_type;}
 	video_info_t*   GetVideoInfo() {return &m_vInfo;}

@@ -60,6 +60,11 @@ public:
 	void SetStartTime(int startTime) {m_startTime = startTime;}						// Thumbnail start time
 	void SetEndTime(int endTime) {m_endTime = endTime;}								// Thumbnail end time
 	void SetThumbnailCount(int thumbCount) {m_thumbCount = thumbCount;}				// Thumbnails count
+	int  GetThumbnailCount() {return m_thumbCount;}
+	int  IsThumbnailReachCount() {return m_thumbIndex >= m_thumbCount;}
+	int  ThumbnailReMake(const std::string &mp4Files, float videoEncTime);
+    int  CThumbnailFilter::FFMpegGenThumbnail(const std::string &mp4File, int capTime);
+	
 	void SetThumbnailInterval(int secs) {m_thumbInterval = secs;}
 	void SetEanbleStitching(bool enableStitch) {m_bStitching = enableStitch;}		// Enable stitching thumbnails to large image
 	void SetStitchAlign(int alignment) {m_stitchAlign = alignment;}					// Stitching alignment
@@ -100,6 +105,7 @@ private:
 	int m_thumbCount;
 	int m_thumbIndex;
 	int m_thumbInterval;
+	int m_b_use_count;
 
 	int m_startTime;
 	int m_endTime;

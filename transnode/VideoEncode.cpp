@@ -145,6 +145,15 @@ bool CVideoEncoder::InitWaterMark()
 	return ret;
 }
 
+void  CVideoEncoder::ThumbnailReMake(const std::string &mp4File, float videoEncTime)
+{
+	if (m_pThumbnail)
+		m_pThumbnail->ThumbnailReMake(mp4File, videoEncTime);
+	
+	if (m_pThumbnail1)
+		m_pThumbnail1->ThumbnailReMake(mp4File, videoEncTime);
+}
+
 bool CVideoEncoder::GeneratePipeHandle()
 {
 	int bufSize = m_vInfo.res_out.width*m_vInfo.res_out.height*6;

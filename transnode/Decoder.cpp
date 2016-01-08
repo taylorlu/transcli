@@ -217,7 +217,7 @@ bool CDecoder::Start(const char* sourceFile)
 {
         // specify fontconfig ENV for ”ffmpeg -vf ass“ or ”ffmpeg -vf subtitles“,
         // so that they use "codecs/fonts/fonts.conf" rather than "/etc/fonts/fonts.conf"
-        const char *fc_env[] = {
+	const char *fc_env[] = {
 		"FONTCONFIG_PATH=./codecs/fonts", 
 		"FONTCONFIG_FILE=fonts.conf", 
 		0

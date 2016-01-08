@@ -1333,6 +1333,19 @@ THREAD_RET_T CTransWorkerSeperate::mainFunc()
 				}
 			}
 
+            // 设置正确的mainDur，这样pass2的进度计算会准确些
+            if (m_encoderPass > 1) {
+                // @see CTransWorker::validateTranscode()
+                // ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)
+                int ignoreErrIdx = CWorkManager::GetInstance()->GetIgnoreErrorCode();
+                int maxEncTime = (m_tmpBenchData.audioEncTime > m_tmpBenchData.videoEncTime)
+                                ? m_tmpBenchData.audioEncTime : m_tmpBenchData.videoEncTime;
+                if (m_tmpBenchData.mainDur >= INT_MAX || m_tmpBenchData.mainDur > maxEncTime*1200) {
+                    logger_warn(m_logType, "mainDuration may wrong, set it to (%d) \n", maxEncTime);
+                    m_tmpBenchData.mainDur = maxEncTime * 1000;
+                }
+            }
+
 			if(!initPass2()) {
 				FAIL_INFO("Init pass 2 failed.\n");
 			}
@@ -1388,6 +1401,20 @@ THREAD_RET_T CTransWorkerSeperate::mainFunc()
 		if(m_bEnableMuxing && !doMux()) {
 			FAIL_INFO("Muxing failed.\n");
 		}
+
+        // 源片时间轴错误导致截图过少时调用ffmpeg对成片进行截图
+        if (!m_videoEncs.empty()) {
+    		CVideoEncoder* pSingleEncoder = m_videoEncs[0];
+    		
+        	std::vector<std::string> destFiles = m_streamFiles.GetDestFiles();
+        	if(destFiles.empty()) {
+        		logger_err(m_logType, "Destinate files is empty.\n");
+        	} else {
+        	    pSingleEncoder->ThumbnailReMake(destFiles[0],
+        	            m_tmpBenchData.videoEncTime);
+        	}
+        }
+		
 #ifdef BUILD_FOR_PPLIVE
  		std::string dstFile = GetOutputFileName(0);
  		m_dstMd5 = GetFileMd5(dstFile.c_str());

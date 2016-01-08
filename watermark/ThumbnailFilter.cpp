@@ -1,6 +1,7 @@
 #include "ThumbnailFilter.h"
 #include "logger.h"
 #include "util.h"
+#include "processwrapper.h"
 
 #define cimg_use_jpeg
 #define cimg_use_png
@@ -12,6 +13,7 @@
 #endif
 
 #include "bit_osdep.h"
+#include <sstream>
 
 #ifdef min
 #undef min
@@ -25,7 +27,7 @@ m_yuvW(0), m_yuvH(0), m_thumbW(0), m_thumbH(0), m_thumbCount(1), m_thumbIndex(1)
 m_thumbInterval(0), m_startTime(5), m_endTime(0), m_frameCount(0), m_fps(0.f),
 m_duration(0), m_bStitching(false), m_stitchAlign(0), m_gridRow(0), m_gridCol(0),
 m_enablePackImage(false), m_bOptimizeImage(false), m_imageQuality(100), m_cropMode(0), 
-m_bEnableMultiSize(false), m_dar(1.f), m_sizePostfix("_%dx%d")
+m_bEnableMultiSize(false), m_dar(1.f), m_sizePostfix("_%dx%d"), m_b_use_count(0)
 {
 }
 
@@ -90,13 +92,15 @@ bool CThumbnailFilter::CalculateCapturePoint()
 	}
 	// Calculate capture point time(seconds)
 	if(m_thumbInterval > 0) {	// Set every thumb interval snapshot a image
+	    m_b_use_count = 0;
 		m_thumbCount = (m_endTime-m_startTime)/m_thumbInterval;
 		if(m_thumbCount == 0) m_thumbCount = 1;
 		if(m_startTime <= 0) m_startTime = m_thumbInterval;
-		for(int i=0; i< m_thumbCount; ++i) {
+		for (int i=0; i< m_thumbCount; ++i) {
 			m_capturePoint.push_back(m_startTime+i*m_thumbInterval);
 		}
 	} else {		// Set start/end time and thumbnail count
+	    m_b_use_count = 1;
 		m_capturePoint.push_back(m_startTime);
 		if(m_thumbCount > 1) {	// Multiple thumbnail
 			int intervalSecs = (m_endTime-m_startTime)/m_thumbCount;
@@ -199,6 +203,39 @@ bool CThumbnailFilter::GenerateThumbnail(uint8_t *pYuvBuf)
 
 	m_thumbIndex++;
 	return true;
+}
+
+int  CThumbnailFilter::FFMpegGenThumbnail(const std::string &mp4File, int capTime)
+{
+    std::stringstream cmds;
+    std::string thumbFile = getThumbFileName(m_thumbW, m_thumbH);
+    cmds<<FFMPEG<<" -v error -ss "<<capTime<<" -i "<<mp4File<<" -an -vframes 1 -s ";
+    cmds<<m_thumbW<<"*"<<m_thumbH<<" -y "<<thumbFile;
+    std::string cmdl = cmds.str();
+
+	logger_info(LOGM_TS_VE, "Cmd: %s.\n", cmdl.c_str());
+    CProcessWrapper::Run(cmdl.c_str());
+
+    return 0;
+}
+
+int  CThumbnailFilter::ThumbnailReMake(const std::string &mp4Files, float videoEncTime)
+{
+    if (m_b_use_count && !IsThumbnailReachCount()) {
+        int endTime = (m_endTime < videoEncTime) ? m_endTime : (int)videoEncTime;
+        int intervalSecs = (endTime-m_startTime)/m_thumbCount;
+        if (intervalSecs < 1) {
+            logger_info(LOGM_TS_VE, "Too short to regenerate thumbnails\n");
+            return 0;
+        }
+
+        logger_info(LOGM_TS_VE, "\n\nRegenerate thumbnails:\n");
+        for (m_thumbIndex=1; m_thumbIndex <= m_thumbCount; ++m_thumbIndex) {
+            int capTime = m_startTime + (m_thumbIndex - 1) * intervalSecs;
+            FFMpegGenThumbnail(mp4Files, capTime);
+        }
+    }
+    return m_thumbCount;
 }
 
 bool CThumbnailFilter::StopThumbnail()
