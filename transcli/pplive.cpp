@@ -640,6 +640,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 	config->target.acodec.autoVolGain = 1;		// Default enable volume auto gain
 	config->target.vcodec.brdown = 1;
 	config->target.acodec.brdown = 1;
+	config->target.acodec.bitrate = 0;
 	config->target.hlsConfig.dur = 5;
 	config->target.extract_sub_id = -2;			// default:no extract sub
 	strcpy(config->target.hlsConfig.postfix, ".mp4");
@@ -1482,13 +1483,19 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	}
 	prefs.SetStreamPref("overall.task.ppLevel", presetLevel, STAUDIO);
 
-    // Incase editor set higher than the level
-	conf.target.acodec.bitrate = ppl_def[presetLevel].abr;
-
-    // Ajust audio bitrate according to preset level and source type
-	// 0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game
-	if(conf.source.type == 0) {		// Increase audio bitrate of music
-		conf.target.acodec.bitrate += ppl_def[presetLevel].abr_inc_for_music;
+	if(conf.target.acodec.bitrate==0) {
+		// If user doesn't set the audio bitrate, use preset level's value judges by the video bitrate
+		conf.target.acodec.bitrate = ppl_def[presetLevel].abr;
+		// 0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game
+		if(conf.source.type == 0) {
+			conf.target.acodec.bitrate += ppl_def[presetLevel].abr_inc_for_music;
+		}
+	}
+	else {
+		// 0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game
+		if(conf.source.type == 0) {		// Increase audio bitrate of music
+			conf.target.acodec.bitrate += 32;
+		}
 	}
 
 	int idx = 0;
