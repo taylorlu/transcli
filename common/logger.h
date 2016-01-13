@@ -121,11 +121,6 @@ void logger_set_coloring(int color);
 
 #ifdef __GNUC__
 void logger_log(int mod, int lev, const char *format, ... ) __attribute__ ((format (printf, 3, 4)));
-#   ifdef _DEBUG
-#      define logger_dbg(mod,lev, args... ) logger_log(mod, lev, ## args )
-#   else
-#      define logger_dbg(mod,lev, args... ) /* only useful for developers */
-#   endif
 #   define logger_fatal(mod, args... )  logger_log(mod, LOGL_FATAL, ## args )
 #   define logger_err(mod, args... )    logger_log(mod, LOGL_ERR,   ## args )
 #   define logger_warn(mod, args... )   logger_log(mod, LOGL_WARN,  ## args )
@@ -135,12 +130,6 @@ void logger_log(int mod, int lev, const char *format, ... ) __attribute__ ((form
 #   define logger_dbg(mod, args... )    logger_log(mod, LOGL_DEBUG, ## args )
 #else // not GNU C
 void logger_log(int mod, int lev, const char *format, ... );
-#   ifdef _DEBUG
-#      define logger_dbg(mod,lev, ... ) logger_log(mod, lev, __VA_ARGS__)
-#   else
-#      define logger_dbg(mod,lev, ... ) /* only useful for developers */
-#   endif
-
 #   define logger_fatal(mod, ... )      logger_log(mod, LOGL_FATAL, __VA_ARGS__)
 #   define logger_err(mod, ... )        logger_log(mod, LOGL_ERR,   __VA_ARGS__)
 #   define logger_warn(mod, ... )       logger_log(mod, LOGL_WARN,  __VA_ARGS__)
