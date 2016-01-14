@@ -205,11 +205,11 @@ bool CThumbnailFilter::GenerateThumbnail(uint8_t *pYuvBuf)
 	return true;
 }
 
-int  CThumbnailFilter::FFMpegGenThumbnail(const std::string &mp4File, int capTime)
+int  CThumbnailFilter::FFMpegGenThumbnail(const std::string &mp4File, int capSecond, int millisecond)
 {
     std::stringstream cmds;
     std::string thumbFile = getThumbFileName(m_thumbW, m_thumbH);
-    cmds<<FFMPEG<<" -v error -ss "<<capTime<<" -i "<<mp4File<<" -an -vframes 1 -s ";
+    cmds<<FFMPEG<<" -v error -ss "<<capSecond<<"."<<millisecond<<" -i "<<mp4File<<" -an -vframes 1 -s ";
     cmds<<m_thumbW<<"*"<<m_thumbH<<" -y "<<thumbFile;
     std::string cmdl = cmds.str();
 
@@ -223,16 +223,19 @@ int  CThumbnailFilter::ThumbnailReMake(const std::string &mp4Files, float videoE
 {
     if (m_b_use_count && !IsThumbnailReachCount()) {
         int endTime = (m_endTime < videoEncTime) ? m_endTime : (int)videoEncTime;
-        int intervalSecs = (endTime-m_startTime)/m_thumbCount;
-        if (intervalSecs < 1) {
-            logger_info(LOGM_TS_VE, "Too short to regenerate thumbnails\n");
+        if (videoEncTime < 20) {
+            m_startTime = 1;        /** @see parseThumbnailInfo() and parseThumbnailInfo1() */
+        }
+        if (endTime < m_startTime) {
+            logger_err(LOGM_TS_VE, "Too short to regenerate thumbnails\n");
             return 0;
         }
 
-        logger_info(LOGM_TS_VE, "\n\nRegenerate thumbnails:\n");
+        logger_info(LOGM_TS_VE, "\n\nRegenerate thumbnails: %d~%d:%d\n", m_startTime, endTime, m_thumbCount);
         for (m_thumbIndex=1; m_thumbIndex <= m_thumbCount; ++m_thumbIndex) {
-            int capTime = m_startTime + (m_thumbIndex - 1) * intervalSecs;
-            FFMpegGenThumbnail(mp4Files, capTime);
+            int capSecond = (endTime-m_startTime) * (m_thumbIndex - 1) / m_thumbCount;
+            int millisecond = ((endTime-m_startTime) * (m_thumbIndex - 1) - (capSecond * m_thumbCount)) * 1000 / m_thumbCount;
+            FFMpegGenThumbnail(mp4Files, m_startTime + capSecond, millisecond);
         }
     }
     return m_thumbCount;

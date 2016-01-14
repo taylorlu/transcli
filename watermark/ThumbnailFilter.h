@@ -63,7 +63,7 @@ public:
 	int  GetThumbnailCount() {return m_thumbCount;}
 	int  IsThumbnailReachCount() {return m_thumbIndex > m_thumbCount;}
 	int  ThumbnailReMake(const std::string &mp4Files, float videoEncTime);
-    int  FFMpegGenThumbnail(const std::string &mp4File, int capTime);
+    int  FFMpegGenThumbnail(const std::string &mp4File, int capSecond, int millisecond);
 	
 	void SetThumbnailInterval(int secs) {m_thumbInterval = secs;}
 	void SetEanbleStitching(bool enableStitch) {m_bStitching = enableStitch;}		// Enable stitching thumbnails to large image
