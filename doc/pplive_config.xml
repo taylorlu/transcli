@@ -19,11 +19,6 @@
     <!--Second clip, can be more clips-->
   </source>
 
-  <delogo>
-    <pos position="{135,50,223,120}" start="00:00:00.0" end="23:00:00" /> <!--Absolute coordinate-->
-    <pos position="{0,0.126,1,0.92}" start="00:00:00.0" end="23:00:00" /> <!--Relative coordinate-->
-  </delogo>
-
   <target>
     <cores>0</cores>
     <!--Transcli running on some cores, default is 0, running on all cores.-->
@@ -65,6 +60,10 @@
 		<!--Absolute position-->
       </show>
     </logo>
+    <delogo>
+      <pos position="{135,50,223,120}" start="00:00:00.0" end="23:00:00" /> <!--Absolute coordinate-->
+      <pos position="{0,0.126,1,0.92}" start="00:00:00.0" end="23:00:00" /> <!--Relative coordinate-->
+    </delogo>
     <filter>
       <color red="+10%" bright="+50%" /> <!--no use-->
       <noise depth="12" mask="8x8" /> <!--no use-->

@@ -61,7 +61,7 @@ public:
 	void SetEndTime(int endTime) {m_endTime = endTime;}								// Thumbnail end time
 	void SetThumbnailCount(int thumbCount) {m_thumbCount = thumbCount;}				// Thumbnails count
 	int  GetThumbnailCount() {return m_thumbCount;}
-	int  IsThumbnailReachCount() {return m_thumbIndex >= m_thumbCount;}
+	int  IsThumbnailReachCount() {return m_thumbIndex > m_thumbCount;}
 	int  ThumbnailReMake(const std::string &mp4Files, float videoEncTime);
     int  FFMpegGenThumbnail(const std::string &mp4File, int capTime);
 	
