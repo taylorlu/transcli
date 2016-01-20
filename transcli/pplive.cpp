@@ -1065,19 +1065,26 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 
 		//target filter
 		if (xmlConfig.findChildNode("filter") != NULL) {
-			//contrastlevel<(0,1),default:0.12>, sharplevel<(1,2),default:1.5>, colorlevel<(1,2),default:1.1>
-			if (xmlConfig.findChildNode("videorender") != NULL) {
-				config->target.filter.videorender.contrastLevel = xmlConfig.getAttributeFloat("contrastlevel");
-				config->target.filter.videorender.sharpLevel = xmlConfig.getAttributeFloat("sharplevel");
-				config->target.filter.videorender.colorLevel = xmlConfig.getAttributeFloat("colorlevel");
-				xmlConfig.goParent();
-			}
-			else {
-				if(config->target.vcodec.video_enhance==1) {
-					config->target.filter.videorender.contrastLevel = 0.12;
-					config->target.filter.videorender.sharpLevel = 1.5;
-					config->target.filter.videorender.colorLevel = 1.1;
+			if(config->source.type==3) {	//Anime
+				//contrastlevel<(0,1),default:0.12>, sharplevel<(1,2),default:1.5>, colorlevel<(1,2),default:1.1>
+				if (xmlConfig.findChildNode("videorender") != NULL) {
+					config->target.filter.videorender.contrastLevel = xmlConfig.getAttributeFloat("contrastlevel");
+					config->target.filter.videorender.sharpLevel = xmlConfig.getAttributeFloat("sharplevel");
+					config->target.filter.videorender.colorLevel = xmlConfig.getAttributeFloat("colorlevel");
+					xmlConfig.goParent();
 				}
+				else {
+					if(config->target.vcodec.video_enhance==1) {
+						config->target.filter.videorender.contrastLevel = 0.12;
+						config->target.filter.videorender.sharpLevel = 1.5;
+						config->target.filter.videorender.colorLevel = 1.1;
+					}
+				}
+			}
+			else {	//other types
+				config->target.filter.videorender.contrastLevel = 0.12;
+				config->target.filter.videorender.sharpLevel = 1.2;
+				config->target.filter.videorender.colorLevel = 1.1;
 			}
 			//noise
 			if (xmlConfig.findChildNode("noise") != NULL) {
