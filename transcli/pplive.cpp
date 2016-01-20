@@ -340,9 +340,10 @@ enum denoise_mode_t {
 	DENOISE_HQ3D = 3
 };
 
-struct filter_color_config_t {
-	int red;
-	int bright;
+struct filter_videorender_config_t {
+	float contrastLevel;
+	float sharpLevel;
+	float colorLevel;
 };
 
 struct filter_noise_config_t {
@@ -363,7 +364,7 @@ struct filter_deint_config_t {
 };
 
 struct filter_config_t {
-	filter_color_config_t color;
+	filter_videorender_config_t videorender;
 	filter_noise_config_t noise;
 	filter_denoise_config_t denoise;
 	filter_deint_config_t deint;
@@ -1064,11 +1065,19 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 
 		//target filter
 		if (xmlConfig.findChildNode("filter") != NULL) {
-			//color
-			if (xmlConfig.findChildNode("color") != NULL) {
-				config->target.filter.color.red = xmlConfig.getAttributeInt("red");
-				config->target.filter.color.bright = xmlConfig.getAttributeInt("bright");
+			//contrastlevel<(0,1),default:0.12>, sharplevel<(1,2),default:1.5>, colorlevel<(1,2),default:1.1>
+			if (xmlConfig.findChildNode("videorender") != NULL) {
+				config->target.filter.videorender.contrastLevel = xmlConfig.getAttributeFloat("contrastlevel");
+				config->target.filter.videorender.sharpLevel = xmlConfig.getAttributeFloat("sharplevel");
+				config->target.filter.videorender.colorLevel = xmlConfig.getAttributeFloat("colorlevel");
 				xmlConfig.goParent();
+			}
+			else {
+				if(config->target.vcodec.video_enhance==1) {
+					config->target.filter.videorender.contrastLevel = 0.12;
+					config->target.filter.videorender.sharpLevel = 1.5;
+					config->target.filter.videorender.colorLevel = 1.1;
+				}
 			}
 			//noise
 			if (xmlConfig.findChildNode("noise") != NULL) {
@@ -1491,12 +1500,12 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 			conf.target.acodec.bitrate += ppl_def[presetLevel].abr_inc_for_music;
 		}
 	}
-	else {
-		// 0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game
-		if(conf.source.type == 0) {		// Increase audio bitrate of music
-			conf.target.acodec.bitrate += 32;
-		}
-	}
+	//else {
+	//	// 0:Music 1:Movie 2:Episode 3:Anime 4:TVShow 5:Sport 6:Game
+	//	if(conf.source.type == 0) {		// Increase audio bitrate of music
+	//		conf.target.acodec.bitrate += 32;
+	//	}
+	//}
 
 	int idx = 0;
 	////////////////////////////////////////////////////////////////////////////
@@ -1764,11 +1773,17 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		_stricmp(conf.target.container_format, "3gp")) {	
 		// Use video enhance
 		if(conf.target.vcodec.video_enhance == 1) {
+
 			prefs.SetStreamPref("videofilter.eq.mode", 1, STVIDEO);	// Intelligence enhance
-			prefs.SetStreamPref("videofilter.eq.colorlevel", 1.f, STVIDEO);
-			prefs.SetStreamPref("videofilter.eq.sharpness", 1.05f, STVIDEO);
-			prefs.SetStreamPref("videofilter.eq.contrastThreshold", 230, STVIDEO);
-			prefs.SetStreamPref("videofilter.eq.contrastLevel", 0.05f, STVIDEO);
+			//prefs.SetStreamPref("videofilter.eq.colorlevel", 1.f, STVIDEO);
+			//prefs.SetStreamPref("videofilter.eq.sharpness", 1.05f, STVIDEO);
+			//prefs.SetStreamPref("videofilter.eq.contrastThreshold", 230, STVIDEO);
+			//prefs.SetStreamPref("videofilter.eq.contrastLevel", 0.05f, STVIDEO);
+
+			prefs.SetStreamPref("videofilter.eq.colorlevel", conf.target.filter.videorender.colorLevel, STVIDEO);
+			prefs.SetStreamPref("videofilter.eq.sharpness", conf.target.filter.videorender.sharpLevel, STVIDEO);
+			prefs.SetStreamPref("videofilter.eq.contrastThreshold", 180, STVIDEO);
+			prefs.SetStreamPref("videofilter.eq.contrastLevel", conf.target.filter.videorender.contrastLevel, STVIDEO);
 		}
 		// Use MinQp to constrain peak bitrate
 		if((conf.target.vcodec.rcmode == 0 || conf.target.vcodec.rcmode == 4) &&	// 2pass

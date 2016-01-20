@@ -664,7 +664,8 @@ void CVideoEnhancer::filter_unsharp_8x8(const int x, const int y, unsigned char*
 	
 	int i,j;
 	int pix;
-	double delta = 1.2;
+	//double delta = 1.2;
+	double delta = m_parameter->sharpen_Level;
 	for (j=0; j< height; j++)
 	{
 		for (i=0; i< width; i++)
@@ -730,12 +731,12 @@ void CVideoEnhancer::filter_unsharp(unsigned char* pIn, const int width, const i
 	{
 		for(i=1; i<width_8x8-1; i++)
 		{
-			//filter_unsharp_8x8(i,j,pIn,pIn,width);
-#if defined(_WIN32) && !defined(_WIN64)
-			filter_unsharp_8x8_SSE2(i,j,pIn,pIn,width);
-#endif
-			//filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
-			//filter_unsharp_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+			filter_unsharp_8x8(i,j,pIn,pIn,width);
+//#if defined(_WIN32) && !defined(_WIN64)
+//			filter_unsharp_8x8_SSE2(i,j,pIn,pIn,width);
+//#endif
+			filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+			filter_unsharp_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
 		}
 	}
 }
@@ -747,7 +748,7 @@ void CVideoEnhancer::filter_unsharp(unsigned char* pIn, const int width, const i
 // ----------                ---------- 
 // |-2| 0| 2|                | 0| 0| 0| 
 // ----------                ---------- 
-// |-1| 0| 1|                |-1|-2| 1| 
+// |-1| 0| 1|                |-1|-2|-1| 
 // ----------                ---------- 
 int CVideoEnhancer::filter_sobel_8x8(const int x, const int y, unsigned char* pIn, unsigned char* pOut, const int stride)
 {
@@ -815,10 +816,10 @@ void CVideoEnhancer::filter_canny(unsigned char* pIn, const int width, const int
 	{
 		for(i=1; i<width_8x8-1; i++)
 		{
-			//filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
-#if defined(_WIN32) && !defined(_WIN64)
-			filter_sobel_8x8_SSE2(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
-#endif
+			filter_sobel_8x8(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+//#if defined(_WIN32) && !defined(_WIN64)
+//			filter_sobel_8x8_SSE2(i,j,m_parameter->gaussian_blur_buf1, m_parameter->canny, width);
+//#endif
 		}
 	}
 }
@@ -912,9 +913,10 @@ void CVideoEnhancer::filter_gaussian_blur(unsigned char* pIn, const int width, c
 	{
 		for(i=1; i<width_8x8-1; i++)
 		{
-			#if defined(_WIN32) && !defined(_WIN64)
-			filter_gaussian_blur_8x8_SSE2(i,j,pIn, pOut, width);	
-			#endif
+			filter_gaussian_blur_8x8(i,j,pIn, pOut, width);
+			//#if defined(_WIN32) && !defined(_WIN64)
+			//filter_gaussian_blur_8x8_SSE2(i,j,pIn, pOut, width);	
+			//#endif
 		}
 	}
 	
@@ -1002,38 +1004,39 @@ void CVideoEnhancer::filter_contrast(unsigned char *pIn, const int width, const 
 	}
 
 
-	int levelMin1, levelMax1;
-	levelMin1 = 0;
-	levelMax1 =255;
-	int percent1 = int(width*height*5/1000);
-	int count_min = 0;
-	for (int i = 0; i <= 255; ++i)
-	{
-		count_min += Histogram[i];
-		if (count_min >= percent1)
-		{
-			levelMin1 = i;
-			break;
-		}
-	}
-	
-	int count_max = 0;
-	for (int i = 255; i >= 0; i--)
-	{
-		count_max += Histogram[i];
-		if (count_max >= percent1)
-		{
-			levelMax1 = i;
-			break;
-		}
-	}
+	//int levelMin1, levelMax1;
+	//levelMin1 = 0;
+	//levelMax1 =255;
+	//int percent1 = int(width*height*5/1000);
+	//int count_min = 0;
+	//for (int i = 0; i <= 255; ++i)
+	//{
+	//	count_min += Histogram[i];
+	//	if (count_min >= percent1)
+	//	{
+	//		levelMin1 = i;
+	//		break;
+	//	}
+	//}
+	//
+	//int count_max = 0;
+	//for (int i = 255; i >= 0; i--)
+	//{
+	//	count_max += Histogram[i];
+	//	if (count_max >= percent1)
+	//	{
+	//		levelMax1 = i;
+	//		break;
+	//	}
+	//}
 
-	if (levelMax1 <= levelMin1)
-		return;
+	//if (levelMax1 <= levelMin1)
+	//	return;
 
 	
 	float aHistogram[256] = {0.0f};
-	float s = 0.12f;
+	//float s = 0.12f;
+	float s = m_parameter->contrast_level;
 	float sum = 0.0f;
 	for (j=0; j<256; j++)
 	{
@@ -1056,13 +1059,10 @@ void CVideoEnhancer::filter_contrast(unsigned char *pIn, const int width, const 
 	int contrast[256];
 	for (j=0; j<256;j++)
 	{
-		
 		//contrast[j] = (levelMax1-levelMin1)*cdf[j];
-		pix = (int)((levelMax1-levelMin1)*cdf[j]);
-		
-		
-		contrast[j] = pix*255/(levelMax1-levelMin1);
-		
+		//pix = (int)((levelMax1-levelMin1)*cdf[j]);
+		//contrast[j] = pix*255/(levelMax1-levelMin1);
+		contrast[j] = 255*cdf[j];
 	}
 	
     unsigned char* p1;
@@ -1335,16 +1335,24 @@ void CVideoEnhancer::process(unsigned char* pIn)
     width = m_parameter->width;
     height = m_parameter->height;
 	memcpy(m_parameter->org, pIn, sizeof(unsigned char)*width*height*3/2);
-	 
-	//filter_contrast_stretch(pIn, width, height);
-    filter_contrast_test(pIn, width, height);
-	#if defined(_WIN32) && !defined(_WIN64)
-    if (m_bSSE2)
-    {
-        filter_unsharp(pIn, width, height);
-    }
-	#endif
-    filter_color(pIn, width, height);
+	
+	if(m_parameter->contrast_level!=0) {
+		//filter_contrast_stretch(pIn, width, height);
+		filter_contrast(pIn, width, height);
+	}
+
+	//#if defined(_WIN32) && !defined(_WIN64)
+ //   if (m_bSSE2)
+ //   {
+ //       filter_unsharp(pIn, width, height);
+ //   }
+	//#endif
+	if(m_parameter->sharpen_Level!=0) {
+		filter_unsharp(pIn, width, height);
+	}
+	if(m_parameter->color_level!=0) {
+		filter_color(pIn, width, height);
+	}
 }
 
 
