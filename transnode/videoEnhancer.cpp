@@ -997,7 +997,7 @@ void CVideoEnhancer::filter_contrast(unsigned char *pIn, const int width, const 
 	int i,j;
 	int low = 30;
 	int high = 200;
-	for (j=0; j<height*height; j++)
+	for (j=0; j<width*height; j++)
 	{
 			pix = *p++;
 			Histogram[pix]++;
