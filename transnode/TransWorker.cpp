@@ -637,7 +637,7 @@ void CTransWorker::adjustVideoOutParam(CVideoEncoder* pVideoEnc, int overallBr)
 	if(!pVideoEnc) return;
 	video_info_t* pvInfo = pVideoEnc->GetVideoInfo();
 	CXMLPref* pPref = pVideoEnc->GetVideoPref();
-	int dividor = 4;
+	int dividor = 2;
 
 	if(pvInfo && pPref) {
 		// Adjust bitrate according to original bitrate
