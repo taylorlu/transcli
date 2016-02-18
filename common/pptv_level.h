@@ -20,9 +20,15 @@ typedef enum {
 };
 
 typedef struct _pptv_level_def {
+    /**
+     * Note: w_max, h_max, h_max_43 are defined just for recommendation.
+     * They not actually used in transcli. User must at least specified
+     * one of output width or height in the preset XML.
+     */
     int w_max;
     int h_max;                  /* max height for 16:9 */
     int h_max_43;               /* max height for  4:3 */
+    
 	int vbr;					/* default video bitrate */
 	int vbr_int_for_lowbr;		
 	int abr;					/* default audio bitrate */
@@ -32,12 +38,12 @@ typedef struct _pptv_level_def {
 
 static const ppl_def_t ppl_def[] = 
 {
-	/*SD */	{  480,  360,  480,  290,  +210,	48,	  0  	},
-	/*HD */	{  720,  408,  540,  850,  +650,	64,	  0		},
-	/*FHD*/	{ 1280,  720,  960, 1800,  +1200,   64,	  +32 	},
-	/*BD */	{ 1920, 1088, 1440, 5000,   0,	    64,   +64  	},
-	/*ORI*/	{ 1920, 1088, 1440, 6000,   0,		64,   +128 	},
-	/*4k */	{ 3840, 2176, 2880, 3800,   0,		64,   +128 	},
+	/*SD */	{  480,  270,  360,  290,  +210,	48,	  +80  	},
+	/*HD */	{  720,  404,  540,  850,  +650,	64,	  +64	},
+	/*FHD*/	{ 1280,  720,  960, 1800,  +1200,   64,	  +64 	},
+	/*BD */	{ 1920, 1080, 1440, 5000,   0,	    64,   +64  	},
+	/*ORI*/	{ 1920, 1080, 1440, 6000,   0,		64,   +64 	},
+	/*4k */	{ 3840, 2160, 2880, 3800,   0,		64,   +64 	},
 };
 
 #endif // __PPTV_LEVEL_H__
