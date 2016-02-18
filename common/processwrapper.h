@@ -69,6 +69,8 @@ public:
 	HWND hWnd;
 #else
 	int m_pid;
+    int m_child_pid;        /* save m_pid for use after child proc exited/terminated. */
+    int m_status;
 	bool Interrupt();
 #endif
 	int flags;

@@ -64,6 +64,7 @@ CProcessWrapper::CProcessWrapper(int flags):conbuf(0), pchCommandLine(0), envsiz
 {
 	this->flags = flags;
     m_pid = -1;
+    m_child_pid = -1;
 	fdStdinWrite = 0;
 	fdStdoutRead = 0;
 	fdStderrRead = 0;
@@ -292,6 +293,8 @@ bool CProcessWrapper::Create(const char* commandLine, const char* curDir, const 
 
 		else if (m_pid > 0) {
 			//parent
+            m_status = -1;
+            m_child_pid = m_pid;
 			logger_status(LOGM_PROCWRAP, "%d <= fork([%s])\n", m_pid, commandLine);
 
 			if (flags & SF_REDIRECT_STDIN) {
@@ -564,6 +567,7 @@ int CProcessWrapper::Wait(int timeout)
 	for (int i = 0; i < count; ++i) {
 		int waitId = waitpid(m_pid, &status, WNOHANG);
 		logger_log(LOGM_PROCWRAP, LOGL_DEBUG, "pollpid(%d)\n", m_pid);
+        m_status = status;
 
 		if(waitId == m_pid) {
 			if (WIFEXITED(status)) {
@@ -576,7 +580,6 @@ int CProcessWrapper::Wait(int timeout)
 				logger_info(LOGM_PROCWRAP, "continued.\n");
 			}
 
-			ret = 1;
 			m_pid = -1;
 			break;
 		} else if(waitId == 0) {
@@ -644,27 +647,40 @@ bool CProcessWrapper::Terminate()
 /** if not WIFEXITED, then pexitcode is untouched */
 bool CProcessWrapper::IsProcessRunning(int* pexitcode)
 {
-    int ret, status, exitcode;
+    int ret, exitcode;
     pexitcode = pexitcode ? pexitcode : &exitcode;
 
-    logger_info(LOGM_PROCWRAP, "IsRunning(%d)\n", m_pid);
+    if (m_pid < 0) {
+        if (m_child_pid > 0) {
+            logger_info(LOGM_PROCWRAP, "(%d) Already exited.\n", m_child_pid);
+            ret = 1;
+        } else {
+            logger_info(LOGM_PROCWRAP, "Not started process.\n");
+            return 0;
+        }
+    } else {
+        logger_info(LOGM_PROCWRAP, "IsProcessRunning(%d)?\n", m_pid);
+        ret = waitpid(m_pid, &m_status, WNOHANG);
+    }   
 
-    ret = waitpid(m_pid, &status, WNOHANG);
     if (ret == 0) {
         /* no state change, running */
         return true;
     } else if (ret < 0) {
         logger_info(LOGM_PROCWRAP, "failed!!!\n", m_pid);
     } else {
-        if (WIFEXITED(status)) {
-            logger_info(LOGM_PROCWRAP, "exited %d.\n", WEXITSTATUS(status));
-            *pexitcode = WEXITSTATUS(status);
-        } else if (WIFSIGNALED(status)) {
-            logger_info(LOGM_PROCWRAP, "killed by signal %d.\n", WTERMSIG(status));
-        } else if (WIFSTOPPED(status)) {
-            logger_info(LOGM_PROCWRAP, "stopped by signal %d.\n", WSTOPSIG(status));
+        if (WIFEXITED(m_status)) {
+            logger_info(LOGM_PROCWRAP, "exited %d.\n", WEXITSTATUS(m_status));
+            *pexitcode = WEXITSTATUS(m_status);
+            m_pid = -1;
+        } else if (WIFSIGNALED(m_status)) {
+            logger_info(LOGM_PROCWRAP, "killed by signal %d.\n", WTERMSIG(m_status));
+            *pexitcode = WTERMSIG(m_status);
+            m_pid = -1;
+        } else if (WIFSTOPPED(m_status)) {
+            logger_info(LOGM_PROCWRAP, "stopped by signal %d.\n", WSTOPSIG(m_status));
             return true;
-        } else if (WIFCONTINUED(status)) {
+        } else if (WIFCONTINUED(m_status)) {
             logger_info(LOGM_PROCWRAP, "continued.\n");
             return true;
         }
