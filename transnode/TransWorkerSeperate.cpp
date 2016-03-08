@@ -3669,6 +3669,22 @@ bool CTransWorkerSeperate::ParseSetting()
 				video_format_t  encFormat = (video_format_t)videoPref->GetInt("overall.video.format");
 				if(encFormat == VC_FLV /*|| encFormat == VC_H263*/ || encFormat == VC_H263P) isFFMPEGVideo = true;
 
+        		// Adjust bitrate according to output filesize
+        		int brSource = (int)(m_srcVideoAttrib->bitrate/1000.f + 0.5f);
+        		int filesize = pTaskPref->GetInt("overall.output.filesize");
+        		if(filesize > 0 && m_srcVideoAttrib->duration > 0) 
+        		{
+        		    /* filesize in KB, duration in ms */
+        		    int videoBr = (filesize*8*1000/m_srcVideoAttrib->duration - 64);
+        		    if (videoBr > 0) {
+        		        videoPref->SetInt("overall.video.bitrate", videoBr);
+        		    }
+        		    if (brSource > 0 && brSource <= videoBr + 10) {
+                        //TODO: compare equality like w/h/codec to open copy 
+        		        //videoPref->SetBoolean("overall.video.copy", true);
+        		    }
+        		}
+
 				m_bCopyVideo = videoPref->GetBoolean("overall.video.copy");
 				m_bLosslessClip = videoPref->GetBoolean("overall.task.losslessClip");
 

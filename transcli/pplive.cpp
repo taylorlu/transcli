@@ -257,7 +257,7 @@ enum movie_type_t {
 struct source_config_t {
 	int audio_stream;
 	int audio_channel;
-	int track_config;	// 0:å•éŸ³è½¨, 1:åŽŸå§‹éŸ³è½¨æ•°, 2:åŒéŸ³è½¨
+	int track_config;	// 0:µ¥Òô¹ì, 1:Ô­Ê¼Òô¹ìÊý, 2:Ë«Òô¹ì
 	int mix;
 	int video_stream;
 	float_rect_t video_rect;
@@ -439,6 +439,7 @@ struct thumbnail_t {
 struct target_config_t {
 	audio_codec_t acodec;
 	video_codec_t vcodec;
+	int   filesize;
 	float subtitle_timeshift;		// sec
 	int   sub_id;
 	int   extract_sub_id;			// sub id that will be extracted (-2:no extract, -1:extract all, other:specific sub id)
@@ -632,6 +633,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 
 	memset(config, 0, sizeof(transcode_config_t));
 	config->source.type = -1;
+	config->target.filesize = 0;
 	config->target.vcodec.darNum = -1;
 	config->target.vcodec.darDen = -1;
 	config->target.vcodec.lower_bitrate = 1;	// Default enable lower bitrate
@@ -846,6 +848,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 						if (bitrate[strlen(bitrate) - 1] != 'k' && bitrate[strlen(bitrate) - 1] != 'K') {
 							config->target.vcodec.bitrate /= 1000;
 						}
+						config->target.filesize = 0;
 					}
 					//rectangle
 					ParseRect(xmlConfig.getAttribute("rectangle"), &(config->target.vcodec.rect));
@@ -943,6 +946,18 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 			}
 			xmlConfig.goParent();
 		}
+
+		//filesize in Kbytes
+        if (xmlConfig.findChildNode("filesize") != NULL) {
+            const char *filesize = xmlConfig.getNodeValue();
+            if (filesize != NULL) {
+                config->target.filesize = atoi(filesize);
+                char unit = filesize[strlen(filesize) - 1];
+                if (unit != 'k' && unit != 'K') {
+                    config->target.filesize /= 1000;
+                }
+            }
+        }
 
 		// Bind process to some cores
 		if (xmlConfig.findChildNode("cores") != NULL) {
@@ -1514,6 +1529,22 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	//	}
 	//}
 
+	// ---------------¹ã¸æÉèÖÃ----------------
+	if (conf.target.filesize > 0) {
+		prefs.SetStreamPref("overall.output.filesize", conf.target.filesize, STMUXER);
+		
+		prefs.SetStreamPref("overall.audio.format", "HE-AAC", STAUDIO);
+		prefs.SetStreamPref("overall.audio.encoder", "FDK AAC", STAUDIO);
+		prefs.SetStreamPref("audioenc.faac.bitrate", 64, STAUDIO);
+		prefs.SetStreamPref("audioenc.fdkaac.bitrate", 64, STAUDIO);
+		prefs.SetStreamPref("overall.audio.channels", 2, STAUDIO);
+
+        prefs.SetStreamPref("videofilter.scale.enabled", true, STVIDEO);
+        prefs.SetStreamPref("videofilter.scale.width", 640, STVIDEO);
+
+        conf.target.vcodec.lower_bitrate = 0;
+	}
+
 	int idx = 0;
 	////////////////////////////////////////////////////////////////////////////
 	//audio
@@ -1846,10 +1877,10 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 		if(cropx < 0) cropx = 0;
 		if(cropy < 0) cropy = 0;
 		if(cropx > 1) {
-			cropx = ((int)(cropx/2+0.5f))*2.f;	// å·¦è¾¹å¦‚æžœæ˜¯å¥‡æ•°ï¼Œå–å¤§ä¸€ç‚¹çš„å¶æ•°
+			cropx = ((int)(cropx/2+0.5f))*2.f;	// ×ó±ßÈç¹ûÊÇÆæÊý£¬È¡´óÒ»µãµÄÅ¼Êý
 		}
 		if(cropy > 1) {
-			cropy = ((int)(cropy/2)+0.5f)*2.f;	// é¡¶è¾¹å¦‚æžœæ˜¯å¥‡æ•°ï¼Œå–å¤§ä¸€ç‚¹çš„å¶æ•°
+			cropy = ((int)(cropy/2)+0.5f)*2.f;	// ¶¥±ßÈç¹ûÊÇÆæÊý£¬È¡´óÒ»µãµÄÅ¼Êý
 		}
 		if(cropW > 1) {
 			cropW = ((int)(cropW/2))*2.f;

@@ -152,18 +152,19 @@ for video in ${IDIR}/*; do
 	ovpath=$(fullpath ${ovpath})
 	cmdl="${TRANSCLI} -p ${PRESET} -i ${ivpath} -o ${ovpath} -l ${logfile} 2>&1"
 	echo ${cmdl}; 
-	if [ $SIMULATE -eq 0 ]; then ${cmdl}; fi
-
-	if [ $? -ne 0 ]; then
-		echo "transcli failed!!!"
-	else
-		ovdst=${ovpath%.tmp}
-		ovdst+=`get_br_from_xml ${PRESET}`
-		#ovdst+=`get_wh_from_log ${logfile}`
-		#ovdst+=`get_fps_from_log ${logfile}`
-		ovdst+=`get_muxfmt_from_xml ${PRESET}`
-		cmdl="mv -v ${ovpath} ${ovdst}"
-		echo ${cmdl};
-		if [ $SIMULATE -eq 0 ]; then ${cmdl}; fi
-	fi
+	if [ $SIMULATE -eq 0 ]; then 
+        ${cmdl}; 
+        if [ $? -ne 0 ]; then
+            echo "transcli failed!!!"
+        else
+            ovdst=${ovpath%.tmp}
+            ovdst+=`get_br_from_xml ${PRESET}`
+            #ovdst+=`get_wh_from_log ${logfile}`
+            #ovdst+=`get_fps_from_log ${logfile}`
+            ovdst+=`get_muxfmt_from_xml ${PRESET}`
+            cmdl="mv -v ${ovpath} ${ovdst}"
+            echo ${cmdl};
+            ${cmdl};
+        fi
+    fi
 done
