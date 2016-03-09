@@ -138,6 +138,6 @@ qmake ../transcli/Transcli.pro   在Transcli_build目录里生成ｍａｋｅｆ
 执行release.sh把所有文件打包.
 编译好的可执行文件在transcli/release_redhat目录下。文件为：transcli_redhat_XXXXXXXX.tar.gz(XXXXXXXX是日期)
 
-
-
-
+目前transcli是连接transcli/lib下的静态库，不再是/usr/local/lib下的系统库，
+所以xvidcore、x264、x265、iconv、fdk_aac编译好之后，直接覆盖在transcli/lib目录下，
+这样编译transcli的时候就可以连接最新版本的编码库了。
