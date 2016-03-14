@@ -1,0 +1,60 @@
+jenkins编译机
+1.	以后172.17.1.170将作为RHEL6.2的内核编译机，尽量不要修改上面的环境变量
+2.	我们还需要指定一台RHEL6.2的测试机
+3.	Transcli-linux5.8 的workspace 移到/home/release/
+
+Job         http://jenkins/job/Transcli-linux6.2/
+Computer    http://jenkins/computer/Transcli-linux6.2/
+Host        172.17.1.170 (root/Pptv2014)
+Workspace   /home/release/workspace
+Owner       ????
+TestHost    ????  (Owner ????)
+
+
+Job         http://jenkins/job/Transcli-linux5.8/
+Computer    http://jenkins/computer/Transcli-linux5.8/
+Host        172.20.0.55  (root/Pptv2015)
+Workspace   /home/release/workspace
+Owner       jfzheng
+TestHost    172.16.0.120 (Owner ????)
+
+谢谢!
+郑建峰 JianfengZheng
+云平台编解码研发部
+
+
+我们原来的旧内核编译器172.20.0.172挂了。我现在用戴金球留下的一台空机器172.20.0.55搭了一个新的机器。
+
+下面是http://jenkins/ 上的配置步骤：配置分两步：
+1.	在http://jenkins/computer/ 上新建一个 “New Node”， 现在用的是“Transcli-linux5.8”。到cnfigure底下配好以下项：
+a)	Name： Transcli-linux5.8
+b)	# of executors ：不要大于CPU核数
+c)	Remote FS root ：编译用的工作路径，jenkins会在底下新建一个workspace目录，然后在workspace里svn clone 代码库
+d)	Host：IP
+e)	Credentials：登入凭证，简单起见可以选用户和密码
+2.	在http://jenkins/上新建一个“New Item”，现在是Transcli-linux。到cnfigure底下配好以下项：
+a)	Project name: Transcli-linux
+b)	Restrict where this project can be run: 跟上一步建的编译机关联
+c)  LabelExpression 选择 Transcli-linux5.8，这样就根据使用的电脑连接
+d)	Source Code Management： 选Subversion， Repository URL
+http://192.168.0.94/repositories/r02/Cloud/codecs/transcli
+d)	Build：这里需要注意的是初始工作路径，根据我们上面的配置，是/home/jfzheng/workspace/Transcli-linux/,
+也是就工程目录里面，下面的shell脚本参考“transcli\doc\旧内核Linux 5.8平台编译过程.txt”最后几部
+Execute Shell：
+pwd
+rm -rf ../transcli_build
+mkdir -p ../transcli_build
+cd ../transcli_build
+/home/jfzheng/external/qt-everywhere-opensource-src-5.3.2/qtbase/bin/qmake ../Transcli-linux/Transcli.pro
+make -j4
+cd ../Transcli-linux
+./release.sh
+rm -rf release_redhat/transcli
+e)	Post-build Actions
+i.	Archive the artifacts: release_redhat/transcli_redhat_*.tar.gz
+ii.	E-mail Notification: 邮件通知列表
+
+
+谢谢!
+郑建峰 JianfengZheng
+云平台编解码研发部

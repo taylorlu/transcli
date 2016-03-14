@@ -1,0 +1,168 @@
+m_pRootPref == CRootPrefs::InitRoot((((--------
+[
+    ○ tempXml <== CXML2::str2xml-Read(strPreset)
+    ○ m_pRootPref::m_pMainMediaInfo <== initMediaInfo( tempXml )
+        § m_pMainMediaInfo <== GetMediaInfo( tempXml<input> )
+            □ xmlText <== GetMediaInfoXML( tempXml<input> )
+                ® xmlText <== proc.Create( "ffprobe -i strPreset.ifile" )
+            □ probeDoc = str2xml-Read( xmlText.c_str() )
+            □ m_pMainMediaInfo <== parseGeneralInfo( probeDoc )
+            □ m_pMainMediaInfo <== parseVideoInfo( probeDoc )
+            □ m_pMainMediaInfo <== parseAudioInfo( probeDoc )
+            □ m_pMainMediaInfo <== parseSubtitleInfo( probeDoc )
+    ○ m_pRootPref::...
+    ○ m_pRootPref::m_pFileTitle <== initFileTitle()
+    ○ m_pRootPref::m_outputs <== InitStreams( tempXml<output> )
+]
+--------))))
+
+CTransWorkerSeperate::ParseSetting((((--------
+[
+    setVideoPref((((--------
+        createVideoEncoder( "x264/cuda" ) -> m_videoEncs.push_back();
+    --------))))
+
+    setAudioPref((((--------
+        createAudioEncoder( "faac/mp3/ffmpeg" ) -> m_audioEncs.push_back();
+    --------))))
+
+    setMuxerPref((((--------
+        CreateInstance( "mp4box/ffmpeg/flvmuxer" ) -> m_muxers.push_back();
+    --------))))
+    
+    adjustEncodeSetting((((--------
+        adjustAudioEncodeSetting()
+        setVideoEncAttrib(pVideoEnc->GetVideoInfo(), pPref, m_srcVideoAttrib);
+        adjustSubtitleAttrib(mediaInfo, pVideoEnc->GetVideoPref());
+    --------))))
+    
+    extractSubtitle((((--------
+        CProcessWrapper::Run( "ffmpeg -i $SRC -an -vn ..." );
+    --------))))
+    
+    // Parsing segment settings
+    parseSegmentConfig(pTaskPref);
+
+    // Parsing image tail
+    parseImageTailConfig(pTaskPref);
+]
+--------))))
+
+/**
+ * initialize() -> startDecoder() -> createTranscodeVideoThread()
+ *                                -> createAuxAudioAnalyseThread()
+ * initPass2()  -> startDecoder() -> createTranscodeVideoThread()
+ *                                   createTranscodeAudioThread()
+ */
+CTransWorkerSeperate::StartWork()->mainThread()->mainFunc((((--------
+[
+    if(!m_bCopyAudio || !m_bCopyVideo) 
+    {
+        initialize((((--------
+            for (pVideoEnc in m_videoEncs[]) {
+                performBlackBandAutoDetect(srcFile, m_videoEncs[0]);
+                adjustVideoOutParam(pVideoEnc, overallBr);  // when width or height is -1
+                createVideoFilter()
+            } 
+            startDecoder((((--------
+                m_pAudioDec = createAudioDecoder()
+                m_pVideoDec = createVideoDecoder()
+                setDecoderParam((((--------
+                    m_pVideoPref = m_pVideoDec->BindVideoPref(pVideoPref);
+                    m_pAudioPref = m_pAudioDec->BindAudioPref(pAudioPref);
+                --------))))
+                m_pAudioDec/m_pVideoDec->Start((((--------
+                    GetCmdString( "ffmpeg/mencoder ...." );
+                --------))))
+            --------))))
+            
+            initResourceInOnePassOrLastPass((((--------
+                if((m_encoderPass == 1 || m_bAutoVolumeGain) && m_bMultiAudioTrack) {
+                    startAuxDecoders(srcFile))
+                }
+            --------))))
+        --------))))
+    }
+    
+    if(m_encoderPass > 1 || m_bAutoVolumeGain) 
+    {
+        firstPassAnalyse((((--------
+            if (m_encoderPass > 1 && !createTranscodeVideoThread()) {
+                logger_err(m_logType, "Create video transcode thread failed.\n");
+                break;
+            }
+            
+            if(!m_audioEncs.empty() && !m_bInsertBlankAudio && (m_encoderPass > 1 || m_bAutoVolumeGain)) 
+            {
+                // Aux audio replay gain analyse(start threads to analyse aux audio)
+                if(m_bAutoVolumeGain && !m_auxDecoders.empty() && m_srcAudioAttribs.size() > 1) {
+                    auxThreadSucess = createAuxAudioAnalyseThread(audioHandles);
+                }
+                
+                // discard or gain analyse of main audio track simultaneously
+                analyseMainAudioTrack()
+            }
+        --------))))
+
+        initPass2((((--------
+            m_encoderPass = 1;
+            m_bAutoVolumeGain = false;
+            startDecoder()
+            initResourceInOnePassOrLastPass()
+        --------))))
+    }
+    
+    createTranscodeVideoThread() --> transcodeVideoEntry() --> transcodeAudio((((--------
+        initAudioEncoders()
+        
+        if(single-split)    transcodeSingleVideoComplex()    ::> ReadFrame():RenderWaterMark():FilterFrame():EncodeFrame()
+        if(single-video)    transcodeSingleVideo()           ::> ReadVideo():RenderWaterMark():FilterFrame():EncodeFrame()
+        if(multi-video)     transcodeMbrVideo() --> encodeVideoThread() --> encodeVideo()                    
+                                                             ::> SafeRead() :RenderWaterMark():FilterFrame():EncodeFrame()
+    --------))))
+    
+    createTranscodeAudioThread() --> transcodeAudioEntry() --> transcodeVideo((((--------
+        initVideoEncoders() -> initVideoFilter()
+        
+        if(sigle-split)    transcodeSingleAudioComplex()    ::> ReadAudio():EncodeBuffer()
+        if(sigle-audio)    transcodeSingleAudio()           ::> ReadAudio():EncodeBuffer()
+        if(multi-audio)    transcodeMbrAudio() --> encodeAudioThread() --> encodeAudio()  
+                                                            ::> SafeRead() :EncodeBuffer()
+    --------))))
+    
+    // Wait for audio/video thread finish
+    CBIThread::Join(m_hAudioThread);
+    CBIThread::Join(m_hVideoThread);
+    
+    // Wait for audio/video copy finish
+    waitForCopyStreams();
+    
+    doMux()
+]
+--------))))
+
+
+int main(int argc, char **argv) 
+{
+    clihelper = new CCliHelperPPLive;
+    clihelper->GetStdPrefString((((--------[
+        AdjustPreset((((--------[
+            GetConfigFromXml(m_inConfig, &conf);
+            ....
+        ]--------))))
+    ]--------))))
+    
+    
+    CWorkManager* pMan = CWorkManager::GetInstance();
+    pMan->CreateWorker(&workId, WORKER_TYPE_SEP);
+    
+    pMan->CreateWorkerTask(workId, 0/*uuid*/, strPreset.c_str(), psz_outfile) 
+    ((((--------[
+        CTransWorker::CreateTask((((--------[
+            m_pRootPref = new CRootPrefs;
+            m_pRootPref->InitRoot(prefs);
+            this->ParseSetting();
+            this->StartWork();
+        ]--------))))
+    ]--------))))
+}

@@ -3672,6 +3672,16 @@ bool CTransWorkerSeperate::ParseSetting()
         		// Adjust bitrate according to output filesize
         		int brSource = (int)(m_srcVideoAttrib->bitrate/1000.f + 0.5f);
         		int filesize = pTaskPref->GetInt("overall.output.filesize");
+				
+				// flv format can't get 'm_srcVideoAttrib->duration', it will result in uncarry out for filesize.
+				if (filesize > 0 && m_srcVideoAttrib->duration == 0)
+				{
+					 if (pMediaPref->findChildNode("duration") != NULL) 
+					 {
+						 m_srcVideoAttrib->duration = atoi(pMediaPref->getNodeValue());
+					 }
+				}
+				
         		if(filesize > 0 && m_srcVideoAttrib->duration > 0) 
         		{
         		    /* filesize in KB, duration in ms */
