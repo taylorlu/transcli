@@ -957,6 +957,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
                     config->target.filesize /= 1000;
                 }
             }
+			xmlConfig.goParent();
         }
 
 		// Bind process to some cores
