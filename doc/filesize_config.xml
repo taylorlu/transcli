@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<TranscodeArgsXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <source>
+    <audio stream="0" channel="both" />
+    <video stream="0" rectangle="{-1,-1,-1,-1}" />
+	<clip start="00:00:00.0" end="00:00:00.0"/>
+  </source>
+  <target>
+    <filesize>3000k</filesize>
+	<!--set file size(Byte)-->
+    <mux format="mp4" />
+	<!--Muxer format:flv/mp4/ts/hls disable:enable or disable muxing-->
+    <audio>
+      <codec format="aac" bitrate="64k" samplerate="44100" timeshift="0s" />
+    </audio>
+    <video>
+      <codec format="h264" rectangle="{0,0,480,-1}" position="{-1,-1,-1,-1}" />
+	  <rcmode>4</rcmode>
+      <!--1:ABR, 2:CRF, 3:CBR, 4:2-pass-->
+	  <lowerbitrate>0</lowerbitrate>
+      <!--0:disable decreasing bitrate, 1:enable(default)-->
+	  <fps>0</fps>
+    </video>
+    
+    <subtitle timeshift="0s">
+      <Files />
+    </subtitle>
+    <errorignore>3</errorignore>
+    <additon>
+      <x264 option="-level=4.1,-fourc=H.264" />
+      <mpga option="-level=base" />
+    </additon>
+  </target>
+</TranscodeArgsXml>
