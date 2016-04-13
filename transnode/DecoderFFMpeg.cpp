@@ -373,13 +373,11 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 	if(m_pVInfo->vfType != VF_ENCODER) {
 		bool needDeint = false;
 		switch (m_pVideoPref->GetInt("videofilter.deint.mode")) {
-		case 2:
-			if (m_pVInfo->interlaced != VID_PROGRESSIVE) {
-				needDeint = true;
-			}
-			break;
+		// 0/non auto; 1 enable; 2 disable
+		case 0:
 		case 1:
-			needDeint = true; break;
+			   needDeint = true; 
+			   break;  
 		}
 
 		if(m_pVideoPref->GetBoolean("overall.task.interlace")) {
@@ -403,7 +401,8 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 				fieldOrder = 0;
 			}
 			forePart << "yadif=" << m_pVideoPref->GetInt("videofilter.deint.yadif");
-			forePart << ":" << fieldOrder << ',';
+			//forePart << ":" << fieldOrder << ',';
+		    forePart << ":" << "parity=auto:deint=0" << ',';
 		
 			// Interlace is done by decoder, then encoder no need to do
 			//if(m_bLastPass) m_pVInfo->interlaced = 0;	

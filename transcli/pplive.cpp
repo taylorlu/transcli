@@ -82,7 +82,7 @@ const char *prefsTemplate =
 	    <node key=\"videofilter.scale.width\">320</node>\n\
 	    <node key=\"videofilter.scale.height\">240</node>\n\
 	    <node key=\"videofilter.scale.algorithm\">Bilinear</node>\n\
-	    <node key=\"videofilter.deint.mode\">2</node>\n\
+	    <node key=\"videofilter.deint.mode\">0</node>\n\
 	    <node key=\"videofilter.deint.algorithm\">YADIF</node>\n\
         <node key=\"videofilter.frame.enabled\">false</node>\n\
         <node key=\"videofilter.frame.fps\">25</node>\n\
@@ -136,7 +136,7 @@ const char *prefsTemplate =
 		<node key=\"videoenc.x265.cuTree\">true</node>\n\
 		<node key=\"videoenc.x265.amp\">true</node>\n\
 		<node key=\"videoenc.x265.aqMode\">1</node>\n\
-		  <node key=\"overall.dolby.sixchOnly\">true</node>\n\
+		  <node key=\"overall.dolby.sixchOnly\">false</node>\n\
 		  <node key=\"overall.container.format\">3GP</node>\n\
 		  <node key=\"overall.container.muxer\">MP4Box</node>\n\
 		  <config key=\"video.streams\">all</config>\n\
@@ -176,7 +176,7 @@ const char *iptvTemplate =
 	    <node key=\"videofilter.scale.width\">320</node>\n\
 	    <node key=\"videofilter.scale.height\">240</node>\n\
 	    <node key=\"videofilter.scale.algorithm\">Lanczos</node>\n\
-	    <node key=\"videofilter.deint.mode\">2</node>\n\
+	    <node key=\"videofilter.deint.mode\">0</node>\n\
 	    <node key=\"videofilter.deint.algorithm\">YADIF</node>\n\
         <node key=\"videofilter.frame.enabled\">false</node>\n\
         <node key=\"videofilter.frame.fps\">25</node>\n\
@@ -2041,9 +2041,9 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 	}
 
 	// deinterlace
-	int deintMode = 2;
+	int deintMode = 0;
 	switch(conf.target.filter.deint.deintMode) {
-	case DEINT_DISABLE: deintMode = 0; break;
+	case DEINT_DISABLE: deintMode = 2; break;
 	case DEINT_ENABLE: deintMode = 1; break;
 	}
 	int deintAlgo = 7;	//YADIF
