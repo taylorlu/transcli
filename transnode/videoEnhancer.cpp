@@ -121,6 +121,10 @@ bool CVideoEnhancer::init(int width, int height,int stride, int colorSpace)
 	memset(m_parameter->direction_label, 0, sizeof(int)*width*height);	
 	m_parameter->stride_direction_label = width;
 	
+	for(int i=0; i<62; i++) {
+		m_parameter->fsc[i] = (uint32_t *)calloc(width+4, sizeof(uint32_t *));
+	}
+	m_parameter->dst = (uint8_t *)malloc(width*height);
 	m_bInit = true;
 	return true;
 }
@@ -188,6 +192,10 @@ void CVideoEnhancer::fini()
 		m_parameter->gaussian_blur_buf2 = NULL;
 	}
 	
+	for(int i=0; i<62; i++) {
+		free(m_parameter->fsc[i]);
+	}
+	free(m_parameter->dst);
 	if (m_parameter!=NULL)
 	{
 		align_free(m_parameter);
@@ -690,8 +698,64 @@ void CVideoEnhancer::filter_unsharp_8x8(const int x, const int y, unsigned char*
 	}
 }
 
+static uint8_t av_clip_uint8(int a)
+{
+    if (a&(~0xFF)) return (-a)>>31;
+    else           return a;
+}
 
+void CVideoEnhancer::apply_unsharp(unsigned char *pIn, int width, int height)
+{
+    uint32_t **sc = m_parameter->fsc;
+    uint32_t sr[62], tmp1, tmp2;
 
+	int dst_stride = width;
+	int src_stride = width;
+	unsigned char *src = pIn;
+    int32_t res;
+    int x, y, z;
+    const unsigned char *src2 = NULL;  //silence a warning
+    const int amount = 65536;
+    const int steps_x = 2;
+    const int steps_y = 2;
+    const int scalebits = 8;
+    const int32_t halfscale = 128;
+
+	unsigned char *dsttemp = m_parameter->dst;
+
+    for (y = 0; y < 2 * steps_y; y++)
+        memset(sc[y], 0, sizeof(sc[y][0]) * (width + 2 * steps_x));
+
+    for (y = -steps_y; y < height + steps_y; y++) {
+        if (y < height)
+            src2 = src;
+
+        memset(sr, 0, sizeof(sr[0]) * (2 * steps_x - 1));
+        for (x = -steps_x; x < width + steps_x; x++) {
+            tmp1 = x <= 0 ? src2[0] : x >= width ? src2[width-1] : src2[x];
+            for (z = 0; z < steps_x * 2; z += 2) {
+                tmp2 = sr[z + 0] + tmp1; sr[z + 0] = tmp1;
+                tmp1 = sr[z + 1] + tmp2; sr[z + 1] = tmp2;
+            }
+            for (z = 0; z < steps_y * 2; z += 2) {
+                tmp2 = sc[z + 0][x + steps_x] + tmp1; sc[z + 0][x + steps_x] = tmp1;
+                tmp1 = sc[z + 1][x + steps_x] + tmp2; sc[z + 1][x + steps_x] = tmp2;
+            }
+            if (x >= steps_x && y >= steps_y) {
+                const unsigned char *srx = src - steps_y * src_stride + x - steps_x;
+                unsigned char *dsx       = dsttemp - steps_y * dst_stride + x - steps_x;
+
+                res = (int32_t)*srx + ((((int32_t) * srx - (int32_t)((tmp1 + halfscale) >> scalebits)) * amount) >> 16);
+                *dsx = av_clip_uint8(res);
+            }
+        }
+        if (y >= 0) {
+            dsttemp += dst_stride;
+            src += src_stride;
+        }
+    }
+	memcpy(pIn, m_parameter->dst, width*height);
+}
 
 
 void CVideoEnhancer::filter_unsharp(unsigned char* pIn, const int width, const int height)
@@ -1335,7 +1399,7 @@ void CVideoEnhancer::process(unsigned char* pIn)
     width = m_parameter->width;
     height = m_parameter->height;
 	memcpy(m_parameter->org, pIn, sizeof(unsigned char)*width*height*3/2);
-	
+
 	if(m_parameter->contrast_level!=0) {
 		//filter_contrast_stretch(pIn, width, height);
 		filter_contrast(pIn, width, height);
@@ -1348,7 +1412,8 @@ void CVideoEnhancer::process(unsigned char* pIn)
  //   }
 	//#endif
 	if(m_parameter->sharpen_Level!=0) {
-		filter_unsharp(pIn, width, height);
+		apply_unsharp(pIn, width, height);
+	//	filter_unsharp(pIn, width, height);
 	}
 	if(m_parameter->color_level!=0) {
 		filter_color(pIn, width, height);
