@@ -46,6 +46,9 @@ typedef struct videoEnhancer_parameter{
 	float color_level;
 	int contrast_threshold;
 	float contrast_level;
+
+	unsigned int *fsc[62];
+	unsigned char *dst;
 } videoEnhancer_parameter;
 
 struct IE_Data;
@@ -107,7 +110,8 @@ private:
 #endif
 
 	void filter_color(unsigned char *pIn, const int width, const int height);
-	
+	void apply_unsharp(unsigned char *pIn, int width, int height);
+
 	bool SSE2Check(); 
 protected:
 	videoEnhancer_parameter* m_parameter;
