@@ -917,7 +917,7 @@ bool CTransWorker::validateTranscode(int decoderExitCode)
         m_tmpBenchData.mainDur,
         m_tmpBenchData.audioEncTime,
         m_tmpBenchData.videoEncTime);
-	
+
 	#define FAIL_INFO(err) logger_err(m_logType, err); ret=false; break;
 	bool ret = true;
 	do {
