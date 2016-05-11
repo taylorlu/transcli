@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <algorithm>
+#include <math.h>
 #include "TransnodeUtils.h"
 
 #include "zml_gain_analysis.h"
@@ -3374,6 +3375,20 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVi
 			hasAudio = false;
 	}
 
+	// ignoreErrIdx: 0(no ignore), 1(ignore 32), 2(ignore33), 3(ignore both)
+	int ignoreErrIdx = -1;
+	ignoreErrIdx = CWorkManager::GetInstance()->GetIgnoreErrorCode();
+
+	// Check a/v duration
+	if((ignoreErrIdx == 0 || ignoreErrIdx == 1) &&
+		m_srcVideoAttrib->duration > 0.001f && audioAttrib->duration > 0.001f) {
+			if(fabs((double)m_srcVideoAttrib->duration - (double)audioAttrib->duration) > 60000) { //60s
+				SetErrorCode(EC_AV_DURATION_BIG_DIFF);
+				logger_err(m_logType, "A/V duration differs more than 60s.\n");
+				return false;
+			}
+	}
+
 	if(!hasAudio && !hasVideo) return false;
 	return true;
 }
@@ -3626,6 +3641,13 @@ bool CTransWorkerSeperate::ParseSetting()
 			FAIL_INFO("Invalid media file.\n");
 		}
 
+		// Ignore error code (if the task pref set it then use the value from task preset
+		//  else use config value)
+		int ignoreErrIdx = pTaskPref->GetInt("overall.task.ignoreError");
+		if(ignoreErrIdx >= 0) {
+			CWorkManager::GetInstance()->SetIgnoreErrorCode(ignoreErrIdx);
+		}
+
 		bool hasAudio = true;
 		bool hasVideo = true;
 		if(!initAVSrcAttrib(pMediaPref, hasVideo, hasAudio)) {
@@ -3787,12 +3809,12 @@ bool CTransWorkerSeperate::ParseSetting()
 		// Parsing image tail
 		parseImageTailConfig(pTaskPref);
 
-		// Ignore error code (if the task pref set it then use the value from task preset
-		//  else use config value)
-		int ignoreErrIdx = pTaskPref->GetInt("overall.task.ignoreError");
-		if(ignoreErrIdx >= 0) {
-			CWorkManager::GetInstance()->SetIgnoreErrorCode(ignoreErrIdx);
-		}
+		//// Ignore error code (if the task pref set it then use the value from task preset
+		////  else use config value)
+		//int ignoreErrIdx = pTaskPref->GetInt("overall.task.ignoreError");
+		//if(ignoreErrIdx >= 0) {
+		//	CWorkManager::GetInstance()->SetIgnoreErrorCode(ignoreErrIdx);
+		//}
 
 		// Align a/v data(time)
 		if(pTaskPref->GetBoolean("overall.task.alignAVData")) {
