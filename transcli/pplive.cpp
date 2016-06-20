@@ -1098,6 +1098,7 @@ static bool GetConfigFromXml(const std::string &strXmlConfig, transcode_config_t
 				}
 			}
 			else {	//other types
+			    config->target.vcodec.video_enhance = 0;//close video enhance
 				config->target.filter.videorender.contrastLevel = 0.12;
 				config->target.filter.videorender.sharpLevel = 1.2;
 				config->target.filter.videorender.colorLevel = 1.1;
