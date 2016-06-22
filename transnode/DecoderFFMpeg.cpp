@@ -208,7 +208,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
 		if(startpos > 0) cmd << " -ss " << startpos/1000.f;
 		if(duration > 0) cmd << " -t " << duration/1000.f;
 		if(m_pVInfo->index < 0) m_pVInfo->index = 0;
-		cmd << " -map $(vtag)";
+		//cmd << " -map $(vtag)";//disable video channel map, because there maybe some error
 		
 		cmd << " -c:v rawvideo -f rawvideo -pix_fmt yuv420p";	// -sws_flags bilinear
 		const char* scaleMethodName[] = {"", "fast_bilinear", "bilinear", "bicubic", "experimental",
