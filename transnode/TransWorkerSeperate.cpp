@@ -3311,18 +3311,34 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 	// Find first invalid video（Some ts file will contain several invalid video tracks）
 	size_t videoIdx = 0;
 	void* videoNode = mediaInfo->findChildNode("video");
+	bool b_video = false;
 	while(videoNode) {
 		if(!m_srcVideoAttrib) {
 			m_srcVideoAttrib = new attr_video_t;
 		}	
 		memset(m_srcVideoAttrib, 0, sizeof(attr_video_t));
 		int dar_num = mediaInfo->getChildNodeValueInt("dar_num");
+		int dar_den = mediaInfo->getChildNodeValueInt("dar_den");
 		parseMediaVideoInfoNode(mediaInfo, m_srcVideoAttrib);
 		// 有flv视频有Sorenson Spark和H.264两个视频轨，其中有效的一个dar是有效值，另外一个为0:0,无效。
-		if(m_srcVideoAttrib->width > 0 && dar_num > 0) {
+		if(m_srcVideoAttrib->width > 0 && (dar_num > 0 || dar_den > 0) || b_video) {
 			break;	
 		}
+		
 		videoNode = mediaInfo->findNextNode("video");
+		
+		if (!videoNode)//judge last node if right
+		{
+			if(m_srcVideoAttrib->width > 0 && dar_num > 0 && dar_den > 0) // dar and image width is right
+				break;
+			else
+			{
+			    videoNode = mediaInfo->findPrevNode("video");
+				videoIdx--;
+				b_video = true;
+			}
+		}
+		
 		videoIdx++;
 	}
 
