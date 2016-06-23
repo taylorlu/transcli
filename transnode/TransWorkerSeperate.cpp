@@ -3333,9 +3333,13 @@ bool CTransWorkerSeperate::initSrcVideoAttrib(StrPro::CXML2* mediaInfo)
 				break;
 			else
 			{
-			    videoNode = mediaInfo->findPrevNode("video");
-				videoIdx--;
-				b_video = true;
+			    if (videoIdx >= 1)
+				{
+					videoNode = mediaInfo->findPrevNode("video");
+					videoIdx--;
+					b_video = true;
+					continue;
+				}    
 			}
 		}
 		
