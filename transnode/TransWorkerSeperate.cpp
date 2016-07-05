@@ -14,6 +14,8 @@
 #include "zml_gain_analysis.h"
 #include "bitconfig.h"
 
+#include "logger.h"
+
 #ifdef DEMO_RELEASE
 #include "WaterMarkFilter.h"
 #endif
@@ -3377,8 +3379,25 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVi
 	if(!initSrcAudioAttrib(mediaInfo)) return false;
 	if(!initSrcVideoAttrib(mediaInfo)) return false;
 	
-	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
-		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) {
+	bool b_audio = false;
+	if ( mediaInfo->getChildNodeValue("container") && (
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "mp3") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "mp2") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "mp1") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "wma") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "wav") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "aac") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "ogg") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "ra")  || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "rma") || 
+		!_stricmp(mediaInfo->getChildNodeValue("container"), "ac3") )
+		)
+	{
+	    b_audio = true;
+	}
+	
+	if((!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
+		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) && !b_audio) {
 			logger_err(m_logType, "Invalid video attribute, clean up all video encoder!\n");
 			hasVideo = false;
 			if(!errIgnored(EC_NO_VIDEO_TRACK)) {
@@ -3409,7 +3428,7 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVi
 			}
 	}
 
-	if(!hasAudio && !hasVideo) return false;
+	if(!hasAudio && !hasVideo && !b_audio) return false;
 	return true;
 }
 
@@ -3707,6 +3726,29 @@ bool CTransWorkerSeperate::ParseSetting()
 		if(hasVideo) {
 			for(i = 0; i < pStreamPref->GetVideoCount(); ++i) {
 				CXMLPref* videoPref = pStreamPref->GetVideoPrefs(i);
+				
+				// if audio container, audio compressed to audio and video just give warning
+				// if media container only include audio, it compressed to audio and video will give error. This means default.
+				//printf("\n %s \n", pMediaPref->getChildNodeValue("container"));
+				if (pMediaPref->getChildNodeValue("container") && (
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "mp3") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "mp2") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "mp1") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "wma") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "wav") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "aac") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "ogg") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "ra")  || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "rma") || 
+					!_stricmp(pMediaPref->getChildNodeValue("container"), "ac3") ) 
+					)
+				{
+					videoPref->SetBoolean("overall.video.enabled",false);
+					videoPref->SetBoolean("overall.video.encode",false);
+					logger_info(LOGM_GLOBAL, "\n %s audio container compressed to audio and video just give warning\n", pMediaPref->getChildNodeValue("container"));
+					continue;
+				}
+				
 				//videoPref->Dump(&tmpStr);
 				video_format_t  encFormat = (video_format_t)videoPref->GetInt("overall.video.format");
 				if(encFormat == VC_FLV /*|| encFormat == VC_H263*/ || encFormat == VC_H263P) isFFMPEGVideo = true;
