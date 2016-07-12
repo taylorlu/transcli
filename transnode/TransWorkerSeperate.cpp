@@ -3381,8 +3381,8 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVi
 	
 	//char printstring[100];
 
-	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 || m_srcVideoAttrib->width <= 0 || 
-		m_srcVideoAttrib->duration <= 0 || m_srcVideoAttrib->bitrate <= 0)) {
+	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
+		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) {
 			//logger_err(m_logType, "Invalid video attribute, clean up all video encoder!\n");
 				//sprintf(printstring, "Invalid video attribute, error code : %d !\n", EC_NO_VIDEO_TRACK);
 				//logger_warn(m_logType, printstring);
