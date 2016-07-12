@@ -56,17 +56,17 @@ public:
 	bool ParseAC3File(const char* file);
 	//bool ParseAACFiles(vector<char*> files);//,vector<double> videopts);
 	bool Parse264File(const char* file);
-	bool WriteOutPutFile(const char* file);
+	bool WriteOutPutFile(const char* file, bool vflag, bool aflag);
 	bool InitTempFile(const char* tempfile);
 
 	double GetVideoPtsByFilePos(unsigned long long pos);
 
 private:
 	//flv
-	bool WriteFileFlv();
+	bool WriteFileFlv(bool vflag, bool aflag);
 	void WriteFlvHead();
 	void WriteFlvMeta();
-	void WriteFlvData();
+	void WriteFlvData(bool vflag, bool aflag);
 
 	void WriteFlvVideoTag(unsigned int size,unsigned int timestamp,char* data,bool iskeyframe = false,bool isconfig = false,short dts = 0);
 	void WriteFlvAudioTag(unsigned int size,unsigned int timestamp,char* data,bool isconfig = false);

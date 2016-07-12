@@ -3801,12 +3801,12 @@ bool CTransWorkerSeperate::ParseSetting()
 				}
 			}
 
-			for (i = 0; i<pStreamPref->GetMuxerCount(); ++i) {
-				CXMLPref* muxerPref = pStreamPref->GetMuxerPrefs(i);
-				if(muxerPref) {
-					muxerPref->SetInt("overall.container.muxer", MUX_DUMMY);
-				}
+			/*for (i = 0; i<pStreamPref->GetMuxerCount(); ++i) {
+			CXMLPref* muxerPref = pStreamPref->GetMuxerPrefs(i);
+			if(muxerPref) {
+			muxerPref->SetInt("overall.container.muxer", MUX_DUMMY);
 			}
+			}*/
 		}
 		
 		// Get cores number

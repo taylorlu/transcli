@@ -39,7 +39,7 @@ bool FileMixer::Parse264File(const char* file )
 	return ret;
 }
 
-bool FileMixer::WriteOutPutFile(const char* file)
+bool FileMixer::WriteOutPutFile(const char* file, bool vflag, bool aflag)
 {
 	//unsigned long long t = time(0);
 	if (!file) {
@@ -51,14 +51,21 @@ bool FileMixer::WriteOutPutFile(const char* file)
 		return false;
 	}
 
-	if (mVParser.Size() < 1 || m_pAParser->Size() < 1) {
-		return false;
-	}
+	//if (mVParser.Size() < 1 || m_pAParser->Size() < 1) {
+	//	return false;
+	//}
 	
-	mVideoDuration = mVParser.GetPTSByIndex(mVParser.Size() - 1);
-	mVideoDuration += mVParser.GetPTSByIndex(1);
-	mAudioDuration = m_pAParser->GetPTSByIndex(m_pAParser->Size() - 1);
-	mAudioDuration += m_pAParser->GetPTSByIndex(1);
+	if (vflag)
+	{
+		mVideoDuration = mVParser.GetPTSByIndex(mVParser.Size() - 1);
+		mVideoDuration += mVParser.GetPTSByIndex(1);
+	}
+
+	if (aflag)
+	{
+		mAudioDuration = m_pAParser->GetPTSByIndex(m_pAParser->Size() - 1);
+		mAudioDuration += m_pAParser->GetPTSByIndex(1);
+	}
 
 	bool ret = true;
 
@@ -69,7 +76,7 @@ bool FileMixer::WriteOutPutFile(const char* file)
 	switch(mOutputType)
 	{
 	case OUTPUT_TYPE_FLV:
-		ret = WriteFileFlv();
+		ret = WriteFileFlv(vflag, aflag);
 		break;
 	case OUTPUT_TYPE_MP4:
 		ret = WriteFileMp4();
@@ -84,11 +91,22 @@ bool FileMixer::WriteOutPutFile(const char* file)
 	return ret;
 }
 
-bool FileMixer::WriteFileFlv()
+bool FileMixer::WriteFileFlv(bool vflag, bool aflag)
 {
-	char* vconfig = mVParser.GetConfig();
-	uint8_t* aconfig = m_pAParser->GetConfig();
-	if(!vconfig || !aconfig) {
+	char* vconfig = NULL;
+	uint8_t* aconfig = NULL;
+
+	if (vflag)
+	{
+		vconfig = mVParser.GetConfig();
+	}
+
+	if (aflag)
+	{
+	   aconfig = m_pAParser->GetConfig();
+	}
+
+	if(!vconfig && !aconfig) {
 		return false;
 	}
 
@@ -100,15 +118,23 @@ bool FileMixer::WriteFileFlv()
 	WriteFlvMeta();
 
 	//video config
-	WriteFlvVideoTag(mVParser.GetConfigLength(),0,vconfig,true,true);
-	delete[] vconfig;
+	if ( vflag )
+	{	
+		WriteFlvVideoTag(mVParser.GetConfigLength(),0,vconfig,true,true);
+	    delete[] vconfig;
+	}
+
 	
 	//audio config
-	WriteFlvAudioTag(m_pAParser->GetConfigLength(),0,(char*)aconfig,true);
-	delete[] aconfig;
+	if ( aflag )
+	{
+		WriteFlvAudioTag(m_pAParser->GetConfigLength(),0,(char*)aconfig,true);
+	    delete[] aconfig;
+	}
+
 
 	//audio & video data
-	WriteFlvData();
+	WriteFlvData(vflag, aflag);
 
 	mFileLength = mFile.Tell();
 	mBitRate = mFileLength / mDuration / 1000 * 8; 
@@ -238,7 +264,7 @@ void FileMixer::WriteFlvAudioTag(unsigned int size,unsigned int timestamp,char* 
 	mFile.Write32(size + 13);
 }
 
-void FileMixer::WriteFlvData()
+void FileMixer::WriteFlvData(bool vflag, bool aflag)
 {
 	unsigned int videoindex = 0;
 	unsigned int audioindex = 0;
@@ -250,9 +276,21 @@ void FileMixer::WriteFlvData()
 
 	char *data = new char[1024 * 1024];
 
-	while(videoindex < mVParser.Size() || audioindex < m_pAParser->Size())
+	uint64_t VideoHeadIndexs = 0;
+	uint64_t AudioHeadIndexs = 0;
+	if (vflag)
 	{
-		if (videoindex >= mVParser.Size())//video over write audio
+        VideoHeadIndexs = mVParser.Size();
+	}
+
+	if (aflag)
+	{
+		AudioHeadIndexs = m_pAParser->Size();
+	}
+
+	while(videoindex < VideoHeadIndexs || audioindex < AudioHeadIndexs)
+	{
+		if (videoindex >= VideoHeadIndexs && aflag)//video over write audio
 		{
 			unsigned int size = 1024 * 1024;
 			bool ret = m_pAParser->GetDataByIndex(audioindex,data,size);
@@ -267,7 +305,7 @@ void FileMixer::WriteFlvData()
 		}
 		else
 		{
-			if (audioindex >= m_pAParser->Size())//audio over write video
+			if (audioindex >= AudioHeadIndexs && vflag)//audio over write video
 			{
 				unsigned int size = 1024 * 1024;
 				bool ret = mVParser.GetDataByIndex(videoindex,data,size);
@@ -290,7 +328,7 @@ void FileMixer::WriteFlvData()
 			}
 			else
 			{
-				if (audiopts > videopts)//write video
+				if (audiopts > videopts && vflag)//write video
 				{
 					unsigned int size = 1024 * 1024;
 					bool ret = mVParser.GetDataByIndex(videoindex,data,size);
@@ -311,7 +349,7 @@ void FileMixer::WriteFlvData()
 					videoindex ++;
 					videopts = mVParser.GetPTSByIndex(videoindex);
 				}
-				else//write audio
+				else if (aflag)	//write audio
 				{
 					unsigned int size = 1024 * 1024;
 					bool ret = m_pAParser->GetDataByIndex(audioindex,data,size);

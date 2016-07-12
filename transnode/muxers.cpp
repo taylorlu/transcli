@@ -1348,9 +1348,9 @@ public:
 			CFileQueue::queue_item_t* audioItem = m_pFileQueue->GetFirst(ST_AUDIO);
 			CFileQueue::queue_item_t* videoItem = m_pFileQueue->GetFirst(ST_VIDEO); 			
 
-			if(audioItem && videoItem) {
+			if(audioItem || videoItem) {
 				FileMixer mixer(OUTPUT_TYPE_FLV);
-				if(!mixer.Parse264File(videoItem->fileName.c_str())) {
+				if(videoItem && !mixer.Parse264File(videoItem->fileName.c_str())) {
 					logger_err(LOGM_TS_MUX, "Parse 264 file failed.\n");
 					break;
 				}
@@ -1365,14 +1365,14 @@ public:
 				} else
 #endif*/
 				{
-					if(!mixer.ParseAACFile(audioItem->fileName.c_str())) {
+					if(audioItem && !mixer.ParseAACFile(audioItem->fileName.c_str())) {
 						logger_err(LOGM_TS_MUX, "Parse aac file failed.\n");
 						break;
 					}
 				}
 
 				const char* destFile = m_pFileQueue->GetCurDestFile();
-				if(!mixer.WriteOutPutFile(destFile)) {
+				if(!mixer.WriteOutPutFile(destFile, !!videoItem,!!audioItem)) {
 					logger_err(LOGM_TS_MUX, "Write flv file failed.\n");
 					break;
 				}
@@ -1407,7 +1407,7 @@ public:
 			CFileQueue::queue_item_t* audioItem = m_pFileQueue->GetFirst(ST_AUDIO);
 			CFileQueue::queue_item_t* videoItem = m_pFileQueue->GetFirst(ST_VIDEO); 			
 
-			if(audioItem && videoItem) {
+			if(audioItem || videoItem) {
 				FileMixer mixer(OUTPUT_TYPE_MP4);
 				if(!mixer.Parse264File(videoItem->fileName.c_str())) {
 					logger_err(LOGM_TS_MUX, "Parse 264 file failed.\n");
@@ -1426,7 +1426,7 @@ public:
 				}
 
 				const char* destFile = m_pFileQueue->GetCurDestFile();
-				if(!mixer.WriteOutPutFile(destFile)) {
+				if(!mixer.WriteOutPutFile(destFile, !!videoItem,!!audioItem)) {
 					logger_err(LOGM_TS_MUX, "Write mp4 file failed.\n");
 					break;
 				}
