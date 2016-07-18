@@ -516,6 +516,7 @@ typedef enum {
 	EC_INVALID_CLIP_PARAM = 38,			// Clip param is invalid
 	EC_DUR_LESS_THAN_ONE_SEC = 39,		// Duration is less than 1 second
 	EC_NO_VIDEO_TRACK = 40,				// No video track
+	EC_NO_AUDIO_TRACK = 41,				// No video track
 } error_code_t;
 
 typedef enum {

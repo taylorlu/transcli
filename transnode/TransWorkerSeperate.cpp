@@ -191,7 +191,7 @@ bool CTransWorkerSeperate::setVideoPref(CXMLPref* prefs)
 	} else {
 		m_bEnableVideoEncode = true;
 	}
-	
+
 	int filterType = prefs->GetInt("videofilter.generic.applicator");
 	if(filterType < 0) filterType = 0;
 	vf_type_t vfType = (vf_type_t)(filterType);
@@ -3379,38 +3379,27 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVi
 	if(!initSrcAudioAttrib(mediaInfo)) return false;
 	if(!initSrcVideoAttrib(mediaInfo)) return false;
 	
-	bool b_audio = false;
-	if ( mediaInfo->getChildNodeValue("container") && (
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "mp3") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "mp2") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "mp1") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "wma") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "wav") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "aac") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "ogg") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "ra")  || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "rma") || 
-		!_stricmp(mediaInfo->getChildNodeValue("container"), "ac3") )
-		)
-	{
-	    b_audio = true;
-	}
-	
-	if((!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
-		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) && !b_audio) {
-			logger_err(m_logType, "Invalid video attribute, clean up all video encoder!\n");
-			hasVideo = false;
-			if(!errIgnored(EC_NO_VIDEO_TRACK)) {
-				SetErrorCode(EC_NO_VIDEO_TRACK);
-				return false;
-			}
+	//char printstring[100];
+
+	if(!m_srcVideoAttrib || (m_srcVideoAttrib->id < 0 && m_srcVideoAttrib->width <= 0 && 
+		m_srcVideoAttrib->duration <= 0 && m_srcVideoAttrib->bitrate <= 0)) {
+			//logger_err(m_logType, "Invalid video attribute, clean up all video encoder!\n");
+				//sprintf(printstring, "Invalid video attribute, error code : %d !\n", EC_NO_VIDEO_TRACK);
+				//logger_warn(m_logType, printstring);
+				hasVideo = false;
+
+			//if(!errIgnored(EC_NO_VIDEO_TRACK)) {
+			//	SetErrorCode(EC_NO_VIDEO_TRACK);
+			//	return false;
+			//}
 	}
 
 	attr_audio_t* audioAttrib = NULL;
 	if(!m_srcAudioAttribs.empty()) audioAttrib = m_srcAudioAttribs[0];
-	if(!audioAttrib || (audioAttrib->id < 0 && audioAttrib->duration <= 0 && 
-		audioAttrib->samplerate <= 0 && audioAttrib->channels <= 0 && audioAttrib->bitrate <= 0)) {
-			logger_err(m_logType, "Invalid Audio Attrib, Clean up all audio encoder!\n");
+	if(!audioAttrib || (audioAttrib->id < 0 && audioAttrib->duration <= 0 && audioAttrib->bitrate <= 0)) {
+			//logger_err(m_logType, "Invalid Audio Attrib, Clean up all audio encoder!\n");
+			//sprintf(printstring, "Invalid audio attribute, error code : %d !\n", EC_NO_AUDIO_TRACK);
+			//logger_warn(m_logType, printstring);
 			hasAudio = false;
 	}
 
@@ -3428,7 +3417,7 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVi
 			}
 	}
 
-	if(!hasAudio && !hasVideo && !b_audio) return false;
+	//if(!hasAudio && !hasVideo ) return false;
 	return true;
 }
 
@@ -3687,6 +3676,14 @@ bool CTransWorkerSeperate::ParseSetting()
 			CWorkManager::GetInstance()->SetIgnoreErrorCode(ignoreErrIdx);
 		}
 
+// 		if(pTaskPref != NULL)
+// 		{
+// 			m_srcVideoAttrib->has_video = m_bEnableVideoEncode;
+// 
+// 			if(!m_srcAudioAttribs.empty()) 
+// 				m_srcAudioAttribs[0]->has_audio = m_bEnableAudioEncode;
+// 		}  
+
 		bool hasAudio = true;
 		bool hasVideo = true;
 		if(!initAVSrcAttrib(pMediaPref, hasVideo, hasAudio)) {
@@ -3720,34 +3717,32 @@ bool CTransWorkerSeperate::ParseSetting()
 				}
 			}
 		}
+		else //no audio
+		{
+			for(i = 0; i < pStreamPref->GetAudioCount(); ++i) {
+				CXMLPref* audioPref = pStreamPref->GetAudioPrefs(i);
+
+               if(audioPref && audioPref->GetBoolean("overall.audio.enabled"))
+			   {
+			       char printstring[100];
+				   sprintf(printstring, "No audio channel, error code : %d !\n", EC_NO_AUDIO_TRACK);
+				   logger_warn(m_logType, printstring);
+			   }
+
+				audioPref->SetBoolean("overall.audio.enabled",false);
+				audioPref->SetBoolean("overall.audio.encode",false);	        
+
+				if(!this->setAudioPref(audioPref)) {
+					FAIL_INFO("Set audio pref failed.\n");
+				}
+			}
+		}
 		
 		// If video format is FLV/H263P, use ffmpeg to mux
 		bool isFFMPEGVideo = false;
 		if(hasVideo) {
 			for(i = 0; i < pStreamPref->GetVideoCount(); ++i) {
 				CXMLPref* videoPref = pStreamPref->GetVideoPrefs(i);
-				
-				// if audio container, audio compressed to audio and video just give warning
-				// if media container only include audio, it compressed to audio and video will give error. This means default.
-				//printf("\n %s \n", pMediaPref->getChildNodeValue("container"));
-				if (pMediaPref->getChildNodeValue("container") && (
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "mp3") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "mp2") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "mp1") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "wma") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "wav") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "aac") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "ogg") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "ra")  || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "rma") || 
-					!_stricmp(pMediaPref->getChildNodeValue("container"), "ac3") ) 
-					)
-				{
-					videoPref->SetBoolean("overall.video.enabled",false);
-					videoPref->SetBoolean("overall.video.encode",false);
-					logger_info(LOGM_GLOBAL, "\n %s audio container compressed to audio and video just give warning\n", pMediaPref->getChildNodeValue("container"));
-					continue;
-				}
 				
 				//videoPref->Dump(&tmpStr);
 				video_format_t  encFormat = (video_format_t)videoPref->GetInt("overall.video.format");
@@ -3787,13 +3782,31 @@ bool CTransWorkerSeperate::ParseSetting()
 					FAIL_INFO("Set video pref failed.\n");
 				}
 			}
-		} else {
-			for (i = 0; i<pStreamPref->GetMuxerCount(); ++i) {
-				CXMLPref* muxerPref = pStreamPref->GetMuxerPrefs(i);
-				if(muxerPref) {
-					muxerPref->SetInt("overall.container.muxer", MUX_DUMMY);
+		} else { //no video
+			for(i = 0; i < pStreamPref->GetVideoCount(); ++i) {
+				CXMLPref* videoPref = pStreamPref->GetVideoPrefs(i);
+
+				if(videoPref && videoPref->GetBoolean("overall.video.enabled"))
+				{
+					char printstring[100];
+					sprintf(printstring, "No video channel, error code : %d !\n", EC_NO_VIDEO_TRACK);
+					logger_warn(m_logType, printstring);
+				}
+
+				videoPref->SetBoolean("overall.video.enabled",false);
+				videoPref->SetBoolean("overall.video.encode",false);
+
+				if(!this->setVideoPref(videoPref)) {
+					FAIL_INFO("Set video pref failed.\n");
 				}
 			}
+
+			/*for (i = 0; i<pStreamPref->GetMuxerCount(); ++i) {
+			CXMLPref* muxerPref = pStreamPref->GetMuxerPrefs(i);
+			if(muxerPref) {
+			muxerPref->SetInt("overall.container.muxer", MUX_DUMMY);
+			}
+			}*/
 		}
 		
 		// Get cores number
