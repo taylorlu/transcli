@@ -980,7 +980,11 @@ bool CTransWorker::processLosslessClip()
 		cmdStr += m_streamFiles.GetStreamFileName(ST_MUXER, MUX_MP4, i);
 		cmdStr += "\"";
 		CProcessWrapper* splitter = new CProcessWrapper;
+#ifdef _WIN32
 		splitter->Create(cmdStr.c_str());
+#else
+		splitter->Run(cmdStr.c_str());
+#endif
 		spliters.push_back(splitter);
 	}
 
