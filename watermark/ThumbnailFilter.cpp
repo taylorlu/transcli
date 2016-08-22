@@ -171,7 +171,6 @@ bool CThumbnailFilter::GenerateThumbnail(uint8_t *pYuvBuf)
 	// Generate thumb image
 	CImg<uint8_t>* img = new CImg<uint8_t>(m_yuvW, m_yuvH, 1, 3);
 	if(!img) return false;
-
 	convertYUV2RGB(pYuvBuf, img->data());
 	// Use video dar to fix image distortion
 	if(!FloatEqual(m_dar, (float)m_yuvW/(float)m_yuvH, 0.06f)) {	//if dar is not equal to w/h
@@ -504,29 +503,19 @@ void CThumbnailFilter::convertYUV2RGB(uint8_t* pYuvBuf, uint8_t* dstRGB)
 	for (j = 0; j < m_yuvH; j += 2) { 
 		int counterInRow = j*m_yuvW; 
 		int counterInNextRow = counterInRow + m_yuvW;
-		for (i = 0; i < m_yuvW; i += 4) {
+		for (i = 0; i < m_yuvW; i += 2) {
 			u = *pu++;
 			v = *pv++;
 			c11 = crv_tab[v];
 			c21 = cgu_tab[u];
 			c31 = cgv_tab[v];
 			c41 = cbu_tab[u];
-			u = *pu++;
-			v = *pv++;
-			c12 = crv_tab[v];
-			c22 = cgu_tab[u];
-			c32 = cgv_tab[v];
-			c42 = cbu_tab[u];
 
 			y11 = tab_76309[*py1++]; // (255/219)*65536 
 			y12 = tab_76309[*py1++];
-			y13 = tab_76309[*py1++]; // (255/219)*65536 
-			y14 = tab_76309[*py1++];
 
 			y21 = tab_76309[*py2++];
 			y22 = tab_76309[*py2++];
-			y23 = tab_76309[*py2++];
-			y24 = tab_76309[*py2++];
 
 			// Column 1
 			*(dstR+counterInRow)		= clp[384+((y11 + c41)>>16)];	
@@ -551,44 +540,16 @@ void CThumbnailFilter::convertYUV2RGB(uint8_t* pYuvBuf, uint8_t* dstRGB)
 
 			*(dstB+counterInRow)		= clp[384+((y12 + c11)>>16)];
 			*(dstB+counterInNextRow)	= clp[384+((y22 + c11)>>16)];
-			
-			counterInRow++;
-			counterInNextRow++;
-			if(counterInRow == j*m_yuvW+m_yuvW) continue;
-
-			// Column 3
-			*(dstR+counterInRow)		= clp[384+((y13 + c42)>>16)];
-			*(dstR+counterInNextRow)	= clp[384+((y23 + c42)>>16)];
-
-			*(dstG+counterInRow)		= clp[384+((y13 - c22 - c32)>>16)];
-			*(dstG+counterInNextRow)	= clp[384+((y23 - c22 - c32)>>16)];
-
-			*(dstB+counterInRow)		= clp[384+((y13 + c12)>>16)];
-			*(dstB+counterInNextRow)	= clp[384+((y23 + c12)>>16)];
-			
-			counterInRow++;
-			counterInNextRow++;
-			if(counterInRow == j*m_yuvW+m_yuvW) continue;
-
-			// Column 4
-			*(dstR+counterInRow)		= clp[384+((y14 + c42)>>16)];
-			*(dstR+counterInNextRow)	= clp[384+((y24 + c42)>>16)];
-
-			*(dstG+counterInRow)		= clp[384+((y14 - c22 - c32)>>16)];
-			*(dstG+counterInNextRow)	= clp[384+((y24 - c22 - c32)>>16)];
-
-			*(dstB+counterInRow)		= clp[384+((y14 + c12)>>16)];
-			*(dstB+counterInNextRow)	= clp[384+((y24 + c12)>>16)];
 
 			counterInRow++;
 			counterInNextRow++;
-			//if(counterInRow == j*m_yuvW+m_yuvW) continue;
+
 		}
 		
 		py1 += m_yuvW;
 		py2 += m_yuvW;
 	}
-} 
+}
 
 std::string CThumbnailFilter::getThumbFileName(int w, int h)
 {
