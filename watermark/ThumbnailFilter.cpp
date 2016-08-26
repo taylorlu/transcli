@@ -179,7 +179,7 @@ bool CThumbnailFilter::GenerateThumbnail(uint8_t *pYuvBuf)
 		img->resize(tmpW, -100, -100, -100, 6, 2);	// Lancros resize(may be enlarge here)
 	}
 
-	if(m_bStitching && m_thumbCount > 1) {
+	if(m_bStitching && m_thumbCount > 0) {
 		fixImageSizeAccordingCropMode(img, m_thumbW, m_thumbH);
 		m_imgList.push_back(img);
 	} else {
@@ -555,7 +555,7 @@ std::string CThumbnailFilter::getThumbFileName(int w, int h)
 {
 	std::string thumbFile = m_folder + PATH_DELIMITER + m_prefixName + m_postfixName;
 	// If enable pack image into ipk file, ensure every output image's name is different
-	if((m_thumbCount > 1 && !m_bStitching) || m_enablePackImage) {
+	if((m_thumbCount > 0 && !m_bStitching) || m_enablePackImage) {
 		thumbFile += '_';
 		char indexStr[12] = {0};
 		_itoa(m_thumbIndex, indexStr, 10);
