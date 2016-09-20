@@ -2005,7 +2005,7 @@ bool CCliHelperPPLive::AdjustPreset(const char *inMediaFile, const char *outDir,
 				timed_rect_t& curLogo = logoConfig.log_pos[i];
 				sprintf(timePos, "%d,%d,%f,%f,%f,%f", curLogo.startTime, 
 					curLogo.endTime, curLogo.rect.left, curLogo.rect.top,
-					curLogo.rect.right-curLogo.rect.left, curLogo.rect.bottom-curLogo.rect.top);
+					curLogo.rect.right, curLogo.rect.bottom);
 				prefs.SetStreamPref(posKey, timePos, STVIDEO);
 			}
 		}

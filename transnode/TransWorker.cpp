@@ -22,6 +22,10 @@
 #include "WorkManager.h"
 #include "PlaylistGenerator.h"
 #include "pptv_level.h"
+#define cimg_use_jpeg
+#define cimg_use_png
+#define cimg_display 0
+#include "cimg/CImg.h"
 
 #define SAFESTRING(str) ((str)?(str):("")) 
 
@@ -856,6 +860,15 @@ void CTransWorker::normalizeLogoTimeRect(CVideoEncoder* pVideoEnc)
 			expandX = pPref->GetInt("videofilter.expand.x");
 			expandY = pPref->GetInt("videofilter.expand.y");
 		}
+		char* imageFile = (char *)pPref->GetString("videofilter.overlay.image");
+		std::vector<std::string> vctFiles;
+		char *token = strtok(imageFile, "|");
+		while(token!=NULL) {
+			char *imgPath = token;
+			std::string tmp = imgPath;
+			vctFiles.push_back(tmp);
+			token = strtok(NULL, "|");
+		}
 		const int maxLogoNum = 4;
 		for (int i=1; i<=maxLogoNum; ++i) {
 			char posKey[32] = {0};
@@ -873,8 +886,17 @@ void CTransWorker::normalizeLogoTimeRect(CVideoEncoder* pVideoEnc)
 					vctVal[3] /= srcH;
 					vctVal[4] /= srcW;
 					vctVal[5] /= srcH;
-				} 
-
+				}
+				if(vctVal[2]==-1&&vctVal[5]==-1) {
+					cimg_library::CImg<uint8_t>* img = new cimg_library::CImg<uint8_t>(vctFiles[i-1].c_str());
+					vctVal[2] = vctVal[4]-img->width()/(float)dstW;
+					vctVal[5] = img->height()/(float)dstH;
+					vctVal[4] = img->width()/(float)dstW;
+				}
+				else{
+					vctVal[4] = vctVal[4]-vctVal[2];
+					vctVal[5] = vctVal[5]-vctVal[3];
+				}
 				if(cropW > 0 && cropH >0) {
 					float relativeCropx = (float)cropX/srcW;
 					float relativeCropy = (float)cropY/srcH;
