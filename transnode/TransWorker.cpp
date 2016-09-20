@@ -889,7 +889,7 @@ void CTransWorker::normalizeLogoTimeRect(CVideoEncoder* pVideoEnc)
 				}
 				if(vctVal[2]==-1&&vctVal[5]==-1) {
 					cimg_library::CImg<uint8_t>* img = new cimg_library::CImg<uint8_t>(vctFiles[i-1].c_str());
-					vctVal[2] = 1-vctVal[4]-img->width()/(float)dstW;
+					vctVal[2] = vctVal[4]-img->width()/(float)dstW;
 					vctVal[5] = img->height()/(float)dstH;
 					vctVal[4] = img->width()/(float)dstW;
 				}
