@@ -139,7 +139,7 @@ bool FileMixer::WriteFileFlv(bool vflag, bool aflag)
 	mFileLength = mFile.Tell();
 	mBitRate = mFileLength / mDuration / 1000 * 8; 
 	WriteFlvMeta();
-
+	WriteFlvEnd();
 	return !mFile.Error();
 }
 
@@ -150,6 +150,31 @@ void FileMixer::WriteFlvHead()
 	mFile.Write8(5);
 	mFile.Write32(9);
 	mFile.Write32(0);
+}
+
+void FileMixer::WriteFlvEnd()
+{
+	mFile.Write8(9);
+	mFile.Write8(0);
+	mFile.Write8(0);
+	mFile.Write8(5);
+	mFile.Write8(0);
+	mFile.Write8(58);
+	mFile.Write8(218);
+	mFile.Write8(0);
+	mFile.Write8(0);
+	mFile.Write8(0);
+
+	mFile.Write8(0);
+	mFile.Write8(23);
+	mFile.Write8(2);
+	mFile.Write8(0);
+	mFile.Write8(0);
+	mFile.Write8(0);
+	mFile.Write8(0);
+	mFile.Write8(0);
+	mFile.Write8(0);
+	mFile.Write8(16);
 }
 
 void FileMixer::WriteFlvMeta()

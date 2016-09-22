@@ -67,6 +67,7 @@ private:
 	void WriteFlvHead();
 	void WriteFlvMeta();
 	void WriteFlvData(bool vflag, bool aflag);
+	void WriteFlvEnd();
 
 	void WriteFlvVideoTag(unsigned int size,unsigned int timestamp,char* data,bool iskeyframe = false,bool isconfig = false,short dts = 0);
 	void WriteFlvAudioTag(unsigned int size,unsigned int timestamp,char* data,bool isconfig = false);
