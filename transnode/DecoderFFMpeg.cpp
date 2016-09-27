@@ -263,7 +263,7 @@ std::string CDecoderFFMpeg::GetCmdString(const char* mediaFile)
                 videoFilterStr.erase(videoFilterStr.end()-1);
 			}
 			if(subOption == 2) {
-				cmd << " -filter_complex \"" << videoFilterStr << "\""; // -fix_sub_duration";
+				cmd << " -filter_complex \"" << videoFilterStr << "\" -map \"[v]\""; // -fix_sub_duration";
 			} else {
 				cmd << " -filter:v " << videoFilterStr;
 			}
