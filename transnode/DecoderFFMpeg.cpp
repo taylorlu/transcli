@@ -375,9 +375,13 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 		switch (m_pVideoPref->GetInt("videofilter.deint.mode")) {
 		// 0/non auto; 1 enable; 2 disable
 		case 0:
+			if (m_pVInfo->interlaced != VID_PROGRESSIVE) {
+				needDeint = true; 
+			}
+			break;  
 		case 1:
-			   needDeint = true; 
-			   break;  
+			needDeint = true; 
+			break;  
 		}
 
 		if(m_pVideoPref->GetBoolean("overall.task.interlace")) {
