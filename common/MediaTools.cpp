@@ -124,10 +124,10 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	}
 
 	std::string strResult;
-	std::string cmdStr = FFPROBE" -analyzeduration 500000000 -probesize 500000000 -i \"";
+	std::string cmdStr = FFPROBE" -read_intervals %10 -i \"";
 	cmdStr += mediaPath;
 	//cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
-	cmdStr += "\" -of xml -show_streams -show_format -v quiet";//gjz-new ffprobe can't recognize 'detect_inter_frames'
+	cmdStr += "\" -of xml -show_streams -show_format -show_interlace -v quiet";//gjz-new ffprobe can't recognize 'detect_inter_frames'
 	cmdStr += " -show_entries format=duration,size,bit_rate,format_name,probe_score:format_tags=encoder,metadatacreator:stream_tags=language,rotate";
 //#ifdef DEBUG_EXTERNAL_CMD
 	printf("%s\n", cmdStr.c_str());
