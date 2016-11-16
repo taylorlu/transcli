@@ -3407,14 +3407,16 @@ bool CTransWorkerSeperate::initAVSrcAttrib(StrPro::CXML2* mediaInfo, bool& hasVi
 	int ignoreErrIdx = -1;
 	ignoreErrIdx = CWorkManager::GetInstance()->GetIgnoreErrorCode();
 
-	// Check a/v duration
-	if((ignoreErrIdx == 0 || ignoreErrIdx == 1) &&
-		m_srcVideoAttrib->duration > 0.001f && audioAttrib->duration > 0.001f) {
-			if(fabs((double)m_srcVideoAttrib->duration - (double)audioAttrib->duration) > 60000) { //60s
-				SetErrorCode(EC_AV_DURATION_BIG_DIFF);
-				logger_err(m_logType, "A/V duration differs more than 60s.\n");
-				return false;
-			}
+	if(!m_srcVideoAttrib&&!audioAttrib) {
+		// Check a/v duration
+		if((ignoreErrIdx == 0 || ignoreErrIdx == 1) &&
+			m_srcVideoAttrib->duration > 0.001f && audioAttrib->duration > 0.001f) {
+				if(fabs((double)m_srcVideoAttrib->duration - (double)audioAttrib->duration) > 60000) { //60s
+					SetErrorCode(EC_AV_DURATION_BIG_DIFF);
+					logger_err(m_logType, "A/V duration differs more than 60s.\n");
+					return false;
+				}
+		}
 	}
 
 	//if(!hasAudio && !hasVideo ) return false;
