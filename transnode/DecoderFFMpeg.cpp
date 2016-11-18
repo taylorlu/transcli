@@ -387,7 +387,13 @@ std::string CDecoderFFMpeg::GenVideoFilterOptions(int subType)
 		if(m_pVideoPref->GetBoolean("overall.task.interlace")) {
 			needDeint = false;
 		}
-
+		if(needDeint){
+			logger_info(LOGM_PROCWRAP, "Do deinterlace process.\r\n");
+		}
+		else {
+			logger_info(LOGM_PROCWRAP, "Without deinterlace process.\r\n");
+		}
+		
 		if (needDeint) {
 			const char* tinterlace = m_pVideoPref->GetString("videosrc.ffmpeg.tinterlace");
 			if(tinterlace && *tinterlace) {
