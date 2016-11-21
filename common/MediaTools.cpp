@@ -124,7 +124,7 @@ static std::string GetMediaInfoXML(const char *mediaPath)
 	}
 
 	std::string strResult;
-	std::string cmdStr = FFPROBE" -read_intervals %10 -i \"";
+	std::string cmdStr = FFPROBE" -read_intervals %+#3000 -i \"";
 	cmdStr += mediaPath;
 	//cmdStr += "\" -of xml -show_streams -show_format -detect_inter_frames 4 -v quiet";
 	cmdStr += "\" -of xml -show_streams -show_format -show_interlace -v quiet";//gjz-new ffprobe can't recognize 'detect_inter_frames'
