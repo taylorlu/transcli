@@ -360,7 +360,7 @@ std::string CDecoderFFMpeg::GenAudioFilterOptions()
 
 	float volGain = m_pAudioPref->GetFloat("audiofilter.volume.gain");
 	volGain += m_pAInfo->volGain;
-	if (volGain > 0.9f || volGain < -0.9f) {
+	if ((volGain > 0.9f && volGain < 60) || (volGain < -0.9f && volGain > -60)) {
 		opts << "volume=" << volGain << "dB,";
 	}
 
