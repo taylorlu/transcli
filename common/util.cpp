@@ -19,7 +19,7 @@
 #include <sys/statvfs.h>
 #define _abs64 llabs
 #define _stat64 stat
-#define max(x,y) ((x)>(y)?(x):(y))
+// #define max(x,y) ((x)>(y)?(x):(y))
 #else
 #include <direct.h>
 #endif

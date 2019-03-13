@@ -372,7 +372,7 @@ const char* MEvaluater::GetPresetKeyValue(CXML2* prefSetXml, const char *key)
 {
 	if (!prefSetXml || !key)
 	{
-		return false;
+		return 0;
 	}
 	prefSetXml->goRoot();
 	if(prefSetXml->findChildNode("node", "key", key))
